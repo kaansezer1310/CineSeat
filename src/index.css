@@ -1,0 +1,76 @@
+:root {
+  --color-background: #0c0912;
+  --color-background-soft: #14101c;
+  --color-surface: #1b1425;
+  --color-surface-light: #241a30;
+
+  --color-purple: #8765a3;
+  --color-purple-light: #a181ba;
+
+  --color-yellow: #d0ac59;
+  --color-yellow-hover: #ddbd70;
+
+  --color-text: #f2edf5;
+  --color-text-muted: #aaa0b4;
+
+  --color-border: rgba(190, 164, 207, 0.14);
+  --color-border-strong: rgba(190, 164, 207, 0.25);
+
+  --color-success: #71947c;
+
+  --font-ui: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(92, 62, 122, 0.24) 0%,
+      transparent 42%
+    ),
+    var(--color-background);
+
+  color: var(--color-text);
+
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  border: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
