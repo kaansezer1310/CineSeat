@@ -7,12 +7,13 @@ import {
 } from "react-router-dom";
 
 import SeatMap from "../components/seats/SeatMap.jsx";
+import { SEAT_STATUS, isSeatSelectable } from "../domain/seatStatus.js";
 import movieService from "../services/movieService.js";
 import seatService from "../services/seatService.js";
 import sessionService from "../services/sessionService.js";
 import useCart from "../hooks/useCart.js";
 
-const emptyReservedSeats = [];
+const emptySeatStatuses = {};
 
 function BookingPage() {
     const { sessionId } = useParams();
@@ -58,8 +59,13 @@ function BookingPage() {
         staleTime: 5 * 60 * 1000,
     });
 
+    // Koltukların yalnızca DOLU/GECICI_KILITLI (BOS dışındaki) durumları
+    // servisten gelir; SECILI, aşağıda yerel `selectedSeats` seçimiyle
+    // türetilir (bkz. `SeatMap`/`resolveDisplaySeatStatus`). Query key
+    // önceki sürümle aynı tutulur çünkü `CartPage`, rezervasyon başarılı
+    // olduğunda bu anahtarı geçersizleştirir (invalidate).
     const {
-        data: reservedSeatsData,
+        data: seatStatusesData,
         isLoading: areSeatsLoading,
         isFetching: areSeatsFetching,
         error: seatsError,
@@ -67,43 +73,49 @@ function BookingPage() {
     } = useQuery({
         queryKey: ["reservedSeats", numericSessionId],
         queryFn: () => {
-            return seatService.getReservedSeatsBySessionId(
+            return seatService.getSeatStatusesBySessionId(
                 numericSessionId
             );
         },
         staleTime: 10 * 1000,
     });
 
-    const reservedSeats =
-        reservedSeatsData ?? emptyReservedSeats;
+    const seatStatuses =
+        seatStatusesData ?? emptySeatStatuses;
 
     const [
-        previousReservedSeats,
-        setPreviousReservedSeats,
-    ] = useState(reservedSeats);
+        previousSeatStatuses,
+        setPreviousSeatStatuses,
+    ] = useState(seatStatuses);
 
-    if (reservedSeats !== previousReservedSeats) {
-        setPreviousReservedSeats(reservedSeats);
+    if (seatStatuses !== previousSeatStatuses) {
+        setPreviousSeatStatuses(seatStatuses);
 
-        const newlyReservedSeats = selectedSeats.filter(
+        const newlyUnavailableSeats = selectedSeats.filter(
             (seatId) => {
-                return reservedSeats.includes(seatId);
+                const storedStatus =
+                    seatStatuses[seatId] ?? SEAT_STATUS.BOS;
+
+                return !isSeatSelectable(storedStatus);
             }
         );
 
-        if (newlyReservedSeats.length === 0) {
+        if (newlyUnavailableSeats.length === 0) {
             setAvailabilityMessage("");
         } else {
             setSelectedSeats((currentSelectedSeats) => {
                 return currentSelectedSeats.filter((seatId) => {
-                    return !reservedSeats.includes(seatId);
+                    const storedStatus =
+                        seatStatuses[seatId] ?? SEAT_STATUS.BOS;
+
+                    return isSeatSelectable(storedStatus);
                 });
             });
 
             const seatDescription =
-                newlyReservedSeats.length === 1
-                    ? `${newlyReservedSeats[0]} numaralı koltuk`
-                    : `${newlyReservedSeats.join(", ")} numaralı koltuklar`;
+                newlyUnavailableSeats.length === 1
+                    ? `${newlyUnavailableSeats[0]} numaralı koltuk`
+                    : `${newlyUnavailableSeats.join(", ")} numaralı koltuklar`;
 
             setAvailabilityMessage(
                 `${seatDescription} artık müsait olmadığı için seçiminden çıkarıldı.`
@@ -112,6 +124,13 @@ function BookingPage() {
     }
 
     function handleSeatSelect(seatId) {
+        const storedStatus =
+            seatStatuses[seatId] ?? SEAT_STATUS.BOS;
+
+        if (!isSeatSelectable(storedStatus)) {
+            return;
+        }
+
         setAvailabilityMessage("");
 
         setSelectedSeats((currentSelectedSeats) => {
@@ -136,11 +155,24 @@ function BookingPage() {
     }
 
     function handleAddToCart() {
-        if (
-            !movie ||
-            !session ||
-            selectedSeats.length === 0
-        ) {
+        if (!movie || !session) {
+            return;
+        }
+
+        // Sepete eklenmeden hemen önce, seçim yapıldığından sonra
+        // müsaitliği değişmiş olabilecek koltuklar son bir kez elenir;
+        // servis tarafı zaten çakışmaları reddeder, ama arayüz de
+        // müsait olmayan bir koltuğu sepete taşımamalıdır.
+        const stillSelectableSeats = selectedSeats.filter(
+            (seatId) => {
+                const storedStatus =
+                    seatStatuses[seatId] ?? SEAT_STATUS.BOS;
+
+                return isSeatSelectable(storedStatus);
+            }
+        );
+
+        if (stillSelectableSeats.length === 0) {
             return;
         }
 
@@ -152,7 +184,7 @@ function BookingPage() {
             date: session.date,
             time: session.time,
             hallName: session.hallName,
-            seats: [...selectedSeats],
+            seats: stillSelectableSeats,
             unitPrice: session.price,
         };
 
@@ -246,7 +278,7 @@ function BookingPage() {
             <div className="booking-layout">
                 <SeatMap
                     totalSeats={session.totalSeats}
-                    reservedSeats={reservedSeats}
+                    seatStatuses={seatStatuses}
                     selectedSeats={selectedSeats}
                     onSeatSelect={handleSeatSelect}
                 />
