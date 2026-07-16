@@ -7,6 +7,12 @@ import BookingPage from "./pages/BookingPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import SuccessPage from "./pages/SuccessPage.jsx";
 
+import AdminLayout from "./components/admin/AdminLayout.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import AdminMoviesPage from "./pages/admin/AdminMoviesPage.jsx";
+import AdminMovieForm from "./pages/admin/AdminMovieForm.jsx";
+import CinemasPage from "./pages/CinemasPage.jsx";
+
 import "./App.css";
 
 function App() {
@@ -27,6 +33,14 @@ function App() {
 
         <Route path="/cart" element={<CartPage />} />
         <Route path="/success" element={<SuccessPage />} />
+        <Route path="/cinemas" element={<CinemasPage />} />
+      </Route>
+
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="movies" element={<AdminMoviesPage />} />
+        <Route path="movies/new" element={<AdminMovieForm />} />
+        <Route path="movies/:id" element={<AdminMovieForm />} />
       </Route>
     </Routes>
   );
