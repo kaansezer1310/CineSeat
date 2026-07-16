@@ -1,3 +1,9 @@
+import {
+  SEAT_STATUS,
+  SEAT_STATUS_LIST,
+  getSeatStatusLabel,
+  resolveDisplaySeatStatus,
+} from "../../domain/seatStatus.js";
 import Seat from "./Seat.jsx";
 
 function createSeatIds(totalSeats) {
@@ -26,9 +32,16 @@ function createSeatIds(totalSeats) {
   };
 }
 
+const SEAT_LEGEND_CLASS_NAMES = {
+  [SEAT_STATUS.BOS]: "seat-status-bos",
+  [SEAT_STATUS.SECILI]: "seat-status-secili",
+  [SEAT_STATUS.GECICI_KILITLI]: "seat-status-gecici-kilitli",
+  [SEAT_STATUS.DOLU]: "seat-status-dolu",
+};
+
 function SeatMap({
   totalSeats,
-  reservedSeats,
+  seatStatuses,
   selectedSeats,
   onSeatSelect,
 }) {
@@ -48,18 +61,22 @@ function SeatMap({
         }}
       >
         {seatIds.map((seatId) => {
-          const isReserved =
-            reservedSeats.includes(seatId);
+          const storedStatus =
+            seatStatuses[seatId] ?? SEAT_STATUS.BOS;
 
-          const isSelected =
+          const isSelectedLocally =
             selectedSeats.includes(seatId);
+
+          const status = resolveDisplaySeatStatus(
+            storedStatus,
+            isSelectedLocally
+          );
 
           return (
             <Seat
               key={seatId}
               seatId={seatId}
-              isReserved={isReserved}
-              isSelected={isSelected}
+              status={status}
               onSelect={onSeatSelect}
             />
           );
@@ -67,20 +84,16 @@ function SeatMap({
       </div>
 
       <div className="seat-legend">
-        <div>
-          <span className="legend-seat seat-available" />
-          Boş
-        </div>
-
-        <div>
-          <span className="legend-seat seat-selected" />
-          Seçili
-        </div>
-
-        <div>
-          <span className="legend-seat seat-reserved" />
-          Dolu
-        </div>
+        {SEAT_STATUS_LIST.map((status) => {
+          return (
+            <div key={status}>
+              <span
+                className={`legend-seat ${SEAT_LEGEND_CLASS_NAMES[status]}`}
+              />
+              {getSeatStatusLabel(status)}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

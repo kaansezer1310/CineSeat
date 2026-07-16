@@ -796,19 +796,54 @@
   color: var(--color-text);
 }
 
-.seat-selected {
+.seat:focus-visible {
+  outline: 2px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+
+.seat:disabled {
+  cursor: not-allowed;
+}
+
+/* BOS — seçilebilir, boş koltuk (varsayılan `.seat` görünümü). */
+.seat-status-bos {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-light);
+  color: var(--color-text-muted);
+}
+
+/* SECILI — mevcut kullanıcı tarafından seçilmiş, henüz onaylanmamış. */
+.seat-status-secili {
   border-color: var(--color-yellow);
   background: var(--color-yellow);
   color: #211a0b;
+  font-weight: 700;
 }
 
-.seat-reserved {
-  border-color: transparent;
-  background: #3e3843;
-  color: #77707c;
+/* GECICI_KILITLI — REQ-19 sayacı işleyen geçici kilit; renk körlüğüne karşı
+   rengin yanında çizgili desenle de ayrıştırılır. */
+.seat-status-gecici-kilitli {
+  border: 1px dashed var(--color-purple-light);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(135, 101, 163, 0.55) 0 6px,
+      rgba(135, 101, 163, 0.32) 6px 12px
+    );
+  color: var(--color-text);
 
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.85;
+}
+
+/* DOLU — ödemesi tamamlanmış, dolu koltuk. */
+.seat-status-dolu {
+  border-color: transparent;
+  background: #3e3843;
+  color: #cfc9d3;
+
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .seat-legend {
@@ -837,11 +872,6 @@
   height: 15px;
 
   border-radius: 4px;
-}
-
-.seat-available {
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-surface-light);
 }
 
 .booking-summary {
@@ -1324,4 +1354,54 @@
 
   font-size: 1.1rem;
   font-weight: 700;
+}
+
+.movie-tab-list {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background: var(--color-background-soft);
+}
+
+.movie-tab-button {
+  min-height: 36px;
+  padding: 0 18px;
+
+  border-radius: 7px;
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.movie-tab-button:hover {
+  color: var(--color-text);
+}
+
+.movie-tab-button-active,
+.movie-tab-button-active:hover {
+  background: var(--color-yellow);
+  color: #211a0b;
+}
+
+@media (max-width: 650px) {
+  .movie-tab-list {
+    width: 100%;
+  }
+
+  .movie-tab-button {
+    flex: 1;
+  }
 }

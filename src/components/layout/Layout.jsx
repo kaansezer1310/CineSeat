@@ -4,9 +4,11 @@ import {
 } from "react-router-dom";
 
 import useCart from "../../hooks/useCart.js";
+import useAuth from "../../hooks/useAuth.js";
 
 function Layout() {
   const { state } = useCart();
+  const { user, logout } = useAuth();
 
   const totalTicketCount = state.items.reduce(
     (total, item) => {
@@ -24,6 +26,30 @@ function Layout() {
 
         <nav className="main-navigation">
           <Link to="/">Vizyondaki Filmler</Link>
+
+          {user ? (
+            <>
+              <span style={{ color: "var(--color-text-muted)" }}>
+                Hoşgeldin, {user.name}
+              </span>
+              <Link to="/profile">Profilim</Link>
+              <button
+                onClick={logout}
+                style={{
+                  background: "transparent",
+                  color: "var(--color-yellow)",
+                  cursor: "pointer",
+                }}
+              >
+                Çıkış
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">Giriş Yap</Link>
+              <Link to="/register">Kayıt Ol</Link>
+            </>
+          )}
 
           <Link
             className="cart-navigation-link"

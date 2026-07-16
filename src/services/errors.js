@@ -19,6 +19,17 @@ export class NotFoundError extends ApiError {
   }
 }
 
+export class ConflictError extends ApiError {
+  constructor(message) {
+    super(message, {
+      status: 409,
+      code: "CONFLICT",
+    });
+
+    this.name = "ConflictError";
+  }
+}
+
 export function shouldRetryQuery(failureCount, error) {
   const status = error?.status;
 

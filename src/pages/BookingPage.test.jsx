@@ -24,6 +24,7 @@ import {
 } from "vitest";
 
 import CartProvider from "../context/CartProvider.jsx";
+import { SEAT_STATUS } from "../domain/seatStatus.js";
 import movieService from "../services/movieService.js";
 import seatService from "../services/seatService.js";
 import sessionService from "../services/sessionService.js";
@@ -37,7 +38,7 @@ vi.mock("../services/movieService.js", () => ({
 
 vi.mock("../services/seatService.js", () => ({
   default: {
-    getReservedSeatsBySessionId: vi.fn(),
+    getSeatStatusesBySessionId: vi.fn(),
   },
 }));
 
@@ -89,9 +90,99 @@ describe("BookingPage", () => {
       id: 1,
       title: "Neon Yağmuru",
     });
-    seatService.getReservedSeatsBySessionId.mockResolvedValue(
-      []
+    seatService.getSeatStatusesBySessionId.mockResolvedValue(
+      {}
     );
+  });
+
+  it("BOS bir koltuğa tıklayınca SECILI olur ve toplam fiyata yansır", async () => {
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    const firstSeat = screen.getByRole("button", {
+      name: /A1 numaralı koltuk, Boş/,
+    });
+
+    fireEvent.click(firstSeat);
+
+    expect(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Seçili/,
+      })
+    ).toHaveAttribute("aria-pressed", "true");
+
+    const summary = screen.getByRole("complementary");
+
+    expect(
+      within(summary).getByText("220 TL")
+    ).toBeInTheDocument();
+  });
+
+  it("SECILI bir koltuk yalnızca tekrar tıklanarak (REQ-01 geri dönüşü) BOS'a döner", async () => {
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    const firstSeat = screen.getByRole("button", {
+      name: /A1 numaralı koltuk, Boş/,
+    });
+
+    fireEvent.click(firstSeat);
+
+    expect(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Seçili/,
+      })
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Seçili/,
+      })
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Boş/,
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("GECICI_KILITLI ve DOLU koltukları ayrı ayrı gösterir ve tıklamayı engeller", async () => {
+    seatService.getSeatStatusesBySessionId.mockResolvedValue({
+      A1: SEAT_STATUS.DOLU,
+      A2: SEAT_STATUS.GECICI_KILITLI,
+    });
+
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    const doluSeat = screen.getByRole("button", {
+      name: /A1 numaralı koltuk, Dolu/,
+    });
+    const lockedSeat = screen.getByRole("button", {
+      name: /A2 numaralı koltuk, Geçici kilitli/,
+    });
+
+    expect(doluSeat).toBeDisabled();
+    expect(lockedSeat).toBeDisabled();
+
+    fireEvent.click(doluSeat);
+    fireEvent.click(lockedSeat);
+
+    const summary = screen.getByRole("complementary");
+
+    expect(
+      within(summary).getByText("Henüz seçilmedi")
+    ).toBeInTheDocument();
   });
 
   it("yeni ayrılan koltuğu seçimden çıkarıp diğerlerini korur", async () => {
@@ -102,10 +193,10 @@ describe("BookingPage", () => {
     });
 
     const firstSeat = screen.getByRole("button", {
-      name: "A1 numaralı koltuk",
+      name: /A1 numaralı koltuk, Boş/,
     });
     const secondSeat = screen.getByRole("button", {
-      name: "B1 numaralı koltuk",
+      name: /B1 numaralı koltuk, Boş/,
     });
 
     fireEvent.click(firstSeat);
@@ -117,14 +208,17 @@ describe("BookingPage", () => {
       .toBeInTheDocument();
 
     act(() => {
-      queryClient.setQueryData(
-        ["reservedSeats", 101],
-        ["A1"]
-      );
+      queryClient.setQueryData(["reservedSeats", 101], {
+        A1: SEAT_STATUS.DOLU,
+      });
     });
 
     await waitFor(() => {
-      expect(firstSeat).toBeDisabled();
+      expect(
+        screen.getByRole("button", {
+          name: /A1 numaralı koltuk, Dolu/,
+        })
+      ).toBeDisabled();
     });
 
     expect(
