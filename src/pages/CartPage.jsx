@@ -8,6 +8,11 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import {
+  TICKET_TYPE_LIST,
+  getTicketTypeLabel,
+  isValidTicketType,
+} from "../domain/ticketType.js";
 import useCart from "../hooks/useCart.js";
 import reservationService from "../services/reservationService.js";
 
@@ -97,6 +102,29 @@ function CartPage() {
     });
   }
 
+  function handleTicketTypeChange(
+    sessionId,
+    seatId,
+    ticketType
+  ) {
+    if (reservationMutation.isPending) {
+      return;
+    }
+
+    if (!isValidTicketType(ticketType)) {
+      return;
+    }
+
+    dispatch({
+      type: "UPDATE_TICKET_TYPE",
+      payload: {
+        sessionId,
+        seatId,
+        ticketType,
+      },
+    });
+  }
+
   function handleCheckout() {
     if (
       state.items.length === 0 ||
@@ -108,7 +136,12 @@ function CartPage() {
     const cartSnapshot = state.items.map((item) => {
       return {
         ...item,
-        seats: [...item.seats],
+        seats: item.seats.map((seat) => {
+          return {
+            seatId: seat.seatId,
+            ticketType: seat.ticketType,
+          };
+        }),
       };
     });
 
@@ -183,7 +216,9 @@ function CartPage() {
                       <span>Koltuklar</span>
 
                       <strong>
-                        {item.seats.join(", ")}
+                        {item.seats
+                          .map((seat) => seat.seatId)
+                          .join(", ")}
                       </strong>
                     </p>
 
@@ -202,6 +237,67 @@ function CartPage() {
                         {item.seats.length}
                       </strong>
                     </p>
+                  </div>
+
+                  <div className="cart-ticket-types">
+                    <span className="cart-ticket-types-heading">
+                      Bilet tipi
+                    </span>
+
+                    <ul className="ticket-type-list">
+                      {item.seats.map((seat) => {
+                        const selectId =
+                          `cart-ticket-type-${item.sessionId}-${seat.seatId}`;
+
+                        return (
+                          <li
+                            className="ticket-type-row"
+                            key={`${item.sessionId}-${seat.seatId}`}
+                          >
+                            <label htmlFor={selectId}>
+                              {seat.seatId} koltuğu
+                              <span className="visually-hidden">
+                                {" "}
+                                bilet tipi
+                              </span>
+                            </label>
+
+                            <div className="ticket-type-select-wrap">
+                              <select
+                                className="ticket-type-select"
+                                id={selectId}
+                                value={seat.ticketType}
+                                disabled={
+                                  reservationMutation.isPending
+                                }
+                                onChange={(event) => {
+                                  handleTicketTypeChange(
+                                    item.sessionId,
+                                    seat.seatId,
+                                    event.target.value
+                                  );
+                                }}
+                              >
+                                {TICKET_TYPE_LIST.map(
+                                  (optionType) => {
+                                    return (
+                                      <option
+                                        key={optionType}
+                                        value={optionType}
+                                      >
+                                        {getTicketTypeLabel(
+                                          optionType
+                                        )}
+                                      </option>
+                                    );
+                                  }
+                                )}
+                              </select>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
                 </div>
 

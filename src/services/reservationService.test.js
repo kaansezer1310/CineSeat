@@ -7,11 +7,21 @@ import {
   vi,
 } from "vitest";
 
+import { TICKET_TYPE } from "../domain/ticketType.js";
 import reservationService from "./reservationService.js";
 
 function createCartItem({
   sessionId = 999,
-  seats = ["A1", "A2"],
+  seats = [
+    {
+      seatId: "A1",
+      ticketType: TICKET_TYPE.ADULT,
+    },
+    {
+      seatId: "A2",
+      ticketType: TICKET_TYPE.STUDENT,
+    },
+  ],
   unitPrice = 220,
 } = {}) {
   return {
@@ -60,6 +70,16 @@ describe("reservationService", () => {
     });
     expect(reservation.id).toBe(`CS-${Date.now()}`);
     expect(reservedSeats).toEqual(["A1", "A2"]);
+    expect(reservation.items[0].seats).toEqual([
+      {
+        seatId: "A1",
+        ticketType: TICKET_TYPE.ADULT,
+      },
+      {
+        seatId: "A2",
+        ticketType: TICKET_TYPE.STUDENT,
+      },
+    ]);
     expect(storedReservations).toEqual([reservation]);
   });
 
@@ -72,7 +92,12 @@ describe("reservationService", () => {
     const reservationPromise =
       reservationService.createReservation([
         createCartItem({
-          seats: ["A1"],
+          seats: [
+            {
+              seatId: "A1",
+              ticketType: TICKET_TYPE.ADULT,
+            },
+          ],
         }),
       ]);
     const rejection = expect(
