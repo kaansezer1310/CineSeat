@@ -11,7 +11,7 @@
 WBS'teki 44 görevin **10'u mevcut kodda tamamlandı**, **34'ü kalan iş**. Kalan 34 görev 4 kişiye dengeli dağıtıldı ve **9 sprinte** bölündü.
 
 - **Her sprintte 4 task** (kişi başı 1 task).
-- **Her sprint sonunda code review** yapılır; bulgular kapatılmadan bir sonraki sprinte geçilmez.
+- **Her sprint sonunda code review** yapılır (bkz. §3.3 — zorunlu bir araç yok; manuel veya bir kişi tarafından).
 - Görev sıralaması **bağımlılıklara** göre dizildi (önce çekirdek altyapı, sonra ona bağlı ekranlar).
 
 ### Kişi başı toplam görev
@@ -45,8 +45,8 @@ WBS'teki 44 görevin **10'u mevcut kodda tamamlandı**, **34'ü kalan iş**. Kal
 ## 3. Çalışma Kuralları (herkes için ortak)
 
 1. **Branch:** Her task için `feature/<wbs-no>-kisa-ad` (örn. `feature/1.2.3-auth-context`). `main`e doğrudan push yok.
-2. **PR:** Task bitince PR açılır; sprint sonunda tüm PR'lara **code review** uygulanır.
-3. **Code review komutu:** Her PR/branch için `/code-review` çalıştırılır. **Critical + Warning** bulguları kapatılmadan merge yok. Bulgular kapandıktan sonra `main`e merge.
+2. **PR:** Task bitince PR açılır; sprint sonunda değişiklikler gözden geçirilir.
+3. **Code review (zorunlu araç yok):** Sprint sonundaki inceleme **manuel** yapılabilir ya da **ekipten bir kişi** (review sorumlusu) tarafından toplu yapılabilir — herkesin bir araç çalıştırması gerekmez. Kimde `/code-review` gibi bir araç varsa kullanabilir, ama şart değildir. Amaç: bariz hatalar, bariz güvenlik/format sorunları ve kabul kriterlerinden sapmalar bir sonraki sprinte taşınmadan yakalansın. İnceleme çıktısı kısa bir not olarak paylaşılır; ciddi bulgular kapatıldıktan sonra `main`e merge.
 4. **Servis katmanı sözleşmesi:** Yeni veri erişimleri `src/services/*` altında, mevcut `async fetchX()` desenine uygun yazılır (Kalite Niteliği: Maintainability).
 5. **Tema tokenları (kritik ortak kural):** Sprint 1'den itibaren **herkes** renkleri doğrudan hex yazmaz; `src/index.css` içinde tanımlı CSS değişkenlerini (`var(--bg)`, `var(--text)` vb.) kullanır. Böylece Ömer'in S9'daki Light/Dark tema işi tüm ekranlara otomatik yansır, geri dönüş (rework) olmaz.
 6. **Ara toplam sözleşmesi:** Kaan S3'te fiyat hesaplama fonksiyonunun imzasını (`calcSubtotal(items) -> number`) belirleyip paylaşır; kampanya indirimi (Kaan S8) bu çıktının üzerine uygulanır.
@@ -102,7 +102,7 @@ Ana sayfada "Vizyonda" ve "Yakında" iki sekme; geçiş sayfa yenilenmeden. "Yak
 - **Dosyalar:** `src/pages/HomePage.jsx`, `src/data/movies.js` (vizyon tarihi alanları eklenir), `src/components/movies/MovieCard.jsx`.
 - **Bağımlılık:** Yok. S2 (kategorizasyon) ve S3 (6 ay kısıtı) bunu besler.
 
-> **🔍 Sprint 1 code review:** 4 PR için `/code-review`. Özellikle `AuthContext` API'si ve koltuk state modeli — bunlar sonraki her şeyin temeli, burada dikkatli inceleme.
+> **🔍 Sprint 1 code review:** 4 task manuel/bir kişi tarafından gözden geçirilir. Özellikle `AuthContext` API'si ve koltuk state modeli — bunlar sonraki her şeyin temeli, burada dikkatli inceleme.
 
 ---
 
