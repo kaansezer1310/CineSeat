@@ -8,6 +8,7 @@ import {
 
 import App from "./App.jsx";
 import CartProvider from "./context/CartProvider.jsx";
+import AuthProvider from "./context/AuthProvider.jsx";
 import { shouldRetryQuery } from "./services/errors.js";
 
 import "./index.css";
@@ -25,7 +26,9 @@ createRoot(document.getElementById("root")).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <CartProvider>
-          <App />
+          <AuthProvider>
+            <App />
+          </AuthProvider>
         </CartProvider>
       </BrowserRouter>
     </QueryClientProvider>
