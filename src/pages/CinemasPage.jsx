@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './cinemas.css';
 
 // Mock Data: Sinema Şubeleri
@@ -26,32 +26,36 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 export default function CinemasPage() {
   const [selectedCity, setSelectedCity] = useState("Tümü");
   const [userLocation, setUserLocation] = useState(null);
-  const [locationStatus, setLocationStatus] = useState("Konum aranıyor...");
-  
+  const [locationStatus, setLocationStatus] = useState(() => {
+    return "geolocation" in navigator
+      ? "Konum aranıyor..."
+      : "Tarayıcınız konum özelliğini desteklemiyor. Şehir seçerek sinemaları görebilirsiniz.";
+  });
+
   // Benzersiz şehirleri al
   const cities = ["Tümü", ...new Set(CINEMAS.map(c => c.city))];
 
   useEffect(() => {
     // Sayfa açıldığında konum iste
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // Kullanıcı izin verdi
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setLocationStatus("Konumunuz bulundu. Size en yakın sinemalar hesaplandı.");
-        },
-        (error) => {
-          // Kullanıcı reddetti veya hata oluştu (Fallback)
-          setLocationStatus("Konum izni verilmedi. Varsayılan olarak tüm sinemalar listeleniyor.");
-          setSelectedCity("İstanbul"); // Fallback olarak İstanbul'u seç
-        }
-      );
-    } else {
-      setLocationStatus("Tarayıcınız konum özelliğini desteklemiyor.");
+    if (!("geolocation" in navigator)) {
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // Kullanıcı izin verdi
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setLocationStatus("Konumunuz bulundu. Size en yakın sinemalar hesaplandı.");
+      },
+      (error) => {
+        // Kullanıcı reddetti veya hata oluştu (Fallback) — Tümü seçili kalır, kullanıcı isterse şehir seçer
+        console.error("Konum bilgisi alınamadı:", error);
+        setLocationStatus("Konum izni verilmedi. Tüm sinemalar listeleniyor, dilerseniz şehir seçerek daraltabilirsiniz.");
+      }
+    );
   }, []);
 
   // Sinemaları filtrele ve mesafe hesapla

@@ -292,6 +292,22 @@ async function releaseLockedSeats({ sessionId, seats }) {
 // `reservationService`, çakışma tespiti sonrası bunu her sepet öğesi için
 // çağırır. Zaten DOLU olan bir koltuk asla tekrar rezerve edilemez —
 // arayüz kontrolü atlatılsa bile bu koruma serviste kalır.
+//
+// BİLİNEN AÇIK (Sprint 1 review, K/Y3 — kasıtlı olarak burada bırakıldı):
+// GECICI_KILITLI koltuklar için bir "kilit sahibi" (token/oturum) kavramı
+// yok. Bu yüzden reserveSeats, bir koltuğun GECICI_KILITLI durumda olup
+// olmadığına HİÇ bakmıyor — sadece DOLU çakışmasını kontrol ediyor. Bugün
+// bunun canlı bir etkisi yok çünkü hiçbir gerçek akış lockSeats'i çağırmıyor
+// (1.4.7 henüz yok). 1.4.7 (sayaç/kilit UI'ı) bağlandığı an: A kullanıcısı
+// bir koltuğu kilitleyip ödemedeyken, B kullanıcısı aynı koltuğu (kendi
+// kilidi olmadan) reserveSeats ile doğrudan alabilir — çünkü fonksiyon
+// "bu kilit gerçekten benim mi" diye soramıyor. Doğru çözüm: lockSeats'in
+// döndürdüğü bir token'ı reserveSeats'e de geçirmek ve GECICI_KILITLI bir
+// koltuğu yalnızca eşleşen token'la finalize etmek (aksi halde ConflictError).
+// Bunu şimdiden tahminle eklemedim çünkü 1.4.7'nin UI akışı henüz yok ve
+// yanlış bir token tasarımı, o görevi üstlenecek kişiye (bu satırdaki
+// reserveSeats testine bakan herkes — bkz. seatService.test.js:139) daha
+// pahalıya patlar. 1.4.7 planlanırken bu not mutlaka okunmalı.
 async function reserveSeats({ sessionId, seats }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);

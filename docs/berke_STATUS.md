@@ -2,14 +2,43 @@
 
 > Bu dosya çalışma ilerledikçe güncellenir. Her görev tamamlandığında ilgili bölüm eklenir/güncellenir. Ayrıntılı sprint planı için `docs/PLAN.md`, görev-durum analizi için `docs/WBS_GOREV_DAGILIMI.md`. Mentöre basit dille anlatım için `docs/berke_SPRINT1_ACIKLAMA.md`.
 
-**Son güncelleme:** Sprint 1 / Berke Kuş — 1.3.1 tamamlandı, code review yapıldı, testler tekrar (taze) doğrulandı.
-**Branch:** `berke` (origin/berke ile senkron; **push işlemi yapılmadı**, manuel push kullanıcıya ait)
+**Son güncelleme:** Sprint 1 — tüm ekibin (Ömer, Kaan, Alptuğ, Berke) `main`'e merge edilmiş çıktısı için kapsamlı review yapıldı (`docs/SPRINT1_REVIEW.md`), bulunan hata/eksikliklerin çoğu bu branch'te düzeltildi.
+**Branch:** `berke` (origin/berke'nin ilerisinde; **push işlemi yapılmadı**, manuel push kullanıcıya ait)
 
-**Taze doğrulama (bu oturumda tekrar çalıştırıldı):**
-- `npm run test:run` → `Test Files 7 passed (7)` / `Tests 24 passed (24)`, exit 0
-- `movieService.test.js` (7 test) + `HomePage.test.jsx` (3 test) ayrı ayrı isim isim doğrulandı, hepsi ✓
-- `npm run lint` → hata yok, exit 0
+**Taze doğrulama (en son, tüm ekip kodu dahil):**
+- `npm run test:run` → `Test Files 12 passed (12)` / `Tests 71 passed (71)`, exit 0
+- `npm run lint` → **0 hata, 0 uyarı**, exit 0 (review anında 13 hata vardı, hepsi temizlendi)
 - `npm run build` → başarılı, exit 0
+- Case-sensitivity: `git ls-files` + özel bir script ile **tüm** relative import'ların gerçek dosya case'iyle birebir eştiği doğrulandı (Linux'ta build'i kıran tek noktaydı, artık kapalı)
+
+---
+
+## Sprint 1 — Ekip Geneli Review + Düzeltme Turu
+
+Kullanıcı talebiyle: (1) tüm STATUS dosyaları incelendi, (2) 4 branch'in (`berke`/`kaan`/`omer`/`Alp`, hepsi `main`'e merge edilmiş) birleşik hali analiz edildi, (3) her alan için (Auth/Ömer, Koltuk state machine/Kaan, Admin+Lokasyon/Alptuğ, Katalog/ben) derinlemesine code review yapıldı, (4) bulunanlar `docs/SPRINT1_REVIEW.md`'ye yazıldı, (5) kullanıcı onayıyla bulunan hata ve eksikliklerin büyük kısmı bu branch'te düzeltildi.
+
+**Bulunan ve düzeltilen kritik/yüksek öncelikli sorunlar** (tam liste ve gerekçeler `docs/SPRINT1_REVIEW.md`'de):
+
+| # | Sorun | Düzeltme |
+|---|---|---|
+| K1 | Admin dosyaları yanlış case ile import edilmiş — Windows'ta sorunsuz, **Linux'ta (her gerçek deploy ortamı) build çöküyor** | `git mv` ile dosya/klasör case'i import'larla eşleştirildi; repo genelinde başka mismatch olmadığı ayrı bir script ile doğrulandı |
+| K2 | `/admin` hiçbir auth/rol kontrolü olmadan herkese açıktı | `src/components/routing/ProtectedRoute.jsx` eklendi, `/admin` rotaları `allowedRoles={["admin"]}` ile sarıldı, 3 yeni testle doğrulandı |
+| K3 | Admin istatistik paneli tamamen sahte (hardcoded) veri gösteriyordu; `WBS_GOREV_DAGILIMI.md` bunun gerçek hesaplama olduğunu (yanlışlıkla) iddia ediyordu | `reservationService.getAllReservations()` eklendi, dashboard artık gerçek rezervasyonlardan film bazlı istatistik hesaplıyor |
+| Y1 | Admin film tablosunda (benim posteri olmayan "Yakında" filmlerim için) kırık resim ikonu çıkıyordu | `<img>` yerine var olan `MoviePoster` bileşeni kullanıldı |
+| Y2 | Admin film formunda `releaseDate` alanı yoktu → admin panelinden asla "Yakında" film eklenemiyordu (benim Sprint 1 özelliğimle doğrudan çatışan bir boşluk) | Forma "Vizyon Tarihi" alanı eklendi |
+| Y4 | Lint 13 hatayla kırıktı (gereksiz `React` import'ları, fonksiyon-önce-kullanım, sessizce yutulan `catch` hataları, bir gerçek `react-hooks/set-state-in-effect` ihlali) | Tüm dosyalar temizlendi; `AdminMoviesPage.jsx` projedeki diğer sayfalarla tutarlı olması için `useQuery`'e taşındı |
+| Y5 | Konum izni reddedilince ekrandaki mesaj ("tüm sinemalar listeleniyor") ile gerçek davranış (sadece İstanbul'a filtreleniyordu) çelişiyordu | Mesaj ve davranış birbirine uyduruldu |
+| O2 | Admin formu `duration`/`releaseYear`'ı sayı yerine string olarak saklıyordu | `handleChange`'de sayısal alanlar `Number()` ile çevriliyor |
+| O3 | Header'da `/login` `/register` `/profile` linkleri var ama route'ları yok, tıklayınca tamamen boş sayfa çıkıyordu | `NotFoundPage.jsx` + wildcard (`*`) rota eklendi |
+
+**Bilinçli olarak düzeltilmeyen (ve nedeni):**
+- **Y3 — Koltuk kilidi (`GECICI_KILITLI`) çakışma kontrolü eksik:** `reserveSeats`, bir koltuğun başka birinin kilidi altında olup olmadığına bakmıyor. Doğru çözüm bir "kilit sahibi/token" kavramı gerektiriyor; bunu şimdiden tahminle eklemek, Kaan'ın zaten test ettiği (`seatService.test.js:139`) meşru `GECICI_KILITLI→DOLU` davranışını bozma riski taşıyordu ve 1.4.7'nin (henüz yazılmamış) UI akışı olmadan doğru tasarımı tahmin etmek riskliydi. Kod içine ayrıntılı bir uyarı notu bırakıldı, karar 1.4.7'yi alacak kişiye (muhtemelen Kaan) bırakıldı.
+- **O1 — Sinema kartındaki "Seansları Gör" butonu işlevsiz:** Düzeltmek, sinema↔seans veri ilişkisini modellemeyi gerektirir — bu bir "fix" değil yeni bir özellik kapsamı.
+- **O4 — Session 101'deki demo koltuk kilidi hiç açılmıyor:** Kaan'ın kod yorumu bunun 4 durumu bir arada göstermek için kasıtlı demo verisi olduğunu açıkça belirtiyor; gerçek bir hata değil.
+- **O5 — Çoklu seanslı sepette kısmi rezervasyon hatası:** Backend olmadan tam atomiklik sağlanamaz, review'ın ötesinde bir kapsam.
+- **Alptuğ için STATUS dosyası eksik / PLAN.md'nin yeniden dengelenmesi:** Bu ikisi başka birinin/ekibin kararı, tek taraflı yapılmadı.
+
+Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW.md`'de güncel çözüm durumuyla işaretli.
 
 ---
 
@@ -66,4 +95,4 @@
 
 ## Sırada Ne Var
 
-Sprint 1'in geri kalan 3 görevi başka ekip üyelerine ait (1.2.3 Ömer, 1.4.3 Kaan, 1.5.7 Alptuğ). Berke'nin bir sonraki görevi **Sprint 2 / 1.3.5 — Otomatik kategorizasyon ve arşiv**, `movieService.js` + `HomePage.jsx` dosyalarında; bu görevin PLAN.md'de zaten bu dosyalara atanmış olması, 1.3.1'de `movieService.js`'e eklenen `isMovieReleased` fonksiyonunun doğru yerde olduğunu doğruluyor.
+Sprint 1'in 4 görevi de artık tamamlanmış durumda (Ömer/Kaan/Alptuğ/Berke) ve `docs/SPRINT1_REVIEW.md`'de bulunan kritik/yüksek öncelikli sorunların çoğu bu branch'te kapatıldı. Kalan açık maddeler (Y3, O1, Alptuğ'un STATUS'u, PLAN.md'nin yeniden dengelenmesi) ekiple konuşulmalı. Berke'nin bir sonraki kendi görevi **Sprint 2 / 1.3.5 — Otomatik kategorizasyon ve arşiv**, `movieService.js` + `HomePage.jsx` dosyalarında.
