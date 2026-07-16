@@ -80,3 +80,93 @@ girişte/çıkışında çağırarak kullanabilir; state modeli buna hazır.
 - `CartPage.jsx`, `cartReducer.js`, `reservationService.js` davranışsal olarak
   değiştirilmedi (geriye dönük uyumluluk korunduğu için gerek kalmadı).
 - Yeni bağımlılık eklenmedi.
+
+---
+
+# Güncelleme — 16 Temmuz 2026: Sprint 2 / 1.4.4 (REQ-02)
+
+**Görev:** 1.4.4 — Sepet yapısı + bilet tipi seçimi (REQ-02)  
+**Sprint:** Sprint 2  
+**Durum:** ✅ Tamamlandı (kod incelemesi ve doğrulama yapıldı)  
+**Branch:** `kaan`  
+**İncelenen commit:** `22ced6e` — *Bilet tipleri eklendi*  
+**Baseline:** `38166e5` (Sprint 1 koltuk state makinesi) → `22ced6e`  
+**Not:** Working tree temiz; sonraki `d943775` (main merge) bu incelemenin parçası değildir.
+
+> 1.4.3 kaydı yukarıda tarihsel olarak korunmuştur. Aşağıdaki giriş, 1.4.4 sonrası
+> güncel durumu tanımlar; özellikle `CartPage.jsx` / `cartReducer.js` /
+> `reservationService.js` artık bu görev kapsamında değiştirilmiştir
+> (1.4.3 §6’daki “değiştirilmedi” ifadesi yalnızca o sprint anını yansıtır).
+
+## 1. Ne yapıldı (REQ-02)
+
+- Sepet koltukları artık `{ seatId, ticketType }` nesneleri; seans bazlı gruplama korundu.
+- Makine değerleri: `ADULT` / `STUDENT` / `CHILD` → Yetişkin / Öğrenci / Çocuk
+  (`src/domain/ticketType.js`). Belgelerde varsayılan yoktu → varsayılan `ADULT`.
+- Aynı seansta farklı tipler bir arada; `UPDATE_TICKET_TYPE` tek koltuğu günceller.
+- Yinelenen `(sessionId, seatId)` `seatId` ile engellenir (`Map`; `Set(object)` yok).
+- BookingPage: seçime bağlı tip seçici; deselect / `GECICI_KILITLI`/`DOLU` uzlaştırması
+  hem seçimi hem tip verisini temizler; REQ-01 state makinesi bozulmadı.
+- CartPage: sepette tip görüntüleme/değiştirme; sayaç ve toplam hâlâ
+  `seats.length * unitPrice` (çarpanlar **1.4.5** kapsamı, bu görevde yok).
+- `reservationService`: `seatService`’e düz `seatId` listesi; rezervasyon kaydında tip korunur.
+- UI iyileştirmesi: koyu tema select (`color-scheme: dark`, özel ok, okunabilir option),
+  iki sütunlu satır düzeni, mobil yığılma, `visually-hidden` ile erişilebilir ad
+  (`{seatId} koltuğu` + gizli `bilet tipi`).
+
+## 2. Değişen dosyalar (22ced6e)
+
+| Dosya | Ne değişti |
+|---|---|
+| `src/domain/ticketType.js` **(yeni)** | Tip sabitleri, etiketler, doğrulama, varsayılan |
+| `src/domain/ticketType.test.js` **(yeni)** | Domain birim testleri |
+| `src/context/cartReducer.js` | Nesne koltuklar, merge/dedupe, `UPDATE_TICKET_TYPE`, geçersiz tip reddi |
+| `src/context/cartReducer.test.js` | Yeni yapı ve immutability senaryoları |
+| `src/pages/BookingPage.jsx` | Per-seat tip seçimi + sepete `{ seatId, ticketType }` |
+| `src/pages/BookingPage.test.jsx` | Tip UI / sepet payload / uzlaştırma testleri |
+| `src/pages/CartPage.jsx` | Per-seat tip düzenleme; `seatId` metin gösterimi |
+| `src/pages/CartPage.test.jsx` **(yeni)** | Tip değişimi, sayım, checkout payload |
+| `src/services/reservationService.js` | Ticket → seatId dönüşümü; tipin rezervasyonda saklanması |
+| `src/services/reservationService.test.js` | Nesne seats + string reserved-seats doğrulaması |
+| `src/App.css` | Ticket-type satır/select stilleri (koyu tema) |
+| `src/index.css` | `.visually-hidden` yardımcısı |
+
+Ayrıca aynı commit’te `docs/omer_STATUS.md` eklendi — REQ-02 işlevselliğine ait değil
+(inceleme bulgusu: Low; aşağıya bakın).
+
+## 3. Testler (1.4.4 ile)
+
+Odak testler: reducer nesne seats / çoklu tip / dedupe / update / invalid;
+BookingPage tip atama ve orphan temizliği; CartPage bağımsız tip değişimi;
+reservation düz seatId + tip korunumu; `[object Object]` UI gösterimi engeli.
+
+## 4. Doğrulama (16 Temmuz 2026 — inceleme sonrası)
+
+```
+git diff --check 22ced6e^..22ced6e  -> temiz (exit 0)
+npx eslint [1.4.4 kaynak/test dosyaları] -> temiz (0 hata)
+npm run test:run  -> 13 dosya / 91 test PASS
+npm run build     -> başarılı
+```
+
+**Lint notu:** Çalışma anındaki tam `npm run lint` Admin/Cinemas dosyalarında hata
+veriyor; bu dosyalar `22ced6e` içinde değil, sonraki `main` merge (`d943775`) ile
+gelmiştir. 1.4.4 diff’ine ait dosyalarda eslint temizdir.
+
+## 5. Kod incelemesi sonucu (yalnızca 22ced6e)
+
+**Kritik / Yüksek / Orta:** Yok — REQ-02 kabul kriterlerini geçersiz kılan bulgu yok.
+
+**Low**
+- `docs/omer_STATUS.md` bu commit’e REQ-02 ile birlikte eklenmiş (ilgisiz kapsam).
+
+**Doğrulama sınırlaması**
+- Native `<select>` açılır listesinin OS/tarayıcıya göre görünümü bu ortamda
+  uçtan uca tarayıcı oturumuyla yeniden doğrulanmadı; kapalı durum stilleri ve
+  `color-scheme: dark` / `option` stilleri diff’te mevcut.
+
+## 6. Kapsam dışı (1.4.4)
+
+- Bilet tipi fiyat çarpanları / `calcSubtotal` → **1.4.5**
+- Öğrenci/çocuk kimlik doğrulama, gerçek backend, ödeme/sayaç (1.4.7+)
+- Yeni bağımlılık eklenmedi.

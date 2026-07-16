@@ -34,6 +34,43 @@ function getStoredReservations() {
   }
 }
 
+// seatService düz koltuk kimliği listesi bekler; sepet ise
+// { seatId, ticketType } nesneleri taşır. Sınırda dönüştürülür.
+function getSeatIdsFromCartSeats(seats) {
+  if (!Array.isArray(seats)) {
+    return [];
+  }
+
+  return seats
+    .map((seat) => {
+      if (
+        seat !== null &&
+        typeof seat === "object" &&
+        typeof seat.seatId === "string"
+      ) {
+        return seat.seatId;
+      }
+
+      return null;
+    })
+    .filter((seatId) => {
+      return typeof seatId === "string" && seatId.length > 0;
+    });
+}
+
+function cloneCartSeats(seats) {
+  if (!Array.isArray(seats)) {
+    return [];
+  }
+
+  return seats.map((seat) => {
+    return {
+      seatId: seat.seatId,
+      ticketType: seat.ticketType,
+    };
+  });
+}
+
 async function createReservation(cartItems) {
   await wait(600);
 
@@ -50,7 +87,9 @@ async function createReservation(cartItems) {
           item.sessionId
         );
 
-      const conflictingSeats = item.seats.filter(
+      const seatIds = getSeatIdsFromCartSeats(item.seats);
+
+      const conflictingSeats = seatIds.filter(
         (seatId) => {
           return reservedSeats.includes(seatId);
         }
@@ -59,6 +98,7 @@ async function createReservation(cartItems) {
       return {
         sessionId: item.sessionId,
         movieTitle: item.movieTitle,
+        seatIds,
         conflictingSeats,
       };
     })
@@ -79,10 +119,10 @@ async function createReservation(cartItems) {
   }
 
   await Promise.all(
-    cartItems.map((item) => {
+    cartItems.map((item, index) => {
       return seatService.reserveSeats({
         sessionId: item.sessionId,
-        seats: item.seats,
+        seats: seatChecks[index].seatIds,
       });
     })
   );
@@ -113,7 +153,7 @@ async function createReservation(cartItems) {
     items: cartItems.map((item) => {
       return {
         ...item,
-        seats: [...item.seats],
+        seats: cloneCartSeats(item.seats),
       };
     }),
   };

@@ -918,12 +918,141 @@
   text-align: right;
 }
 
+.booking-ticket-types,
+.cart-ticket-types {
+  display: grid;
+  gap: 12px;
+
+  padding: 16px 0 18px;
+
+  border-bottom: 1px solid var(--color-border);
+
+  color-scheme: dark;
+}
+
+.booking-ticket-types-heading,
+.cart-ticket-types-heading {
+  color: var(--color-text-muted);
+
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.ticket-type-list {
+  display: grid;
+  gap: 10px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.ticket-type-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 160px);
+  gap: 1rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.ticket-type-row label {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--color-text);
+
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ticket-type-select-wrap {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.ticket-type-select-wrap::after {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+  right: 14px;
+
+  width: 10px;
+  height: 6px;
+
+  background-color: var(--color-yellow);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+
+  transform: translateY(-50%);
+
+  pointer-events: none;
+}
+
+.ticket-type-select {
+  display: block;
+
+  width: 100%;
+  min-height: 44px;
+  padding: 0 2.4rem 0 0.85rem;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.2;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: dark;
+}
+
+.ticket-type-select:hover:not(:disabled) {
+  border-color: var(--color-purple-light);
+  background-color: var(--color-surface-light);
+}
+
+.ticket-type-select:focus-visible {
+  border-color: var(--color-yellow);
+  outline: 2px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+
+.ticket-type-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ticket-type-select option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.cart-ticket-types {
+  margin-top: 16px;
+  padding-top: 0;
+  border-bottom: 0;
+}
+
 .booking-total {
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding: 18px 0;
+  padding: 20px 0 18px;
 }
 
 .booking-total span {
@@ -994,6 +1123,15 @@
 
   .seat {
     border-radius: 3px 3px 5px 5px;
+  }
+
+  .ticket-type-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .ticket-type-select-wrap {
+    max-width: none;
   }
 }
 

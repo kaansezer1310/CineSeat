@@ -25,9 +25,11 @@ import {
 
 import CartProvider from "../context/CartProvider.jsx";
 import { SEAT_STATUS } from "../domain/seatStatus.js";
+import { TICKET_TYPE } from "../domain/ticketType.js";
 import movieService from "../services/movieService.js";
 import seatService from "../services/seatService.js";
 import sessionService from "../services/sessionService.js";
+import useCart from "../hooks/useCart.js";
 import BookingPage from "./BookingPage.jsx";
 
 vi.mock("../services/movieService.js", () => ({
@@ -48,6 +50,16 @@ vi.mock("../services/sessionService.js", () => ({
   },
 }));
 
+function CartProbe() {
+  const { state } = useCart();
+
+  return (
+    <pre data-testid="cart-probe">
+      {JSON.stringify(state.items)}
+    </pre>
+  );
+}
+
 function renderBookingPage() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -61,10 +73,15 @@ function renderBookingPage() {
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={["/booking/101"]}>
         <CartProvider>
+          <CartProbe />
           <Routes>
             <Route
               path="/booking/:sessionId"
               element={<BookingPage />}
+            />
+            <Route
+              path="/cart"
+              element={<div>Sepet sayfası</div>}
             />
           </Routes>
         </CartProvider>
@@ -230,5 +247,187 @@ describe("BookingPage", () => {
       .toBeInTheDocument();
     expect(within(summary).getByText("220 TL"))
       .toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("A1 koltuğu bilet tipi")
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText("B1 koltuğu bilet tipi")
+    ).toBeInTheDocument();
+  });
+
+  it("seçilen her koltuk için bilet tipi kontrolü gösterir", async () => {
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Boş/,
+      })
+    );
+
+    expect(
+      screen.getByLabelText("A1 koltuğu bilet tipi")
+    ).toHaveValue(TICKET_TYPE.ADULT);
+  });
+
+  it("farklı seçili koltuklara farklı bilet tipi atanabilir", async () => {
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Boş/,
+      })
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A2 numaralı koltuk, Boş/,
+      })
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A3 numaralı koltuk, Boş/,
+      })
+    );
+
+    fireEvent.change(
+      screen.getByLabelText("A1 koltuğu bilet tipi"),
+      { target: { value: TICKET_TYPE.ADULT } }
+    );
+    fireEvent.change(
+      screen.getByLabelText("A2 koltuğu bilet tipi"),
+      { target: { value: TICKET_TYPE.STUDENT } }
+    );
+    fireEvent.change(
+      screen.getByLabelText("A3 koltuğu bilet tipi"),
+      { target: { value: TICKET_TYPE.CHILD } }
+    );
+
+    expect(
+      screen.getByLabelText("A1 koltuğu bilet tipi")
+    ).toHaveValue(TICKET_TYPE.ADULT);
+    expect(
+      screen.getByLabelText("A2 koltuğu bilet tipi")
+    ).toHaveValue(TICKET_TYPE.STUDENT);
+    expect(
+      screen.getByLabelText("A3 koltuğu bilet tipi")
+    ).toHaveValue(TICKET_TYPE.CHILD);
+  });
+
+  it("seçimi kaldırılan koltuğun bilet tipi verisini siler", async () => {
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Boş/,
+      })
+    );
+
+    expect(
+      screen.getByLabelText("A1 koltuğu bilet tipi")
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Seçili/,
+      })
+    );
+
+    expect(
+      screen.queryByLabelText("A1 koltuğu bilet tipi")
+    ).not.toBeInTheDocument();
+  });
+
+  it("sepete { seatId, ticketType } nesneleri ekler", async () => {
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Boş/,
+      })
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A2 numaralı koltuk, Boş/,
+      })
+    );
+
+    fireEvent.change(
+      screen.getByLabelText("A2 koltuğu bilet tipi"),
+      { target: { value: TICKET_TYPE.STUDENT } }
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Sepete Ekle",
+      })
+    );
+
+    await screen.findByText("Sepet sayfası");
+
+    const cartItems = JSON.parse(
+      screen.getByTestId("cart-probe").textContent
+    );
+
+    expect(cartItems[0].seats).toEqual([
+      {
+        seatId: "A1",
+        ticketType: TICKET_TYPE.ADULT,
+      },
+      {
+        seatId: "A2",
+        ticketType: TICKET_TYPE.STUDENT,
+      },
+    ]);
+  });
+
+  it("kilitli veya dolu koltuğu sepete eklemez", async () => {
+    seatService.getSeatStatusesBySessionId.mockResolvedValue({
+      A1: SEAT_STATUS.DOLU,
+      A2: SEAT_STATUS.GECICI_KILITLI,
+    });
+
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Dolu/,
+      })
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A2 numaralı koltuk, Geçici kilitli/,
+      })
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: "Sepete Ekle",
+      })
+    ).toBeDisabled();
+
+    const cartItems = JSON.parse(
+      screen.getByTestId("cart-probe").textContent
+    );
+
+    expect(cartItems).toEqual([]);
   });
 });

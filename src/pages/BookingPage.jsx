@@ -8,12 +8,35 @@ import {
 
 import SeatMap from "../components/seats/SeatMap.jsx";
 import { SEAT_STATUS, isSeatSelectable } from "../domain/seatStatus.js";
+import {
+    DEFAULT_TICKET_TYPE,
+    TICKET_TYPE_LIST,
+    getTicketTypeLabel,
+    isValidTicketType,
+} from "../domain/ticketType.js";
 import movieService from "../services/movieService.js";
 import seatService from "../services/seatService.js";
 import sessionService from "../services/sessionService.js";
 import useCart from "../hooks/useCart.js";
 
 const emptySeatStatuses = {};
+
+function removeTicketTypesForSeats(
+    ticketTypesBySeatId,
+    seatIdsToRemove
+) {
+    if (seatIdsToRemove.length === 0) {
+        return ticketTypesBySeatId;
+    }
+
+    const nextTicketTypes = { ...ticketTypesBySeatId };
+
+    seatIdsToRemove.forEach((seatId) => {
+        delete nextTicketTypes[seatId];
+    });
+
+    return nextTicketTypes;
+}
 
 function BookingPage() {
     const { sessionId } = useParams();
@@ -25,6 +48,10 @@ function BookingPage() {
     const numericSessionId = Number(sessionId);
 
     const [selectedSeats, setSelectedSeats] = useState([]);
+    const [
+        ticketTypesBySeatId,
+        setTicketTypesBySeatId,
+    ] = useState({});
     const [
         availabilityMessage,
         setAvailabilityMessage,
@@ -112,6 +139,13 @@ function BookingPage() {
                 });
             });
 
+            setTicketTypesBySeatId((currentTicketTypes) => {
+                return removeTicketTypesForSeats(
+                    currentTicketTypes,
+                    newlyUnavailableSeats
+                );
+            });
+
             const seatDescription =
                 newlyUnavailableSeats.length === 1
                     ? `${newlyUnavailableSeats[0]} numaralı koltuk`
@@ -133,25 +167,63 @@ function BookingPage() {
 
         setAvailabilityMessage("");
 
-        setSelectedSeats((currentSelectedSeats) => {
-            const isAlreadySelected =
-                currentSelectedSeats.includes(seatId);
+        const isAlreadySelected =
+            selectedSeats.includes(seatId);
 
-            if (isAlreadySelected) {
+        if (isAlreadySelected) {
+            setSelectedSeats((currentSelectedSeats) => {
                 return currentSelectedSeats.filter(
                     (selectedSeatId) => {
                         return selectedSeatId !== seatId;
                     }
                 );
-            }
+            });
 
+            setTicketTypesBySeatId((currentTicketTypes) => {
+                return removeTicketTypesForSeats(
+                    currentTicketTypes,
+                    [seatId]
+                );
+            });
+
+            return;
+        }
+
+        setSelectedSeats((currentSelectedSeats) => {
             return [...currentSelectedSeats, seatId];
+        });
+
+        setTicketTypesBySeatId((currentTicketTypes) => {
+            return {
+                ...currentTicketTypes,
+                [seatId]:
+                    currentTicketTypes[seatId] ??
+                    DEFAULT_TICKET_TYPE,
+            };
+        });
+    }
+
+    function handleTicketTypeChange(seatId, ticketType) {
+        if (!selectedSeats.includes(seatId)) {
+            return;
+        }
+
+        if (!isValidTicketType(ticketType)) {
+            return;
+        }
+
+        setTicketTypesBySeatId((currentTicketTypes) => {
+            return {
+                ...currentTicketTypes,
+                [seatId]: ticketType,
+            };
         });
     }
 
     function handleClearSelection() {
         setAvailabilityMessage("");
         setSelectedSeats([]);
+        setTicketTypesBySeatId({});
     }
 
     function handleAddToCart() {
@@ -172,7 +244,23 @@ function BookingPage() {
             }
         );
 
-        if (stillSelectableSeats.length === 0) {
+        const seatsWithTicketTypes = stillSelectableSeats
+            .map((seatId) => {
+                const ticketType =
+                    ticketTypesBySeatId[seatId];
+
+                if (!isValidTicketType(ticketType)) {
+                    return null;
+                }
+
+                return {
+                    seatId,
+                    ticketType,
+                };
+            })
+            .filter(Boolean);
+
+        if (seatsWithTicketTypes.length === 0) {
             return;
         }
 
@@ -184,7 +272,7 @@ function BookingPage() {
             date: session.date,
             time: session.time,
             hallName: session.hallName,
-            seats: stillSelectableSeats,
+            seats: seatsWithTicketTypes,
             unitPrice: session.price,
         };
 
@@ -194,6 +282,7 @@ function BookingPage() {
         });
 
         setSelectedSeats([]);
+        setTicketTypesBySeatId({});
 
         navigate("/cart");
     }
@@ -205,6 +294,14 @@ function BookingPage() {
         : 0;
 
     const hasSelectedSeats = selectedSeatCount > 0;
+
+    const canAddToCart =
+        hasSelectedSeats &&
+        selectedSeats.every((seatId) => {
+            return isValidTicketType(
+                ticketTypesBySeatId[seatId]
+            );
+        });
 
     if (
         isSessionLoading ||
@@ -313,6 +410,69 @@ function BookingPage() {
                         </strong>
                     </div>
 
+                    {hasSelectedSeats && (
+                        <div className="booking-ticket-types">
+                            <span className="booking-ticket-types-heading">
+                                Bilet tipi
+                            </span>
+
+                            <ul className="ticket-type-list">
+                                {selectedSeats.map((seatId) => {
+                                    const selectId =
+                                        `booking-ticket-type-${seatId}`;
+                                    const ticketType =
+                                        ticketTypesBySeatId[
+                                            seatId
+                                        ] ?? DEFAULT_TICKET_TYPE;
+
+                                    return (
+                                        <li
+                                            className="ticket-type-row"
+                                            key={seatId}
+                                        >
+                                            <label htmlFor={selectId}>
+                                                {seatId} koltuğu
+                                                <span className="visually-hidden">
+                                                    {" "}
+                                                    bilet tipi
+                                                </span>
+                                            </label>
+
+                                            <div className="ticket-type-select-wrap">
+                                                <select
+                                                    className="ticket-type-select"
+                                                    id={selectId}
+                                                    value={ticketType}
+                                                    onChange={(event) => {
+                                                        handleTicketTypeChange(
+                                                            seatId,
+                                                            event.target.value
+                                                        );
+                                                    }}
+                                                >
+                                                    {TICKET_TYPE_LIST.map(
+                                                        (optionType) => {
+                                                            return (
+                                                                <option
+                                                                    key={optionType}
+                                                                    value={optionType}
+                                                                >
+                                                                    {getTicketTypeLabel(
+                                                                        optionType
+                                                                    )}
+                                                                </option>
+                                                            );
+                                                        }
+                                                    )}
+                                                </select>
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
+
                     <div className="booking-total">
                         <span>Toplam</span>
                         <strong>{totalPrice} TL</strong>
@@ -322,7 +482,7 @@ function BookingPage() {
                         className="primary-button booking-action-button"
                         type="button"
                         onClick={handleAddToCart}
-                        disabled={!hasSelectedSeats}
+                        disabled={!canAddToCart}
                     >
                         Sepete Ekle
                     </button>
