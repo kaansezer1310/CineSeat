@@ -1,0 +1,83 @@
+import { describe, expect, it } from "vitest";
+
+import movieService from "./movieService.js";
+
+describe("movieService.isMovieReleased", () => {
+  it("vizyon tarihi bugünden önceyse vizyonda kabul eder", () => {
+    const movie = { releaseDate: "2026-07-10" };
+
+    expect(
+      movieService.isMovieReleased(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+
+  it("vizyon tarihi tam bugünse vizyonda kabul eder", () => {
+    const movie = { releaseDate: "2026-07-16" };
+
+    expect(
+      movieService.isMovieReleased(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+
+  it("vizyon tarihi ileri bir tarihse henüz vizyonda değildir", () => {
+    const movie = { releaseDate: "2026-08-14" };
+
+    expect(
+      movieService.isMovieReleased(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(false);
+  });
+
+  it("releaseDate alanı yoksa vizyonda kabul eder", () => {
+    expect(
+      movieService.isMovieReleased(
+        {},
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+});
+
+describe("movieService.getDaysUntilRelease", () => {
+  it("kalan gün sayısını doğru hesaplar", () => {
+    const movie = { releaseDate: "2026-08-14" };
+
+    expect(
+      movieService.getDaysUntilRelease(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(29);
+  });
+
+  it("vizyon günü ise 0 döner", () => {
+    const movie = { releaseDate: "2026-07-16" };
+
+    expect(
+      movieService.getDaysUntilRelease(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(0);
+  });
+});
+
+describe("movieService.parseIsoDateOnly", () => {
+  it("ISO tarih dizisini yerel tarihe çevirir", () => {
+    const parsed = movieService.parseIsoDateOnly(
+      "2026-08-14"
+    );
+
+    expect(parsed.getFullYear()).toBe(2026);
+    expect(parsed.getMonth()).toBe(7);
+    expect(parsed.getDate()).toBe(14);
+  });
+});
