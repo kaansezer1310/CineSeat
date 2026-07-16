@@ -1,3 +1,5 @@
+import MoviePoster from "./MoviePoster.jsx";
+
 function MovieCard({ movie, onSelect }) {
   function handleCardClick() {
     onSelect(movie.id);
@@ -11,10 +13,10 @@ function MovieCard({ movie, onSelect }) {
         onClick={handleCardClick}
       >
         <div className="movie-poster-wrapper">
-          <img
+          <MoviePoster
+            key={movie.poster}
+            movie={movie}
             className="movie-poster"
-            src={movie.poster}
-            alt={`${movie.title} film posteri`}
           />
 
           <span className="movie-age-rating">

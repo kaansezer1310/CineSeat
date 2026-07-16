@@ -1,4 +1,5 @@
 import movies from "../data/movies.js";
+import { NotFoundError } from "./errors.js";
 
 function wait(milliseconds) {
   return new Promise((resolve) => {
@@ -20,7 +21,7 @@ async function getMovieById(movieId) {
   });
 
   if (!movie) {
-    throw new Error("Film bulunamadı.");
+    throw new NotFoundError("Film bulunamadı.");
   }
 
   return movie;

@@ -7,11 +7,18 @@ import {
 } from "@tanstack/react-query";
 
 import App from "./App.jsx";
-import CartProvider from "./context/CartContext.jsx";
+import CartProvider from "./context/CartProvider.jsx";
+import { shouldRetryQuery } from "./services/errors.js";
 
 import "./index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: shouldRetryQuery,
+    },
+  },
+});
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

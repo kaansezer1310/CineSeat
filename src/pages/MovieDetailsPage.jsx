@@ -4,6 +4,7 @@ import {
   useParams,
 } from "react-router-dom";
 
+import MoviePoster from "../components/movies/MoviePoster.jsx";
 import SessionList from "../components/sessions/SessionList.jsx";
 import movieService from "../services/movieService.js";
 import sessionService from "../services/sessionService.js";
@@ -72,10 +73,10 @@ function MovieDetailsPage() {
     <section>
       <div className="movie-details-layout">
         <div className="movie-details-poster-wrapper">
-          <img
+          <MoviePoster
+            key={movie.poster}
+            movie={movie}
             className="movie-details-poster"
-            src={movie.poster}
-            alt={`${movie.title} film posteri`}
           />
         </div>
 

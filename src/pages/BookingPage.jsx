@@ -12,6 +12,8 @@ import seatService from "../services/seatService.js";
 import sessionService from "../services/sessionService.js";
 import useCart from "../hooks/useCart.js";
 
+const emptyReservedSeats = [];
+
 function BookingPage() {
     const { sessionId } = useParams();
 
@@ -22,6 +24,10 @@ function BookingPage() {
     const numericSessionId = Number(sessionId);
 
     const [selectedSeats, setSelectedSeats] = useState([]);
+    const [
+        availabilityMessage,
+        setAvailabilityMessage,
+    ] = useState("");
 
     const {
         data: session,
@@ -53,7 +59,7 @@ function BookingPage() {
     });
 
     const {
-        data: reservedSeats = [],
+        data: reservedSeatsData,
         isLoading: areSeatsLoading,
         isFetching: areSeatsFetching,
         error: seatsError,
@@ -68,7 +74,46 @@ function BookingPage() {
         staleTime: 10 * 1000,
     });
 
+    const reservedSeats =
+        reservedSeatsData ?? emptyReservedSeats;
+
+    const [
+        previousReservedSeats,
+        setPreviousReservedSeats,
+    ] = useState(reservedSeats);
+
+    if (reservedSeats !== previousReservedSeats) {
+        setPreviousReservedSeats(reservedSeats);
+
+        const newlyReservedSeats = selectedSeats.filter(
+            (seatId) => {
+                return reservedSeats.includes(seatId);
+            }
+        );
+
+        if (newlyReservedSeats.length === 0) {
+            setAvailabilityMessage("");
+        } else {
+            setSelectedSeats((currentSelectedSeats) => {
+                return currentSelectedSeats.filter((seatId) => {
+                    return !reservedSeats.includes(seatId);
+                });
+            });
+
+            const seatDescription =
+                newlyReservedSeats.length === 1
+                    ? `${newlyReservedSeats[0]} numaralı koltuk`
+                    : `${newlyReservedSeats.join(", ")} numaralı koltuklar`;
+
+            setAvailabilityMessage(
+                `${seatDescription} artık müsait olmadığı için seçiminden çıkarıldı.`
+            );
+        }
+    }
+
     function handleSeatSelect(seatId) {
+        setAvailabilityMessage("");
+
         setSelectedSeats((currentSelectedSeats) => {
             const isAlreadySelected =
                 currentSelectedSeats.includes(seatId);
@@ -86,6 +131,7 @@ function BookingPage() {
     }
 
     function handleClearSelection() {
+        setAvailabilityMessage("");
         setSelectedSeats([]);
     }
 
@@ -187,6 +233,15 @@ function BookingPage() {
                         : "↻ Koltukları Yenile"}
                 </button>
             </div>
+
+            {availabilityMessage && (
+                <p
+                    className="booking-availability-status"
+                    role="status"
+                >
+                    {availabilityMessage}
+                </p>
+            )}
 
             <div className="booking-layout">
                 <SeatMap

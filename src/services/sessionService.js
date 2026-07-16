@@ -1,4 +1,5 @@
 import sessions from "../data/sessions.js";
+import { NotFoundError } from "./errors.js";
 
 function wait(milliseconds) {
   return new Promise((resolve) => {
@@ -22,7 +23,7 @@ async function getSessionById(sessionId) {
   });
 
   if (!session) {
-    throw new Error("Seans bulunamadı.");
+    throw new NotFoundError("Seans bulunamadı.");
   }
 
   return session;
