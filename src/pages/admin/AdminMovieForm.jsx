@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import movieService from '../../services/movieService';
+
+const NUMERIC_FIELDS = new Set(["duration", "releaseYear"]);
 
 export default function AdminMovieForm() {
   const { id } = useParams(); // URL'den ID'yi al
@@ -13,6 +15,7 @@ export default function AdminMovieForm() {
     duration: "",
     ageRating: "Genel İzleyici",
     releaseYear: new Date().getFullYear(),
+    releaseDate: "",
     poster: "",
     description: ""
   });
@@ -20,35 +23,40 @@ export default function AdminMovieForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isEditMode) {
-      loadMovie(id);
+    if (!isEditMode) {
+      return;
     }
-  }, [id]);
 
-  const loadMovie = async (movieId) => {
-    setLoading(true);
-    try {
-      const data = await movieService.getMovieById(movieId);
-      setFormData({
-        title: data.title,
-        genre: data.genre,
-        duration: data.duration,
-        ageRating: data.ageRating,
-        releaseYear: data.releaseYear,
-        poster: data.poster,
-        description: data.description
-      });
-    } catch (error) {
-      alert("Film bulunamadı!");
-      navigate('/admin/movies');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const loadMovie = async (movieId) => {
+      setLoading(true);
+      try {
+        const data = await movieService.getMovieById(movieId);
+        setFormData({
+          title: data.title,
+          genre: data.genre,
+          duration: data.duration,
+          ageRating: data.ageRating,
+          releaseYear: data.releaseYear,
+          releaseDate: data.releaseDate ?? "",
+          poster: data.poster,
+          description: data.description
+        });
+      } catch (error) {
+        console.error("Film bulunamadı:", error);
+        alert("Film bulunamadı!");
+        navigate('/admin/movies');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMovie(id);
+  }, [id, isEditMode, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = NUMERIC_FIELDS.has(name) ? Number(value) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handleSubmit = async (e) => {
@@ -65,6 +73,7 @@ export default function AdminMovieForm() {
       }
       navigate('/admin/movies');
     } catch (error) {
+      console.error("İşlem sırasında bir hata oluştu:", error);
       alert("İşlem sırasında bir hata oluştu.");
     } finally {
       setLoading(false);
@@ -80,35 +89,35 @@ export default function AdminMovieForm() {
       <form onSubmit={handleSubmit} className="admin-form">
         <div className="form-group">
           <label>Film Adı *</label>
-          <input 
-            type="text" 
-            name="title" 
-            value={formData.title} 
-            onChange={handleChange} 
-            required 
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            required
           />
         </div>
 
         <div className="form-group">
           <label>Tür *</label>
-          <input 
-            type="text" 
-            name="genre" 
-            value={formData.genre} 
-            onChange={handleChange} 
-            required 
+          <input
+            type="text"
+            name="genre"
+            value={formData.genre}
+            onChange={handleChange}
+            required
           />
         </div>
 
         <div className="form-group">
           <label>Süre (Dk) *</label>
-          <input 
-            type="number" 
-            name="duration" 
-            value={formData.duration} 
-            onChange={handleChange} 
-            min="1" 
-            required 
+          <input
+            type="number"
+            name="duration"
+            value={formData.duration}
+            onChange={handleChange}
+            min="1"
+            required
           />
         </div>
 
@@ -125,36 +134,48 @@ export default function AdminMovieForm() {
 
         <div className="form-group">
           <label>Çıkış Yılı *</label>
-          <input 
-            type="number" 
-            name="releaseYear" 
-            value={formData.releaseYear} 
-            onChange={handleChange} 
-            min="1900" 
-            required 
+          <input
+            type="number"
+            name="releaseYear"
+            value={formData.releaseYear}
+            onChange={handleChange}
+            min="1900"
+            required
           />
         </div>
 
         <div className="form-group">
+          <label>Vizyon Tarihi *</label>
+          <input
+            type="date"
+            name="releaseDate"
+            value={formData.releaseDate}
+            onChange={handleChange}
+            required
+          />
+          <small>Bugün veya geçmiş bir tarih girilirse film "Vizyonda" sekmesinde, ileri bir tarih girilirse "Yakında" sekmesinde görünür.</small>
+        </div>
+
+        <div className="form-group">
           <label>Afiş URL *</label>
-          <input 
-            type="text" 
-            name="poster" 
-            value={formData.poster} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            name="poster"
+            value={formData.poster}
+            onChange={handleChange}
             placeholder="/posters/ornek.png"
-            required 
+            required
           />
         </div>
 
         <div className="form-group">
           <label>Açıklama *</label>
-          <textarea 
-            name="description" 
-            value={formData.description} 
-            onChange={handleChange} 
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
             rows="5"
-            required 
+            required
           />
         </div>
 

@@ -12,6 +12,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminMoviesPage from "./pages/admin/AdminMoviesPage.jsx";
 import AdminMovieForm from "./pages/admin/AdminMovieForm.jsx";
 import CinemasPage from "./pages/CinemasPage.jsx";
+import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 import "./App.css";
 
@@ -34,13 +36,18 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cinemas" element={<CinemasPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
 
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="movies" element={<AdminMoviesPage />} />
-        <Route path="movies/new" element={<AdminMovieForm />} />
-        <Route path="movies/:id" element={<AdminMovieForm />} />
+      <Route
+        element={<ProtectedRoute allowedRoles={["admin"]} />}
+      >
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="movies" element={<AdminMoviesPage />} />
+          <Route path="movies/new" element={<AdminMovieForm />} />
+          <Route path="movies/:id" element={<AdminMovieForm />} />
+        </Route>
       </Route>
     </Routes>
   );

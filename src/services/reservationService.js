@@ -133,8 +133,15 @@ async function createReservation(cartItems) {
   return reservation;
 }
 
+async function getAllReservations() {
+  await wait(300);
+
+  return getStoredReservations();
+}
+
 const reservationService = {
   createReservation,
+  getAllReservations,
 };
 
 export default reservationService;
