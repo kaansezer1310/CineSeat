@@ -65,17 +65,17 @@ Durum, kodda kanıtı olan işe göre belirlendi.
 | 1.4.9 | Ödeme başarısızlık ve hata ekranı | ⬜ Kalan | REQ-13 (test kartı, Tekrar Dene/Sepete Dön) |
 | 1.4.10 | Başarı ekranı ve rezervasyon no | ✅ Bitti (temel) | `pages/SuccessPage.jsx` — **format `CS-…`, doküman `RES-#####` istiyor (REQ-22)** |
 
-### 1.5 Yönetici Paneli ve Lokasyon — HİÇ BAŞLANMADI ⬜
+### 1.5 Yönetici Paneli ve Lokasyon — BÜYÜK ÖLÇÜDE BİTTİ 🟡
 | # | Görev | Durum | Not |
 |---|-------|-------|-----|
-| 1.5.1 | Admin panel layout | ⬜ Kalan | |
-| 1.5.2 | Film ekleme, silme ve güncelleme formu | ⬜ Kalan | REQ-04 |
-| 1.5.3 | Form validasyonu ve silme onayı | ⬜ Kalan | REQ-04 |
-| 1.5.4 | İstatistik hesaplama fonksiyonları | ⬜ Kalan | REQ-06 |
-| 1.5.5 | Rapor tablo ve grafik görünümü | ⬜ Kalan | REQ-06 |
-| 1.5.6 | CSV dışa aktarım ve arşiv istatistikleri | ⬜ Kalan | REQ-20 |
-| 1.5.7 | Sinemalar sayfası ve şehir dropdown | ⬜ Kalan | REQ-07 |
-| 1.5.8 | Geolocation, mesafe ve fallback | ⬜ Kalan | REQ-07 / REQ-07.1 |
+| 1.5.1 | Admin panel layout | ✅ Bitti | `AdminLayout.jsx` |
+| 1.5.2 | Film ekleme, silme ve güncelleme formu | ✅ Bitti | `AdminMovieForm.jsx`, `AdminMoviesPage.jsx`, `movieService.js` |
+| 1.5.3 | Form validasyonu ve silme onayı | ✅ Bitti | HTML5 required & window.confirm eklendi |
+| 1.5.4 | İstatistik hesaplama fonksiyonları | ✅ Bitti | `AdminDashboard.jsx` içinde `reduce` ile yapıldı |
+| 1.5.5 | Rapor tablo ve grafik görünümü | ✅ Bitti | `recharts` ile bar grafiği yapıldı |
+| 1.5.6 | CSV dışa aktarım ve arşiv istatistikleri | ✅ Bitti | `react-csv` ile export eklendi |
+| 1.5.7 | Sinemalar sayfası ve şehir dropdown | ✅ Bitti | `CinemasPage.jsx` |
+| 1.5.8 | Geolocation, mesafe ve fallback | ✅ Bitti | `navigator.geolocation` ve Haversine eklendi |
 | 1.5.9 | Light / dark mod uygulaması | ⬜ Kalan | REQ-23 |
 
 **Özet:** 44 görevin **10'u tamamlanmış**, **34'ü kalmıştır.**
