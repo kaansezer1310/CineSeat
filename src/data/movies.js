@@ -6,6 +6,7 @@ const movies = [
     duration: 134,
     ageRating: "16+",
     releaseYear: 2026,
+    releaseDate: "2026-07-13",
     poster: "/posters/neon-yagmuru.png",
     description:
       "İnsanların anılarını şirketlere kiraladığı bir gelecekte, genç bir arşiv teknisyeni yıllar önce kaybettiği kardeşine ait silinmiş bir kayıt bulur.",
@@ -17,6 +18,7 @@ const movies = [
     duration: 128,
     ageRating: "13+",
     releaseYear: 2026,
+    releaseDate: "2026-07-13",
     poster: "/posters/kalkan.png",
     description:
       "Yer çekimini yönlendirebilen genç bir kurtarma pilotu, güçlerinin kaynağını keşfederken şehri büyük bir felaketten korumak zorunda kalır.",
@@ -28,6 +30,7 @@ const movies = [
     duration: 101,
     ageRating: "7+",
     releaseYear: 2026,
+    releaseDate: "2026-07-13",
     poster: "/posters/yanlis-dugun.png",
     description:
       "Aynı otelde düzenlenen iki düğünün birbirine karışmasıyla gelinler, damatlar ve aileler kendilerini kontrol edilemez bir karmaşanın içinde bulur.",
@@ -39,9 +42,32 @@ const movies = [
     duration: 109,
     ageRating: "18+",
     releaseYear: 2026,
+    releaseDate: "2026-07-13",
     poster: "/posters/ucuncu-kat.png",
     description:
       "Yeni taşındığı apartmanda gerçekte var olmayan bir kata açılan asansörü keşfeden genç bir kadın, binanın geçmişindeki karanlık sırlarla yüzleşir.",
+  },
+  {
+    id: 5,
+    title: "Kayıp Sinyal",
+    genre: "Bilim Kurgu",
+    duration: 121,
+    ageRating: "13+",
+    releaseYear: 2026,
+    releaseDate: "2026-08-14",
+    description:
+      "Derin uzaya gönderilen bir keşif ekibiyle iletişim aniden kesilir; Dünya'daki genç bir mühendis son sinyalin ardındaki gerçeği çözmeye çalışır.",
+  },
+  {
+    id: 6,
+    title: "Sessiz Ev",
+    genre: "Gerilim",
+    duration: 97,
+    ageRating: "16+",
+    releaseYear: 2026,
+    releaseDate: "2026-10-02",
+    description:
+      "Kalabalık şehirden taşrada sessiz bir eve taşınan bir aile, evin geçmişiyle ilgili açıklanamayan olaylarla karşı karşıya kalır.",
   },
 ];
 

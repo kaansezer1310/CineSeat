@@ -1,11 +1,19 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import MovieList from "../components/movies/MovieList.jsx";
 import movieService from "../services/movieService.js";
 
+const MOVIE_TABS = [
+  { id: "nowShowing", label: "Vizyonda" },
+  { id: "comingSoon", label: "Yakında" },
+];
+
 function HomePage() {
   const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState("nowShowing");
 
   const {
     data: movies = [],
@@ -57,16 +65,41 @@ function HomePage() {
     );
   }
 
+  const nowShowingMovies = movies.filter((movie) => {
+    return movieService.isMovieReleased(movie);
+  });
+
+  const comingSoonMovies = movies.filter((movie) => {
+    return !movieService.isMovieReleased(movie);
+  });
+
+  const visibleMovies =
+    activeTab === "nowShowing"
+      ? nowShowingMovies
+      : comingSoonMovies;
+
+  const pageHeading =
+    activeTab === "nowShowing"
+      ? "Vizyondaki Filmler"
+      : "Yakında Vizyona Girecek Filmler";
+
+  const pageDescription =
+    activeTab === "nowShowing"
+      ? "Film seçerek seansları inceleyebilir ve bilet oluşturabilirsin."
+      : "Yakında vizyona girecek filmleri keşfet, vizyon tarihini kaçırma.";
+
+  const emptyStateMessage =
+    activeTab === "nowShowing"
+      ? "Şu anda vizyonda film bulunmuyor."
+      : "Yakında vizyona girecek film bulunmuyor.";
+
   return (
     <section>
       <div className="page-heading-row">
         <div className="page-heading">
-          <h1>Vizyondaki Filmler</h1>
+          <h1>{pageHeading}</h1>
 
-          <p>
-            Film seçerek seansları inceleyebilir ve bilet
-            oluşturabilirsin.
-          </p>
+          <p>{pageDescription}</p>
         </div>
 
         <button
@@ -79,10 +112,42 @@ function HomePage() {
         </button>
       </div>
 
-      <MovieList
-        movies={movies}
-        onMovieSelect={handleMovieSelect}
-      />
+      <div
+        className="movie-tab-list"
+        role="tablist"
+      >
+        {MOVIE_TABS.map((tab) => {
+          const isActive = tab.id === activeTab;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={
+                isActive
+                  ? "movie-tab-button movie-tab-button-active"
+                  : "movie-tab-button"
+              }
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {visibleMovies.length === 0 ? (
+        <div className="temporary-panel">
+          {emptyStateMessage}
+        </div>
+      ) : (
+        <MovieList
+          movies={visibleMovies}
+          onMovieSelect={handleMovieSelect}
+        />
+      )}
     </section>
   );
 }
