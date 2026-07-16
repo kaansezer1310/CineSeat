@@ -1,16 +1,87 @@
-# React + Vite
+# # CineSeat
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CineSeat, kullanıcıların filmleri inceleyebildiği, seans seçebildiği, koltuk rezervasyonu oluşturabildiği ve rezervasyon özetini görüntüleyebildiği bir sinema bileti rezervasyon uygulamasıdır.
 
-Currently, two official plugins are available:
+Proje, React tabanlı frontend geliştirme, component yapısı, durum yönetimi ve veri erişim katmanı konularında pratik yapmak amacıyla geliştirilmiştir.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> CineSeat şu anda frontend prototipi aşamasındadır. Film, seans ve rezervasyon işlemleri mock veriler ve localStorage kullanılarak simüle edilmektedir.
 
-## React Compiler
+## Özellikler
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Filmleri listeleme
 
-## Expanding the ESLint configuration
+- Film detaylarını görüntüleme
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Filme ait seansları listeleme
+
+- Dinamik koltuk planı
+
+- Dolu ve müsait koltukların gösterilmesi
+
+- Birden fazla koltuk seçimi
+
+- Seçilen biletleri sepete ekleme
+
+- Aynı seansa ait koltukları sepette birleştirme
+
+- Rezervasyon oluşturma
+
+- Rezervasyon sonucunu görüntüleme
+
+- Yüklenme ve hata durumlarının yönetimi
+
+- Erişilebilir koltuk ve durum bildirimleri
+
+## Kullanılan Teknolojiler
+
+- React
+
+- Vite
+
+- JavaScript
+
+- React Router
+
+- TanStack Query
+
+- Context API
+
+- useReducer
+
+- useState
+
+- Vitest
+
+- React Testing Library
+
+- CSS
+
+- localStorage
+
+## Uygulama Yapısı
+
+Uygulamadaki durumlar kullanım amaçlarına göre ayrılmıştır:
+
+- Koltuk seçimi gibi sayfaya özel durumlar `useState` ile yönetilir.
+
+- Sepet durumu Context API ve `useReducer` ile global olarak yönetilir.
+
+- Film, seans ve dolu koltuk verileri TanStack Query ile alınır ve önbelleğe alınır.
+
+- Veri işlemleri component'ler yerine servis katmanı üzerinden gerçekleştirilir.
+
+- Rezerve koltuklar ve rezervasyon geçmişi localStorage içerisinde saklanır.
+
+Provider sıralaması:
+
+```text
+
+StrictMode
+
+└── QueryClientProvider
+
+    └── BrowserRouter
+
+        └── CartProvider
+
+            └── App
