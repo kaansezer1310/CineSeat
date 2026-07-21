@@ -87,6 +87,18 @@ const comingSoonMovie = {
   description: "Yakında vizyonda.",
 };
 
+const archivedMovie = {
+  id: 7,
+  title: "Son Tren",
+  genre: "Dram",
+  duration: 112,
+  ageRating: "13+",
+  releaseYear: 2026,
+  releaseDate: isoDateOffsetFromToday(-60),
+  screeningEndDate: isoDateOffsetFromToday(-30),
+  description: "Vizyon süresi dolmuş film.",
+};
+
 describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -170,5 +182,35 @@ describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
         "Yakında vizyona girecek film bulunmuyor."
       )
     ).toBeInTheDocument();
+  });
+
+  it("vizyon süresi dolan (arşivlenmiş) filmi hiçbir sekmede göstermez", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      comingSoonMovie,
+      archivedMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    expect(
+      screen.queryByRole("heading", { name: "Son Tren" })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("tab", { name: "Yakında" })
+    );
+
+    await screen.findByRole("heading", {
+      name: "Kayıp Sinyal",
+    });
+
+    expect(
+      screen.queryByRole("heading", { name: "Son Tren" })
+    ).not.toBeInTheDocument();
   });
 });

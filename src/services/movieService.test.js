@@ -70,6 +70,61 @@ describe("movieService.getDaysUntilRelease", () => {
   });
 });
 
+describe("movieService.isMovieArchived", () => {
+  it("screeningEndDate bugünden önceyse arşivlenmiş kabul eder", () => {
+    const movie = { screeningEndDate: "2026-07-10" };
+
+    expect(
+      movieService.isMovieArchived(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+
+  it("screeningEndDate tam bugünse hâlâ vizyonda kabul eder (son gösterim günü)", () => {
+    const movie = { screeningEndDate: "2026-07-16" };
+
+    expect(
+      movieService.isMovieArchived(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(false);
+  });
+
+  it("screeningEndDate ileri bir tarihse arşivlenmemiş kabul eder", () => {
+    const movie = { screeningEndDate: "2026-08-14" };
+
+    expect(
+      movieService.isMovieArchived(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(false);
+  });
+
+  it("screeningEndDate alanı yoksa asla arşivlenmiş sayılmaz", () => {
+    expect(
+      movieService.isMovieArchived(
+        {},
+        new Date(2026, 6, 16)
+      )
+    ).toBe(false);
+  });
+});
+
+describe("REQ-05 — arşivlenen film verisi silinmez", () => {
+  it("vizyon süresi dolmuş 'Son Tren' filmi getMovieById ile hâlâ erişilebilir", async () => {
+    const movie = await movieService.getMovieById(7);
+
+    expect(movie.title).toBe("Son Tren");
+    expect(
+      movieService.isMovieArchived(movie)
+    ).toBe(true);
+  });
+});
+
 describe("movieService.parseIsoDateOnly", () => {
   it("ISO tarih dizisini yerel tarihe çevirir", () => {
     const parsed = movieService.parseIsoDateOnly(

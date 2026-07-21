@@ -2,14 +2,51 @@
 
 > Bu dosya çalışma ilerledikçe güncellenir. Her görev tamamlandığında ilgili bölüm eklenir/güncellenir. Ayrıntılı sprint planı için `docs/PLAN.md`, görev-durum analizi için `docs/WBS_GOREV_DAGILIMI.md`. Mentöre basit dille anlatım için `docs/berke_SPRINT1_ACIKLAMA.md`.
 
-**Son güncelleme:** Sprint 1 — tüm ekibin (Ömer, Kaan, Alptuğ, Berke) `main`'e merge edilmiş çıktısı için kapsamlı review yapıldı (`docs/SPRINT1_REVIEW.md`), bulunan hata/eksikliklerin çoğu bu branch'te düzeltildi.
+**Son güncelleme:** Sprint 2 — Kaan'ın 1.4.4 (bilet tipi) eklemesi analiz edildi (temiz, kritik bulgu yok), Berke'nin kendi Sprint 2 görevi **1.3.5 (Otomatik kategorizasyon ve arşiv, REQ-05)** planına sadık şekilde tamamlandı.
 **Branch:** `berke` (origin/berke'nin ilerisinde; **push işlemi yapılmadı**, manuel push kullanıcıya ait)
 
-**Taze doğrulama (en son, tüm ekip kodu dahil):**
-- `npm run test:run` → `Test Files 12 passed (12)` / `Tests 71 passed (71)`, exit 0
-- `npm run lint` → **0 hata, 0 uyarı**, exit 0 (review anında 13 hata vardı, hepsi temizlendi)
+**Taze doğrulama (en son, tüm ekip kodu dahil — Sprint 1 + Sprint 2/Kaan + Sprint 2/Berke):**
+- `npm run test:run` → `Test Files 14 passed (14)` / `Tests 100 passed (100)`, exit 0
+- `npm run lint` → **0 hata, 0 uyarı**, exit 0
 - `npm run build` → başarılı, exit 0
+- `npm audit` → **0 zafiyet** (transitive `brace-expansion` DoS uyarısı `npm audit fix` ile temizlendi, testler tekrar doğrulandı)
 - Case-sensitivity: `git ls-files` + özel bir script ile **tüm** relative import'ların gerçek dosya case'iyle birebir eştiği doğrulandı (Linux'ta build'i kıran tek noktaydı, artık kapalı)
+
+---
+
+## Sprint 2 — Kaan'ın Eklemesi Analizi + Berke'nin Görevi (1.3.5)
+
+### Kaan'ın Sprint 2 eklemesi (1.4.4 — Sepet + bilet tipi seçimi, REQ-02) — analiz sonucu
+
+**Verdict: Temiz, kritik/yüksek/orta seviye bulgu yok.** İncelenen dosyalar: `domain/ticketType.js` (yeni), `context/cartReducer.js`, `pages/BookingPage.jsx`, `pages/CartPage.jsx`, `services/reservationService.js` + tüm ilgili testler.
+
+- Mimari sağlam: kendi Sprint 1 çalışmasındaki (`domain/seatStatus.js`) desenin aynısı `domain/ticketType.js`'te tekrarlanmış (sabit değerler + doğrulama + Türkçe etiket ayrımı) — tutarlı.
+- Sepet koltukları `string[]`'ten `{seatId, ticketType}[]`'e geçti; bu dönüşüm `reservationService.js`'te **sınırda** (`getSeatIdsFromCartSeats`) yapılıyor, `seatService`'e hâlâ düz `seatId` listesi gidiyor — iyi katmanlama.
+- **Benim Sprint 1 düzeltmem (K3 — `AdminDashboard.jsx`'in gerçek rezervasyon verisinden istatistik hesaplaması) bu değişiklikten etkilenmemiş** — `item.seats.length` hem string hem obje dizisinde aynı çalışıyor, doğrudan kontrol ettim.
+- `SuccessPage.jsx` `.seats`'e hiç dokunmuyor, etkilenmemiş.
+- Testler gerçek davranışı kontrol ediyor (tautolojik değil): dedupe, merge, geçersiz tip reddi, `[object Object]` render riski önlenmiş.
+- **Tek düşük seviye not (Kaan'ın kendi STATUS'unda da işaretlemiş):** commit'e ilgisiz bir `docs/omer_STATUS.md` eklenmiş — zararsız, sadece kapsam dışı.
+- Ayrı, Kaan'la ilgisiz bir housekeeping: `npm audit`'in bulduğu transitive `brace-expansion` (DoS) zafiyeti `npm audit fix` ile temizlendi, testler tekrar 100/100 doğrulandı.
+
+### ✅ 1.3.5 — Otomatik kategorizasyon ve arşiv (REQ-05)
+
+**Durum:** Tamamlandı, PLAN.md'nin dosya kapsamına sadık kalındı (`movieService.js`, `HomePage.jsx`).
+
+**Ne yapıldı:**
+- `movieService.js`'e `isMovieArchived(movie, referenceDate)` eklendi — `screeningEndDate` alanı geçmişteyse (bugün hariç) film arşivlenmiş sayılır. Alan yoksa hiçbir zaman arşivlenmez (mevcut `isMovieReleased`'daki güvenli varsayılan deseniyle birebir tutarlı).
+- `HomePage.jsx`: `movies` listesi artık önce `isMovieArchived` ile elenip (`activeMovies`), Vizyonda/Yakında ayrımı bu filtrelenmiş küme üzerinden yapılıyor — arşivlenmiş bir film **hiçbir sekmede** görünmüyor.
+- `data/movies.js`'e demoyu gösterilebilir kılmak için 1 örnek arşivlenmiş film eklendi (id 7, "Son Tren", `releaseDate` ve `screeningEndDate` ikisi de geçmişte) — Sprint 1'de "Yakında" sekmesi için yaptığım aynı gerekçeyle (kabul kriterinin gerçekten test edilebilir/gösterilebilir olması).
+- **Veri silinmiyor:** `movieService.getMovieById` hiç değiştirilmedi, arşivlenmiş film hâlâ id ile erişilebilir — testle doğrulandı.
+
+**Testler (yeni, 6 test):**
+- `movieService.test.js` — `isMovieArchived`'ın 4 sınır durumu (geçmiş/tam bugün/gelecek/alan yok) + "arşivlenmiş film hâlâ `getMovieById` ile erişilebilir" regresyon testi.
+- `HomePage.test.jsx` — arşivlenmiş filmin ne Vizyonda ne Yakında sekmesinde göründüğünü doğrulayan entegrasyon testi.
+
+**Kalite kontrolleri:** `npm run test:run` → 14 dosya / 100 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+
+**Bilinçli, açıklanan scope kararı:** `AdminMovieForm.jsx`'e `screeningEndDate` alanı eklenmedi — bu, 1.5.2'nin (admin form) dosya kapsamı, 1.3.5'in değil (tıpkı Sprint 1'de `releaseDate` için yaşanan Y2 boşluğu gibi). Admin panelinden eklenen filmler bu yüzden şimdilik asla otomatik arşivlenmeyecek (güvenli varsayılan, hata değil) — ileride admin formu güncellenirken bu alan da eklenmeli.
+
+**Teknik borç temizliği (ayrı, küçük):** Kök dizindeki gereksiz `tatus` dosyası (Sprint 1'den beri `PLAN.md`'de not edilen teknik borç) silindi.
 
 ---
 
@@ -95,4 +132,4 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 
 ## Sırada Ne Var
 
-Sprint 1'in 4 görevi de artık tamamlanmış durumda (Ömer/Kaan/Alptuğ/Berke) ve `docs/SPRINT1_REVIEW.md`'de bulunan kritik/yüksek öncelikli sorunların çoğu bu branch'te kapatıldı. Kalan açık maddeler (Y3, O1, Alptuğ'un STATUS'u, PLAN.md'nin yeniden dengelenmesi) ekiple konuşulmalı. Berke'nin bir sonraki kendi görevi **Sprint 2 / 1.3.5 — Otomatik kategorizasyon ve arşiv**, `movieService.js` + `HomePage.jsx` dosyalarında.
+Sprint 1'in 4 görevi tamamlandı. Sprint 2'de şu ana kadar Kaan'ın 1.4.4'ü (analiz edildi, temiz) ve Berke'nin 1.3.5'i (bu oturumda tamamlandı) bitti. Sprint 2'nin geri kalanı — Ömer'in 1.2.1'i (Login/register) ve Alptuğ'un 1.5.8'i (zaten Sprint 1'de bitmişti, PLAN.md'nin yeniden dengelenmesi gerekiyor) — henüz yapılmadı; `docs/WBS_GOREV_DAGILIMI.md` §2'de kişi bazlı güncel kalan görev listesi var. Berke'nin bir sonraki kendi görevi **Sprint 3 / 1.3.3 — Sıralama modülü (tarih ve puan)**, PLAN.md'ye göre.
