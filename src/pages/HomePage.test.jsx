@@ -72,6 +72,19 @@ const nowShowingMovie = {
   releaseYear: 2026,
   releaseDate: isoDateOffsetFromToday(-3),
   description: "Vizyondaki film.",
+  rating: { average: 3.5 },
+};
+
+const secondNowShowingMovie = {
+  id: 8,
+  title: "Yanlış Düğün",
+  genre: "Komedi",
+  duration: 101,
+  ageRating: "7+",
+  releaseYear: 2026,
+  releaseDate: isoDateOffsetFromToday(-10),
+  description: "İkinci vizyondaki film.",
+  rating: { average: 4.8 },
 };
 
 const comingSoonMovie = {
@@ -212,5 +225,104 @@ describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
     expect(
       screen.queryByRole("heading", { name: "Son Tren" })
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("HomePage — Sıralama ve filtreleme (1.3.3 / 1.3.4)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("varsayılan sıralama vizyon tarihine göre yeniden eskiyedir", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    const headings = await screen.findAllByRole("heading", {
+      level: 2,
+    });
+
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "Neon Yağmuru",
+      "Yanlış Düğün",
+    ]);
+  });
+
+  it("puana göre sıralama seçilince sırayı değiştirir", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.change(screen.getByLabelText("Sırala"), {
+      target: { value: "rating-desc" },
+    });
+
+    const headings = await screen.findAllByRole("heading", {
+      level: 2,
+    });
+
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "Yanlış Düğün",
+      "Neon Yağmuru",
+    ]);
+  });
+
+  it("türe göre filtreleyince eşleşmeyen filmi gizler", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.change(screen.getByLabelText("Tür"), {
+      target: { value: "Komedi" },
+    });
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Yanlış Düğün",
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Neon Yağmuru" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("filtre sonucu boşsa 'eşleşen film yok' mesajı gösterir", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.change(screen.getByLabelText("Yaş Sınırı"), {
+      target: { value: "18+" },
+    });
+
+    expect(
+      await screen.findByText(
+        "Seçtiğin filtrelere uyan film bulunamadı."
+      )
+    ).toBeInTheDocument();
   });
 });

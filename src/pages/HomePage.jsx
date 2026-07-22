@@ -3,6 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import MovieList from "../components/movies/MovieList.jsx";
+import SortControl, {
+  DEFAULT_SORT,
+} from "../components/movies/SortControl.jsx";
+import FilterControl, {
+  ALL_VALUE,
+} from "../components/movies/FilterControl.jsx";
 import movieService from "../services/movieService.js";
 
 const MOVIE_TABS = [
@@ -14,6 +20,9 @@ function HomePage() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("nowShowing");
+  const [sortValue, setSortValue] = useState(DEFAULT_SORT);
+  const [genreFilter, setGenreFilter] = useState(ALL_VALUE);
+  const [ageRatingFilter, setAgeRatingFilter] = useState(ALL_VALUE);
 
   const {
     data: movies = [],
@@ -85,10 +94,30 @@ function HomePage() {
     );
   });
 
-  const visibleMovies =
+  const tabMovies =
     activeTab === "nowShowing"
       ? nowShowingMovies
       : comingSoonMovies;
+
+  // REQ-08.1: sıralama ve filtre, aktif sekmenin filmleri üzerinde birlikte
+  // uygulanır. Seçenekler filtre uygulanmadan ÖNCEKİ kümeden türetilir,
+  // böylece bir filtre sonucu boş kalsa bile diğer seçenekler kaybolmaz.
+  const availableGenres = movieService.getAvailableGenres(tabMovies);
+  const availableAgeRatings =
+    movieService.getAvailableAgeRatings(tabMovies);
+
+  const filteredMovies = movieService.filterMovies(tabMovies, {
+    genre: genreFilter,
+    ageRating: ageRatingFilter,
+  });
+
+  const visibleMovies = movieService.sortMovies(
+    filteredMovies,
+    sortValue
+  );
+
+  const isFilterActive =
+    genreFilter !== ALL_VALUE || ageRatingFilter !== ALL_VALUE;
 
   const pageHeading =
     activeTab === "nowShowing"
@@ -101,9 +130,11 @@ function HomePage() {
       : "Yakında vizyona girecek filmleri keşfet, vizyon tarihini kaçırma.";
 
   const emptyStateMessage =
-    activeTab === "nowShowing"
-      ? "Şu anda vizyonda film bulunmuyor."
-      : "Yakında vizyona girecek film bulunmuyor.";
+    tabMovies.length === 0
+      ? activeTab === "nowShowing"
+        ? "Şu anda vizyonda film bulunmuyor."
+        : "Yakında vizyona girecek film bulunmuyor."
+      : "Seçtiğin filtrelere uyan film bulunamadı.";
 
   return (
     <section>
@@ -149,6 +180,37 @@ function HomePage() {
           );
         })}
       </div>
+
+      {tabMovies.length > 0 && (
+        <div className="movie-controls-row">
+          <SortControl
+            value={sortValue}
+            onChange={setSortValue}
+          />
+
+          <FilterControl
+            genres={availableGenres}
+            ageRatings={availableAgeRatings}
+            selectedGenre={genreFilter}
+            selectedAgeRating={ageRatingFilter}
+            onGenreChange={setGenreFilter}
+            onAgeRatingChange={setAgeRatingFilter}
+          />
+
+          {isFilterActive && (
+            <button
+              type="button"
+              className="secondary-button movie-filter-clear-button"
+              onClick={() => {
+                setGenreFilter(ALL_VALUE);
+                setAgeRatingFilter(ALL_VALUE);
+              }}
+            >
+              Filtreleri Temizle
+            </button>
+          )}
+        </div>
+      )}
 
       {visibleMovies.length === 0 ? (
         <div className="temporary-panel">

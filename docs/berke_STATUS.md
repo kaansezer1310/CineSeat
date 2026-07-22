@@ -2,14 +2,13 @@
 
 > Bu dosya çalışma ilerledikçe güncellenir. Her görev tamamlandığında ilgili bölüm eklenir/güncellenir. Ayrıntılı sprint planı için `docs/PLAN.md`, görev-durum analizi için `docs/WBS_GOREV_DAGILIMI.md`. Mentöre basit dille anlatım için `docs/berke_SPRINT1_ACIKLAMA.md`.
 
-**Son güncelleme:** Sprint 3 konsolide backlog'umun ilk maddesi **1.3.6 (Yakında 6 ay zaman kısıtı, REQ-15) tamamlandı**. Sıradaki madde: 1.3.3 (sıralama modülü).
-**Branch:** `berke` (origin/berke'nin ilerisinde; **push işlemi yapılmadı**, manuel push kullanıcıya ait)
+**Son güncelleme:** Katalog & Sosyal modülüm **tamamen bitti (9/9 görev)**. Kaan'ın backlog'u Alptuğ tarafından devralınıp bitirildikten sonra çıkan `Alp`↔`main` merge conflict'ini çözdüm (ayrıntı aşağıda), ardından kendi kalan 6 görevimi (1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11) uçtan uca bitirdim. Ekipte kalan tek backlog artık Ömer'inki.
+**Branch:** `Alp` → main'e mergelendi (PR #14, kullanıcı push etti); yeni işim şu an `berke` branch'inde, **push edilmedi**, manuel push kullanıcıya ait.
 
-**Taze doğrulama (en son, 1.3.6 dahil):**
-- `npm run test:run` → `Test Files 17 passed (17)` / `Tests 117 passed (117)`, exit 0
+**Taze doğrulama (en son, modül tamamı dahil):**
+- `npm run test:run` → `Test Files 20 passed (20)` / `Tests 164 passed (164)`, exit 0
 - `npm run lint` → **0 hata, 0 uyarı**, exit 0
 - `npm run build` → başarılı, exit 0
-- `npm audit` → **0 zafiyet**
 - Case-sensitivity: doğrulanmış durumda (Sprint 1'de kapatıldı)
 
 ---
@@ -21,6 +20,49 @@ Kullanıcı, 1.3.6'ya geçmeden önce durup şunu netleştirdi: asıl istek her 
 **Sonuç:** Kaan'ın 5 görevi tamamen bağımsız. Ömer'in 7'sinden 6'sı, Berke'nin 7'sinden (1.3.6 hariç) 6'sı da bağımsız. **Tek bulgu:** Ömer'in listesinde Kaan'a bağımlı 1.2.6, sondan bir önceki (6/7) sıradaydı — en sonda değildi. Bu, Berke'nin 1.2.10'unda uygulanan "dış bağımlılık en sonda" desenine aykırıydı. Düzeltme: Ömer'in listesinde 1.5.9 ile 1.2.6 yer değiştirildi (1.5.9 madde 6, 1.2.6 madde 7 oldu) — artık ikisi de aynı desende: 6 bağımsız görev + en sonda 1 dış-bağımlı görev.
 
 `docs/PLAN.md`'ye yeni bir **§6 "Tek-Sprint Yürütme Sırası"** bölümü eklendi (eski §6/§7 numaraları §7/§8'e kaydı, referanslar güncellendi): Kaan'ın kendi ilk iki maddesi (1.4.5, 1.4.8) hem Ömer'i hem Berke'yi besliyor; bu iki madde Kaan'ın kendi sırasının başında olduğu için üç backlog paralel başlayabilir, kimse birbirini baştan beklemez. `docs/WBS_GOREV_DAGILIMI.md` §2 ve §3'e de aynı sıralama ve gerekçe yansıtıldı.
+
+---
+
+## Alp → main merge conflict çözümü (kullanıcı talebiyle)
+
+Kaan'ın backlog'unu devralan Alptuğ, `main`'in gerisinde kalan eski bir noktadan dallanmış olduğu için PR'ı GitHub'da "conflicts must be resolved" diyordu. İzole bir git worktree'de gerçek merge'ü deneyip **6 dosyada gerçek conflict** buldum:
+
+- **`BookingPage.jsx`:** Alp'in versiyonu her koltuğu hardcoded `"ADULT"` yapıyordu, aynı dosyadaki bilet-tipi dropdown'ını görmezden geliyordu — main'in doğru versiyonu korundu.
+- **`CartPage.jsx` / `CartPage.test.jsx`:** Alp, rezervasyon oluşturmayı `CartPage`'den tamamen çıkarıp `/odeme` akışına taşımıştı (Kaan'ın 1.4.8'inin amacı zaten buydu) — Alp'in tarafı alındı.
+- **`AdminDashBoard.jsx` (silinmiş/case):** Bu tam olarak Sprint 1'de bulunup düzeltilen **K1 case-sensitivity bug'ının** ta kendisiydi — Alp'in dosyası sahte hardcoded istatistik gösteren eski versiyondu. Ayrıca bu dosyayı silerken **Windows'un case-insensitive dosya sisteminde diskteki tek dosya olduğu için doğru `AdminDashboard.jsx` da fiziksel olarak silindi** — fark edip `git checkout-index` ile geri yükledim.
+- **`reservationService.js`:** Alp'in `reserveAllSeats`'i rezervasyonu **atomik hale getirmiş** — `SPRINT1_REVIEW.md`'deki O5 teknik borcunu çözüyor, alındı.
+- Merge sonrası 8 lint hatası çıktı (Alp hiç lint çalıştırmamış) — hepsi düzeltildi.
+
+Çözümü doğru `Alp` branch'ine (case-insensitive FS'te `alp`/`Alp` çakışmasını önlemek için önce sil-sonra-oluştur sırasıyla) taşıdım, kullanıcı push etti, main'e merge edildi (PR #14). Tam detay: bu konuşmanın önceki turları.
+
+---
+
+## Sprint 3 — Kalan 6 görev: 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11 — hepsi ✅
+
+Alp merge'i main'e alındıktan sonra kendi backlog'umun kalanını tek oturumda bitirdim.
+
+**Veri modeli genişletmeleri:** `data/movies.js`'e her filme `rating: {average, count}` ve `fragmanYoutubeId` eklendi (3 film kasıtlı `fragmanYoutubeId: null` — REQ-09.1 fallback'ini gerçek veriyle test edebilmek için). Yeni `data/comments.js` (2 seed yorum, id 1'e). Yeni servisler: `ratingService.js` (localStorage, kullanıcı puanı seed ortalamasının üzerine ağırlıklı ekleniyor), `commentService.js` (10-500 karakter + yasaklı kelime + sahiplik kontrolü). `errors.js`'e `ValidationError`/`ForbiddenError` eklendi.
+
+**1.3.3 + 1.3.4 (Sıralama + Filtreleme, REQ-08.1):** `movieService.sortMovies`/`filterMovies`/`getAvailableGenres`/`getAvailableAgeRatings` + `SortControl.jsx`/`FilterControl.jsx`, `HomePage.jsx`'e entegre, aktif sekmenin filmleri üzerinde birlikte çalışıyor, filtre sonucu boşsa ayrı bir empty-state mesajı var.
+
+**1.3.8 (Fragman modalı, REQ-09/09.1):** `TrailerModal.jsx` — YouTube iframe, Escape/backdrop/kapat butonuyla kapanır. Tarayıcıda iframe yükleme başarısızlığını güvenilir tespit etmenin bir yolu olmadığı için fallback iki katmanlı: `onError` + her zaman görünen "YouTube'da Aç" linki.
+
+**1.3.9 (Puanlama, REQ-11):** `RatingStars.jsx` — yalnız üye puanlar, **sadece vizyondaki (yayınlanmış) filmlerde gösteriliyor** (REQ-11'in "Vizyonda film detayında" ifadesine sadık kalındı — "Yakında" filmlerinde bölüm hiç render edilmiyor).
+
+**1.3.10 + 1.3.11 (Yorum formu + listeleme, REQ-11/11.1):** `CommentForm.jsx` + `CommentList.jsx` — ziyaretçiye form hiç render edilmiyor, sadece "giriş yap" mesajı; mock (`seed-`) + kullanıcı (`comment-`) yorumları birlikte listeleniyor, tarihe göre yeniden eskiye; yalnız kendi (seed olmayan) yorumunu düzenler/siler.
+
+**Self-review'da bulunan ve düzeltilen 3 gerçek sorun:**
+1. `RatingStars.jsx`'te yıldızlar `role="radiogroup"` içindeydi ama `<button>` çocukları `role="radio"` değildi — geçersiz ARIA kombinasyonu, kaldırıldı.
+2. Ziyaretçi için de yıldız hover önizlemesi çalışıyordu (tıklanamayacak bir etkileşim izlenimi veriyordu) — `role === "member"` koşuluna bağlandı.
+3. `SortControl.jsx`'te `SORT_OPTIONS` dizisini named export yapmıştım — `react-refresh/only-export-components` lint hatası verdi (bileşen dosyaları sadece bileşen export etmeli). Kullanılmadığı için export'u kaldırdım, dosya içinde private kaldı.
+
+Ayrıca test yazarken gerçek bir **test-tuzağı** buldum ve düzelttim: `findByText` bazen kontrollü `<textarea>`'nın kendi (React'in senkronize ettiği) metnini eşleştiriyordu, gerçek liste elemanını değil — testleri `within(list)` ile listeye scope'layarak ve mutation'ın gerçekten bitmesini bekleyerek düzelttim (yanlışlıkla "geçti" görünen ama aslında yanlış şeyi test eden 2 test).
+
+**Testler (yeni, ~47 test):** `movieService.test.js` +11 (sort/filter), `HomePage.test.jsx` +4, `MovieDetailsPage.test.jsx` yeni dosya +12 (trailer/rating/yorum), `ratingService.test.js` yeni +8, `commentService.test.js` yeni +12.
+
+**Kalite kontrolleri (son hâliyle):** `npm run test:run` → 20 dosya / 164 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+
+`docs/PLAN.md` ve `docs/WBS_GOREV_DAGILIMI.md` güncellendi: 44 görevin 37'si bitti, kalan 7'si Ömer'in.
 
 ---
 
@@ -191,4 +233,4 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 
 ## Sırada Ne Var
 
-Sprint 1 ve Sprint 2 tamamen bitti (4 kişi de). Kendi Sprint 3 konsolide backlog'umdan 1.3.6 bitti (1/8). Sıradaki görevim: **1.3.3 — Sıralama modülü (tarih/puan, REQ-08.1)**, `src/components/movies/SortControl.jsx` (yeni) + `HomePage.jsx`. Ardından sırayla 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, ve en son (Kaan'ın 1.4.5'ini bekleyen) 1.2.10. Tam liste ve gerekçeler `docs/PLAN.md` §5 SPRINT 3'te.
+**Benim (Berke) modülüm tamamen bitti — 9/9 görev, kalan iş yok.** Kaan'ın modülü de Alptuğ tarafından bitirildi (2 küçük açık boşlukla, bkz. `docs/PLAN.md` §8). Ekipte kalan tek backlog Ömer'in 7 görevi (1.2.2, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.5.9, 1.2.6) — dış bağımlılığı yok, kendisi tek oturumda bitirebilir. Benim tarafımdan yapılacak bir sonraki adım yok; kullanıcının `berke` branch'indeki son işi push edip main'e alması bekleniyor.
