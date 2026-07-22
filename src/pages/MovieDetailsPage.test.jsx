@@ -28,8 +28,8 @@ import movieService from "../services/movieService.js";
 import sessionService from "../services/sessionService.js";
 import MovieDetailsPage from "./MovieDetailsPage.jsx";
 
-vi.mock("../context/WatchlistContext.jsx", () => ({
-  useWatchlist: () => ({
+vi.mock("../hooks/useWatchlist.js", () => ({
+  default: () => ({
     watchlist: [],
     toggleFavorite: vi.fn(),
     isFavorite: vi.fn(() => false),

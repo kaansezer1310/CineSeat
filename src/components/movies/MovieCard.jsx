@@ -1,6 +1,6 @@
 import MoviePoster from "./MoviePoster.jsx";
 import movieService from "../../services/movieService.js";
-import { useWatchlist } from "../../context/WatchlistContext.jsx";
+import useWatchlist from "../../hooks/useWatchlist.js";
 
 const releaseDateFormatter = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -21,7 +21,7 @@ function formatDaysRemainingLabel(daysRemaining) {
 }
 
 function MovieCard({ movie, onSelect }) {
-  const { toggleFavorite, isFavorite, watchlist } = useWatchlist();
+  const { toggleFavorite, isFavorite } = useWatchlist();
   const favorite = isFavorite(movie.id);
 
   function handleCardClick() {

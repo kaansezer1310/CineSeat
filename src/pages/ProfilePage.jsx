@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import useAuth from "../hooks/useAuth.js";
-import { useWatchlist } from "../context/WatchlistContext.jsx";
+import useWatchlist from "../hooks/useWatchlist.js";
 import movieService from "../services/movieService.js";
 import reservationService from "../services/reservationService.js";
+import sessionService from "../services/sessionService.js";
 import { validateRegisterForm } from "../services/validation.js";
 
 /**
@@ -20,7 +21,7 @@ const PROFILE_TABS = [
 ];
 
 function ProfilePage() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const { getFavoriteMovieIds, toggleFavorite } = useWatchlist();
 
   const [activeTab, setActiveTab] = useState("info");
@@ -94,13 +95,22 @@ function ProfilePage() {
     staleTime: 30 * 1000,
   });
 
-  const now = new Date();
-  const currentTickets = reservations.filter((r) => {
-    return new Date(r.createdAt) >= new Date(now.getTime() - 3 * 60 * 60 * 1000);
-  });
-  const pastTickets = reservations.filter((r) => {
-    return new Date(r.createdAt) < new Date(now.getTime() - 3 * 60 * 60 * 1000);
-  });
+  // REQ-18: "Güncel" / "Geçmiş" ayrımı gösterim saatine göre yapılır —
+  // rezervasyonun ne zaman satın alındığına değil. Bir rezervasyon birden
+  // fazla seans içerebilir; en az bir seansı henüz geçmemişse "Güncel"
+  // sayılır (kullanıcının hâlâ gideceği bir gösterim var demektir).
+  const reservationHasUpcomingSession = (reservation) => {
+    return reservation.items.some((item) => {
+      return !sessionService.hasSessionPassed(item.date, item.time);
+    });
+  };
+
+  const currentTickets = reservations.filter(
+    reservationHasUpcomingSession
+  );
+  const pastTickets = reservations.filter(
+    (r) => !reservationHasUpcomingSession(r)
+  );
 
   // === İZLEME LİSTEM sekmesi ===
   const favoriteIds = getFavoriteMovieIds();

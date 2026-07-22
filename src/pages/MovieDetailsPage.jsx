@@ -13,7 +13,7 @@ import CommentList from "../components/movies/CommentList.jsx";
 import SessionList from "../components/sessions/SessionList.jsx";
 import movieService from "../services/movieService.js";
 import sessionService from "../services/sessionService.js";
-import { useWatchlist } from "../context/WatchlistContext.jsx";
+import useWatchlist from "../hooks/useWatchlist.js";
 
 function MovieDetailsPage() {
   const { movieId } = useParams();

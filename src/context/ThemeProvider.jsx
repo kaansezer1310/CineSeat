@@ -1,4 +1,5 @@
-import { createContext, useState, useContext } from "react";
+import { useState } from "react";
+import ThemeContext from "./ThemeContext.js";
 
 /**
  * Sprint 3 / 1.5.9 — Light / Dark mod (REQ-23)
@@ -7,9 +8,6 @@ import { createContext, useState, useContext } from "react";
  * Tema bilgisi localStorage'da saklanır.
  * CSS: body'ye `data-theme="light"` veya `data-theme="dark"` attr eklenir.
  */
-
-const ThemeContext = createContext(null);
-
 function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     const stored = localStorage.getItem("cineseat_theme");
@@ -31,13 +29,4 @@ function ThemeProvider({ children }) {
   );
 }
 
-function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
-}
-
-export { ThemeProvider, useTheme };
-export default ThemeContext;
+export default ThemeProvider;

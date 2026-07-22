@@ -10,6 +10,28 @@ import FilterControl, {
   ALL_VALUE,
 } from "../components/movies/FilterControl.jsx";
 import movieService from "../services/movieService.js";
+import useWatchlist from "../hooks/useWatchlist.js";
+
+// REQ-25 — favori bir film vizyona girdiğinde girişte bildirim bandı.
+// "Yakın zamanda vizyona girdi" penceresi 7 gün olarak seçildi: gösterge
+// süresiz kalırsa (ör. 3 ay önce vizyona giren eski bir favori) her girişte
+// gösterilmesi rahatsız edici olurdu; 7 gün, "yeni vizyona girdi" haberini
+// vermek için makul ve pratik bir eşik.
+const RECENTLY_RELEASED_WINDOW_DAYS = 7;
+
+function isRecentlyReleased(movie) {
+  // getDaysUntilRelease, releaseDate'i olmayan filmlerde parse hatası verir
+  // (bkz. movieService.js) — bu yüzden burada önce varlığı kontrol edilir.
+  if (!movie.releaseDate) {
+    return false;
+  }
+
+  const daysUntilRelease = movieService.getDaysUntilRelease(movie);
+  return (
+    daysUntilRelease <= 0 &&
+    daysUntilRelease > -RECENTLY_RELEASED_WINDOW_DAYS
+  );
+}
 
 const MOVIE_TABS = [
   { id: "nowShowing", label: "Vizyonda" },
@@ -18,11 +40,14 @@ const MOVIE_TABS = [
 
 function HomePage() {
   const navigate = useNavigate();
+  const { getFavoriteMovieIds } = useWatchlist();
 
   const [activeTab, setActiveTab] = useState("nowShowing");
   const [sortValue, setSortValue] = useState(DEFAULT_SORT);
   const [genreFilter, setGenreFilter] = useState(ALL_VALUE);
   const [ageRatingFilter, setAgeRatingFilter] = useState(ALL_VALUE);
+  const [isReleaseBannerDismissed, setIsReleaseBannerDismissed] =
+    useState(false);
 
   const {
     data: movies = [],
@@ -99,6 +124,13 @@ function HomePage() {
       ? nowShowingMovies
       : comingSoonMovies;
 
+  // REQ-25 — izleme listesindeki filmlerden yakın zamanda vizyona girenler.
+  const favoriteMovieIds = getFavoriteMovieIds();
+  const recentlyReleasedFavorites = activeMovies.filter(
+    (movie) =>
+      favoriteMovieIds.includes(movie.id) && isRecentlyReleased(movie)
+  );
+
   // REQ-08.1: sıralama ve filtre, aktif sekmenin filmleri üzerinde birlikte
   // uygulanır. Seçenekler filtre uygulanmadan ÖNCEKİ kümeden türetilir,
   // böylece bir filtre sonucu boş kalsa bile diğer seçenekler kaybolmaz.
@@ -138,6 +170,30 @@ function HomePage() {
 
   return (
     <section>
+      {recentlyReleasedFavorites.length > 0 &&
+        !isReleaseBannerDismissed && (
+          <div className="release-notification-banner" role="status">
+            <span>
+              🎬 İzleme listenizden{" "}
+              <strong>
+                {recentlyReleasedFavorites
+                  .map((movie) => movie.title)
+                  .join(", ")}
+              </strong>{" "}
+              vizyona girdi!
+            </span>
+
+            <button
+              type="button"
+              className="release-notification-dismiss"
+              onClick={() => setIsReleaseBannerDismissed(true)}
+              aria-label="Bildirimi kapat"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
       <div className="page-heading-row">
         <div className="page-heading">
           <h1>{pageHeading}</h1>

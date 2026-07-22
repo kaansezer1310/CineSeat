@@ -102,3 +102,30 @@ Bu bölüm Ömer'in orijinal raporunun parçası değildi; ekip geneli bir Sprin
 **Eksik olup tamamlanan test kapsamı:** Bu görev hiç test dosyası içermiyordu (`authService.js`, `AuthProvider.jsx`, `LoginPage.jsx`, `RegisterPage.jsx` — 0 test). `authService.test.js`, `LoginPage.test.jsx`, `RegisterPage.test.jsx` eklendi (13 yeni test): giriş başarı/başarısızlık, boş alan kontrolü, kayıt zorunlu alan/şifre eşleşme/e-posta+kullanıcı adı benzersizlik kontrolleri, otomatik oturum açma.
 
 **Diğer bulgular:** Kritik/yüksek seviye başka bir sorun yok. `Layout.jsx`'in `user.name` kullanımı geriye dönük uyumluluk alanıyla korunmuş, `ProtectedRoute.jsx` (K2, Sprint 1) yeni `register` alanından etkilenmemiş, checkout akışı auth'a hâlâ bağımlı değil (beklenen, henüz o entegrasyon planlanmadı).
+
+---
+
+# Güncelleme — Sprint 3 (1.2.2, 1.2.4, 1.2.5, 1.2.6, 1.2.7, 1.2.8, 1.5.9) + kalan teknik borç
+
+> **Not:** Bu bölüm başlangıçta yine ayrı bir `docs/omer_status_2.md` dosyasında yazılmıştı (Sprint 2'deki aynı hata tekrarlanmış) — tutarlılık adına buraya taşındı, `omer_status_2.md` silindi.
+
+**Görevler:** Ömer'in Sprint 3 konsolide backlog'undaki 7 görevin tamamı (1.2.2 form doğrulama, 1.2.4 ProtectedRoute genişletme, 1.2.5 profil formu, 1.2.6 bilet sekmeleri, 1.2.7 izleme listesi, 1.2.8 izleme listem sekmesi, 1.5.9 tema) + Sprint 1 review'dan kalan 2 teknik borç.
+
+## 1. Kalan teknik borcun giderilmesi (Ömer'in kendi özeti)
+
+1. **Koltuk kilit sahipliği (token) — Y3'ün çözümü:** `seatService.js`'teki kilit deposu `Array`'den `{seatId: token}` map'ine dönüştürüldü. `PaymentPage.jsx` benzersiz bir `lockToken` üretip `lockSeats`/`releaseLockedSeats`/`reserveAllSeats`'e geçiriyor; sadece token sahibi kilidi açabiliyor/koltuğu alabiliyor.
+2. **Başarısız ödemede kilit koruma:** `isNavigatingToNextStep` (gerçek `useRef`) ile, sadece `/success` veya `/odeme-hata`'ya geçişte kilitler kasten açılmıyor; `PaymentErrorPage.jsx`'e eklenen "Sepete Dön" aksiyonu kilitleri kasıtlı olarak açıyor.
+3. **Ziyaretçi formu:** `PaymentPage.jsx`'teki Ad/Soyad alanlarına `minLength={2}`/`maxLength={50}` eklendi.
+
+## 2. Berke'nin bu güncelleme üzerine code review'u
+
+**Doğrulanan (Ömer'in iddia ettiği gibi çalışıyor):** Token sistemi gerçekten uçtan uca bağlı (`PaymentPage` → `lockSeats`/`reserveAllSeats`), `reservationService.createReservation` de `lockToken`'ı `reserveAllSeats`'e geçiriyor. Ziyaretçi formu 2-50 karakter doğrulaması gerçekten eklenmiş.
+
+**Bulunan ve düzeltilen 3 gerçek bug:**
+1. **`WatchlistContext.jsx`'te geçersiz bir "ref" kalıbı** — `const prevUserIdRef = { current: userId };` gerçek bir `useRef()` değil, her render'da yeniden oluşturulan düz bir obje literal'i. Koşul (`prevUserIdRef.current !== userId`) aynı satırda aynı değere karşılaştırıldığı için **asla doğru olmuyordu** — kullanıcı değişince (login/logout) `watchlist` state'i yeni kullanıcının verisiyle senkronize olmuyordu (dead code + `eslint react-hooks/refs` hatası). React'in resmi "render sırasında state ayarlama" deseniyle düzeltildi (ayrı bir `syncedUserId` state'i, render'da karşılaştırma). Regresyon testiyle kilitlendi (`WatchlistProvider.test.jsx`).
+2. **`ProfilePage.jsx`'te bilet sekmeleri REQ-18'i yanlış uyguluyordu** — "Güncel"/"Geçmiş" ayrımı rezervasyonun `createdAt`'ine (satın alma zamanı) ve sabit bir 3 saatlik pencereye bakıyordu; REQ-18 aslında **gösterim saatine** göre ayrım istiyor. Örnek hata senaryosu: 2 hafta sonrası için bilet alıp 4 saat sonra profile bakan bir kullanıcı, bileti yanlışlıkla "Geçmiş" görürdü. `sessionService.js`'e Türkçe tarih/saat metnini (`"13 Temmuz"` + `"13:30"`) gerçek `Date`'e çeviren `parseSessionDateTime`/`hasSessionPassed` eklendi, `ProfilePage.jsx` buna göre düzeltildi (bir rezervasyondaki herhangi bir seans geçmemişse "Güncel"). 7 yeni test + 4 yeni ProfilePage testi.
+3. **1.2.8'in "bildirim bandı" kısmı (REQ-25) hiç yazılmamıştı** — sadece kod yorumunda vardı, WBS'te "bitti" işaretliydi ama gerçek bir bileşen yoktu. `HomePage.jsx`'e izleme listesindeki, son 7 gün içinde vizyona giren filmler için kapatılabilir bir bildirim bandı eklendi. 3 yeni test.
+
+**Ek düzeltmeler (lint/kod kalitesi):** `ThemeContext.jsx` ve `WatchlistContext.jsx` tek dosyada hem context hem provider hem hook export ediyordu (`react-refresh/only-export-components` hatası) — projenin `AuthContext.js`/`AuthProvider.jsx`/`useAuth.js` deseniyle tutarlı olacak şekilde 3'er dosyaya ayrıldı. `MovieCard.jsx`/`ProfilePage.jsx`'te kullanılmayan değişkenler (`watchlist`, `login`) temizlendi. `seatService.js`'teki artık üretimde kullanılmayan `reserveSeats` fonksiyonundaki kullanılmayan değişken ve yanıltıcı/eski yorum düzeltildi (fonksiyonun kendisi, hâlâ geçerli test kapsamı olduğu için silinmedi). Kök dizinde yanlışlıkla commit edilmiş 4 adet `test_output*.txt` dosyası silindi.
+
+**Doğrulama:** `npm run test:run` → 23 dosya / 182 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.

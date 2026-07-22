@@ -2,14 +2,42 @@
 
 > Bu dosya çalışma ilerledikçe güncellenir. Her görev tamamlandığında ilgili bölüm eklenir/güncellenir. Ayrıntılı sprint planı için `docs/PLAN.md`, görev-durum analizi için `docs/WBS_GOREV_DAGILIMI.md`. Mentöre basit dille anlatım için `docs/berke_SPRINT1_ACIKLAMA.md`.
 
-**Son güncelleme:** Katalog & Sosyal modülüm **tamamen bitti (9/9 görev)**. Kaan'ın backlog'u Alptuğ tarafından devralınıp bitirildikten sonra çıkan `Alp`↔`main` merge conflict'ini çözdüm (ayrıntı aşağıda), ardından kendi kalan 6 görevimi (1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11) uçtan uca bitirdim. Ekipte kalan tek backlog artık Ömer'inki.
-**Branch:** `Alp` → main'e mergelendi (PR #14, kullanıcı push etti); yeni işim şu an `berke` branch'inde, **push edilmedi**, manuel push kullanıcıya ait.
+**Son güncelleme:** **Proje tamamen bitti — 44/44 görev.** Kendi modülümü (9/9) bitirdikten sonra Ömer de kendi 7 görevini bitirip main'e aldı (PR #16). Bunun üzerine kullanıcı talebiyle **tüm projeyi (özellikle Ömer'in yeni işini) uçtan uca code review'dan geçirdim** — 3 gerçek bug/eksik buldum ve düzelttim, 8 lint hatası temizledim, housekeeping yaptım. Ayrıntı aşağıda.
+**Branch:** `Alp` → main'e mergelendi (PR #14); benim işim → main'e mergelendi (PR #15); Ömer'in işi → main'e mergelendi (PR #16). Bu review'daki düzeltmelerim şu an `berke` branch'inde, **push edilmedi**, manuel push kullanıcıya ait.
 
-**Taze doğrulama (en son, modül tamamı dahil):**
-- `npm run test:run` → `Test Files 20 passed (20)` / `Tests 164 passed (164)`, exit 0
+**Taze doğrulama (en son, review düzeltmeleri dahil):**
+- `npm run test:run` → `Test Files 23 passed (23)` / `Tests 182 passed (182)`, exit 0
 - `npm run lint` → **0 hata, 0 uyarı**, exit 0
 - `npm run build` → başarılı, exit 0
 - Case-sensitivity: doğrulanmış durumda (Sprint 1'de kapatıldı)
+
+---
+
+## Ekip-geneli final code review — Ömer'in işi + tüm proje (kullanıcı talebiyle)
+
+Kullanıcı: "Projenin güncel halini analiz et, status dosyalarına bak, kod hatalarını/eksikliklerini sapta, düzelt, test yap, MD'leri güncelle." Ömer'in main'e az önce aldığı PR #16 (`docs/omer_status_2.md`, "taskta eksik kalan kısımlar") dahil tüm proje incelendi.
+
+### Bulunan ve düzeltilen 3 gerçek bug/eksik
+
+1. **`WatchlistContext.jsx` — geçersiz sahte-ref bug'ı.** Kullanıcı değişince (login/logout) `watchlist` state'ini yeniden yüklemesi gereken kod, `const prevUserIdRef = { current: userId };` yazmıştı — bu gerçek bir `useRef()` değil, her render'da yeniden oluşan düz bir obje. Karşılaştırma (`prevUserIdRef.current !== userId`) aynı satırda aynı değere yapıldığı için **asla doğru olmuyordu** (dead code) — ayrıca `eslint react-hooks/refs` hatası veriyordu. React'in resmi "render sırasında state ayarlama" deseniyle (ayrı bir `syncedUserId` state'i + render'da karşılaştırma) düzelttim. Pratikte hiçbir tüketici ham `watchlist` state'ini okumuyordu (hepsi `isFavorite()`/`getFavoriteMovieIds()` ile taze okuyordu) ama context sözleşmesi bozuktu. Regresyon testi (`WatchlistProvider.test.jsx`) eklendi — eski kodla bu test **fail** ederdi, doğruladım.
+2. **`ProfilePage.jsx` bilet sekmeleri REQ-18'i yanlış uyguluyordu.** "Güncel"/"Geçmiş" ayrımı rezervasyonun `createdAt`'ine (satın alma zamanı) + sabit 3 saatlik bir pencereye bakıyordu — REQ-18 **gösterim saatini** istiyor. Somut hata: 2 hafta sonrası için bilet alıp 4 saat sonra profiline bakan biri, bileti yanlışlıkla "Geçmiş" görürdü. Sorunun kökeninde `sessions.js`'in tarihi yıl içermeyen bir Türkçe metin olarak tutması var (`"13 Temmuz"`); bunu gerçek `Date`'e çeviren bir Türkçe ay-adı parser'ı (`sessionService.parseSessionDateTime`/`hasSessionPassed`) yazıp `ProfilePage.jsx`'i buna göre düzelttim (bir rezervasyondaki herhangi bir seans henüz geçmemişse "Güncel"). 7 servis testi + 4 entegrasyon testi.
+3. **1.2.8'in "bildirim bandı" kısmı (REQ-25) hiç yazılmamıştı.** Sadece dosya başındaki yorumda vardı, `WBS_GOREV_DAGILIMI.md`'de yanlışlıkla "bitti" işaretliydi. `HomePage.jsx`'e, izleme listesindeki son 7 gün içinde vizyona giren filmler için kapatılabilir bir bildirim bandı ekledim.
+
+### Doğrulanan (Ömer'in iddia ettiği gibi gerçekten çalışıyor)
+
+`omer_status_2.md`'nin iddia ettiği kilit-token sistemi (Y3'ün çözümü) ve 1.4.9'daki kilit-koruma davranışını şüpheyle inceledim (önceki review'da ben bu ikisini "açık boşluk" olarak işaretlemiştim) — bu sefer **gerçekten uçtan uca bağlı**: `PaymentPage.jsx` bir `lockToken` üretiyor, `lockSeats`/`releaseLockedSeats`'e ve `reservationService.createReservation` üzerinden `reserveAllSeats`'e geçiriyor; `seatService.js`'teki kilit deposu buna uygun `{seatId: token}` map'ine dönüştürülmüş. Ziyaretçi formu 2-50 karakter doğrulaması da gerçekten eklenmiş.
+
+### Ek düzeltmeler (lint/kod kalitesi/housekeeping)
+
+- **8 lint hatası** düzeltildi: `MovieCard.jsx`/`ProfilePage.jsx`'te kullanılmayan değişkenler (`watchlist`, `login`); `seatService.js`'te kullanılmayan değişken + artık üretimde kullanılmayan `reserveSeats` fonksiyonundaki yanıltıcı/eski yorum (fonksiyon hâlâ geçerli test kapsamı olduğu için silinmedi, sadece yorum güncel duruma göre düzeltildi); `ThemeContext.jsx`/`WatchlistContext.jsx`'in `react-refresh/only-export-components` hatası — projenin `AuthContext.js`/`AuthProvider.jsx`/`useAuth.js` 3-dosya desenine uygun şekilde ayrı context/provider/hook dosyalarına bölündü (7 consumer dosyasının import'ları güncellendi).
+- Kök dizine yanlışlıkla commit edilmiş 4 adet `test_output*.txt` dosyası silindi.
+- `docs/omer_status_2.md` (Sprint 2'deki aynı hatanın tekrarı — ayrı status dosyası oluşturma) `omer_STATUS.md`'ye taşınıp silindi.
+
+### Yeni test kapsamı
+
+`sessionService.test.js` (yeni, 7 test), `WatchlistProvider.test.jsx` (yeni, 2 test), `ProfilePage.test.jsx` (yeni, 6 test — bu dosyanın hiç testi yoktu), `HomePage.test.jsx` (+3 test, bildirim bandı).
+
+**Sonuç:** `npm run test:run` → 23 dosya / 182 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅. `docs/PLAN.md`, `docs/WBS_GOREV_DAGILIMI.md`, `docs/omer_STATUS.md` güncellendi.
 
 ---
 
@@ -233,4 +261,4 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 
 ## Sırada Ne Var
 
-**Benim (Berke) modülüm tamamen bitti — 9/9 görev, kalan iş yok.** Kaan'ın modülü de Alptuğ tarafından bitirildi (2 küçük açık boşlukla, bkz. `docs/PLAN.md` §8). Ekipte kalan tek backlog Ömer'in 7 görevi (1.2.2, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.5.9, 1.2.6) — dış bağımlılığı yok, kendisi tek oturumda bitirebilir. Benim tarafımdan yapılacak bir sonraki adım yok; kullanıcının `berke` branch'indeki son işi push edip main'e alması bekleniyor.
+**Proje tamamen bitti — 44/44 görev main'de, backlog kalmadı.** Bu oturumda yaptığım ekip-geneli review'da bulduğum 3 bug + 8 lint hatası + housekeeping düzeltmeleri şu an `berke` branch'inde, **push edilmedi**. Benim tarafımdan yapılacak bir sonraki geliştirme adımı yok; kullanıcının bu düzeltmeleri push edip main'e alması bekleniyor. İsteğe bağlı, düşük öncelikli açık kalan tek şeyler: admin panelindeki 4 hardcoded renk (tema tokenlarına bağlı değil) ve sinema kartındaki işlevsiz "Seansları Gör" butonu — ikisi de sahipsiz, ekiple konuşulmalı (bkz. `docs/PLAN.md` §8).

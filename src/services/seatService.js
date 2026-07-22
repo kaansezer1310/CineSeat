@@ -306,37 +306,23 @@ async function releaseLockedSeats({ sessionId, seats, lockToken }) {
 }
 
 // GECICI_KILITLI (veya henüz kilitlenmemiş güncel akışta BOS) -> DOLU.
-// Rezervasyon akışının koltukları nihai olarak DOLU'ya taşıdığı sınırdır;
-// `reservationService`, çakışma tespiti sonrası bunu her sepet öğesi için
-// çağırır. Zaten DOLU olan bir koltuk asla tekrar rezerve edilemez —
-// arayüz kontrolü atlatılsa bile bu koruma serviste kalır.
 //
-// BİLİNEN AÇIK (Sprint 1 review, K/Y3 — kasıtlı olarak burada bırakıldı):
-// GECICI_KILITLI koltuklar için bir "kilit sahibi" (token/oturum) kavramı
-// yok. Bu yüzden reserveSeats, bir koltuğun GECICI_KILITLI durumda olup
-// olmadığına HİÇ bakmıyor — sadece DOLU çakışmasını kontrol ediyor. Bugün
-// bunun canlı bir etkisi yok çünkü hiçbir gerçek akış lockSeats'i çağırmıyor
-// (1.4.7 henüz yok). 1.4.7 (sayaç/kilit UI'ı) bağlandığı an: A kullanıcısı
-// bir koltuğu kilitleyip ödemedeyken, B kullanıcısı aynı koltuğu (kendi
-// kilidi olmadan) reserveSeats ile doğrudan alabilir — çünkü fonksiyon
-// "bu kilit gerçekten benim mi" diye soramıyor. Doğru çözüm: lockSeats'in
-// döndürdüğü bir token'ı reserveSeats'e de geçirmek ve GECICI_KILITLI bir
-// koltuğu yalnızca eşleşen token'la finalize etmek (aksi halde ConflictError).
-// Bunu şimdiden tahminle eklemedim çünkü 1.4.7'nin UI akışı henüz yok ve
-// yanlış bir token tasarımı, o görevi üstlenecek kişiye (bu satırdaki
-// reserveSeats testine bakan herkes — bkz. seatService.test.js:139) daha
-// pahalıya patlar. 1.4.7 planlanırken bu not mutlaka okunmalı.
+// NOT — bu fonksiyon artık üretim akışında kullanılmıyor (dead code, sadece
+// `seatService.test.js`te test kapsamı var): gerçek rezervasyon akışı
+// (`reservationService.createReservation`) atomiklik ve kilit-sahiplik
+// (token) kontrolü için `reserveAllSeats`'i çağırıyor — Y3'te (Sprint 1
+// review) bulunan "GECICI_KILITLI koltuklar için kilit sahibi kavramı yok"
+// açığı orada `lockToken` parametresiyle kapatıldı (bkz. `lockSeats`,
+// `releaseLockedSeats`, `reserveAllSeats`). Bu fonksiyon o kontrolü
+// içermiyor; silinmedi çünkü hâlâ geçerli test kapsamı var, ama yeni kod
+// bunu değil `reserveAllSeats`'i çağırmalı.
 async function reserveSeats({ sessionId, seats }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
 
   await wait(500);
 
-  const [currentDoluSeatIds, currentLockedSeatIds] =
-    await Promise.all([
-      getDoluSeatIds(numericSessionId),
-      getLockedSeatIds(numericSessionId),
-    ]);
+  const currentDoluSeatIds = await getDoluSeatIds(numericSessionId);
 
   const conflictingSeatIds = normalizedSeatIds.filter(
     (seatId) => {
