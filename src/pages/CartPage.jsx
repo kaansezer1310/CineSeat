@@ -1,5 +1,4 @@
 import {
-  useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 
@@ -8,15 +7,20 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import {
+  TICKET_TYPE_LIST,
+  getTicketTypeLabel,
+  isValidTicketType,
+} from "../domain/ticketType.js";
 import useCart from "../hooks/useCart.js";
-import reservationService from "../services/reservationService.js";
+import useAuth from "../hooks/useAuth.js";
+import { calcItemTotal, calcSubtotal, formatPrice } from "../services/pricing.js";
+import campaignService from "../services/campaignService.js";
 
 function CartPage() {
   const { state, dispatch } = useCart();
-
+  const { user } = useAuth();
   const navigate = useNavigate();
-
-  const queryClient = useQueryClient();
 
   const totalTicketCount = state.items.reduce(
     (total, item) => {
@@ -25,62 +29,11 @@ function CartPage() {
     0
   );
 
-  const cartTotal = state.items.reduce(
-    (total, item) => {
-      const itemTotal =
-        item.seats.length * item.unitPrice;
-
-      return total + itemTotal;
-    },
-    0
-  );
-
-  const reservationMutation = useMutation({
-    mutationFn: reservationService.createReservation,
-
-    onSuccess: async (
-      reservation,
-      submittedCartItems
-    ) => {
-      await Promise.all(
-        submittedCartItems.map((item) => {
-          return queryClient.invalidateQueries({
-            queryKey: [
-              "reservedSeats",
-              item.sessionId,
-            ],
-          });
-        })
-      );
-
-      await Promise.all(
-        submittedCartItems.map((item) => {
-          return queryClient.invalidateQueries({
-            queryKey: [
-              "sessions",
-              item.movieId,
-            ],
-          });
-        })
-      );
-
-      dispatch({
-        type: "CLEAR_CART",
-      });
-
-      navigate("/success", {
-        state: {
-          reservation,
-        },
-      });
-    },
-  });
+  const subtotal = calcSubtotal(state.items);
+  const { discountAmount, campaignsApplied } = campaignService.getCampaignDiscount(subtotal, user);
+  const cartTotal = subtotal - discountAmount;
 
   function handleRemoveItem(itemId) {
-    if (reservationMutation.isPending) {
-      return;
-    }
-
     dispatch({
       type: "REMOVE_TICKET",
       payload: itemId,
@@ -88,31 +41,36 @@ function CartPage() {
   }
 
   function handleClearCart() {
-    if (reservationMutation.isPending) {
-      return;
-    }
-
     dispatch({
       type: "CLEAR_CART",
     });
   }
 
-  function handleCheckout() {
-    if (
-      state.items.length === 0 ||
-      reservationMutation.isPending
-    ) {
+  function handleTicketTypeChange(
+    sessionId,
+    seatId,
+    ticketType
+  ) {
+    if (!isValidTicketType(ticketType)) {
       return;
     }
 
-    const cartSnapshot = state.items.map((item) => {
-      return {
-        ...item,
-        seats: [...item.seats],
-      };
+    dispatch({
+      type: "UPDATE_TICKET_TYPE",
+      payload: {
+        sessionId,
+        seatId,
+        ticketType,
+      },
     });
+  }
 
-    reservationMutation.mutate(cartSnapshot);
+  function handleCheckout() {
+    if (state.items.length === 0) {
+      return;
+    }
+
+    navigate("/odeme");
   }
 
   if (state.items.length === 0) {
@@ -153,7 +111,6 @@ function CartPage() {
           className="secondary-button"
           type="button"
           onClick={handleClearCart}
-          disabled={reservationMutation.isPending}
         >
           Sepeti Temizle
         </button>
@@ -162,8 +119,7 @@ function CartPage() {
       <div className="cart-layout">
         <div className="cart-list">
           {state.items.map((item) => {
-            const itemTotal =
-              item.seats.length * item.unitPrice;
+            const itemTotal = calcItemTotal(item);
 
             return (
               <article
@@ -183,7 +139,9 @@ function CartPage() {
                       <span>Koltuklar</span>
 
                       <strong>
-                        {item.seats.join(", ")}
+                        {item.seats
+                          .map((seat) => seat.seatId)
+                          .join(", ")}
                       </strong>
                     </p>
 
@@ -191,7 +149,7 @@ function CartPage() {
                       <span>Bilet fiyatı</span>
 
                       <strong>
-                        {item.unitPrice} TL
+                        {formatPrice(item.unitPrice)} TL
                       </strong>
                     </p>
 
@@ -203,19 +161,74 @@ function CartPage() {
                       </strong>
                     </p>
                   </div>
+
+                  <div className="cart-ticket-types">
+                    <span className="cart-ticket-types-heading">
+                      Bilet tipi
+                    </span>
+
+                    <ul className="ticket-type-list">
+                      {item.seats.map((seat) => {
+                        const selectId =
+                          `cart-ticket-type-${item.sessionId}-${seat.seatId}`;
+
+                        return (
+                          <li
+                            className="ticket-type-row"
+                            key={`${item.sessionId}-${seat.seatId}`}
+                          >
+                            <label htmlFor={selectId}>
+                              {seat.seatId} koltuğu
+                              <span className="visually-hidden">
+                                {" "}
+                                bilet tipi
+                              </span>
+                            </label>
+
+                            <div className="ticket-type-select-wrap">
+                              <select
+                                className="ticket-type-select"
+                                id={selectId}
+                                value={seat.ticketType}
+                                onChange={(event) => {
+                                  handleTicketTypeChange(
+                                    item.sessionId,
+                                    seat.seatId,
+                                    event.target.value
+                                  );
+                                }}
+                              >
+                                {TICKET_TYPE_LIST.map(
+                                  (optionType) => {
+                                    return (
+                                      <option
+                                        key={optionType}
+                                        value={optionType}
+                                      >
+                                        {getTicketTypeLabel(
+                                          optionType
+                                        )}
+                                      </option>
+                                    );
+                                  }
+                                )}
+                              </select>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="cart-item-actions">
                   <strong className="cart-item-total">
-                    {itemTotal} TL
+                    {formatPrice(itemTotal)} TL
                   </strong>
 
                   <button
                     className="remove-cart-item-button"
                     type="button"
-                    disabled={
-                      reservationMutation.isPending
-                    }
                     onClick={() => {
                       handleRemoveItem(item.id);
                     }}
@@ -241,37 +254,35 @@ function CartPage() {
             <strong>{totalTicketCount}</strong>
           </div>
 
-          <div className="cart-summary-total">
-            <span>Toplam</span>
-            <strong>{cartTotal} TL</strong>
+          <div className="cart-summary-total" style={{ borderBottom: discountAmount > 0 ? 'none' : undefined, paddingBottom: discountAmount > 0 ? 0 : undefined }}>
+            <span>Ara Toplam</span>
+            <strong>{formatPrice(subtotal)} TL</strong>
           </div>
-
-          {reservationMutation.isError && (
-            <div className="checkout-error">
-              <strong>
-                Rezervasyon tamamlanamadı
-              </strong>
-
-              <p>
-                {reservationMutation.error.message}
-              </p>
+          
+          {campaignsApplied.map((campaign, index) => (
+            <div className="cart-summary-row" key={index} style={{ color: 'var(--success)', marginTop: '0.5rem' }}>
+              <span>{campaign.name}</span>
+              <strong>-{formatPrice(campaign.amount)} TL</strong>
             </div>
+          ))}
+          
+          {discountAmount > 0 && (
+             <div className="cart-summary-total" style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+               <span>Ödenecek Tutar</span>
+               <strong>{formatPrice(cartTotal)} TL</strong>
+             </div>
           )}
 
           <button
             className="primary-button cart-checkout-button"
             type="button"
             onClick={handleCheckout}
-            disabled={reservationMutation.isPending}
           >
-            {reservationMutation.isPending
-              ? "Rezervasyon yapılıyor..."
-              : "Rezervasyonu Tamamla"}
+            Ödemeye Geç
           </button>
 
           <p className="checkout-information">
-            İşlem tamamlandığında seçilen koltuklar
-            dolu olarak kaydedilir.
+            Bir sonraki adımda ziyaretçi bilgileri ve ödeme alınacaktır.
           </p>
         </aside>
       </div>

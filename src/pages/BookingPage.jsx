@@ -184,7 +184,10 @@ function BookingPage() {
             date: session.date,
             time: session.time,
             hallName: session.hallName,
-            seats: stillSelectableSeats,
+            seats: stillSelectableSeats.map((seatId) => ({
+                seatId,
+                ticketType: "ADULT",
+            })),
             unitPrice: session.price,
         };
 
