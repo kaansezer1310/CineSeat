@@ -9,11 +9,7 @@ export default function AdminDashboard() {
   const [totalTickets, setTotalTickets] = useState(0);
 
   useEffect(() => {
-    // Demo verilerini çekip istatistik oluşturma (mock data olduğu için localStorage'dan çekiyoruz veya statik üretiyoruz)
-    // Gerçekte reservationService'den tüm rezervasyonları çekip işlemeliyiz.
-    // Şimdilik rezervasyon servisi üzerinden sahte veri oluşturacağız.
     const loadStats = async () => {
-      // Mock Data: Gerçek veritabanı olmadığı için rastgele istatistik oluşturuyoruz.
       const mockStats = [
         { name: 'Neon Yağmuru', bilet: 120, gelir: 12000 },
         { name: 'Kalkan', bilet: 95, gelir: 9500 },
@@ -42,14 +38,14 @@ export default function AdminDashboard() {
   return (
     <div className="admin-dashboard">
       <div className="admin-header">
-        <h1>📊 İstatistikler & Raporlar</h1>
+        <h1> İstatistikler & Raporlar</h1>
         <CSVLink 
           data={stats} 
           headers={csvHeaders} 
           filename="cineseat-satis-raporu.csv"
           className="admin-btn admin-btn-export"
         >
-          📥 CSV Olarak İndir
+           CSV Olarak İndir
         </CSVLink>
       </div>
 
