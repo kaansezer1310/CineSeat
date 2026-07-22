@@ -83,6 +83,19 @@ function getDaysUntilRelease(movie, referenceDate = new Date()) {
   return Math.round(diffMs / (24 * 60 * 60 * 1000));
 }
 
+// REQ-05 — vizyon süresi dolan (screeningEndDate'i geçmiş) filmler arşive
+// düşer: ana sayfada gösterilmez ama veri silinmez, getMovieById ile hâlâ
+// erişilebilir kalır. screeningEndDate günü dahil hâlâ vizyondadır (son
+// gösterim günü); ancak sonraki gün arşive düşer. Alan hiç yoksa film süresiz
+// vizyonda kabul edilir (isMovieReleased ile aynı güvenli varsayılan mantığı).
+function isMovieArchived(movie, referenceDate = new Date()) {
+  if (!movie.screeningEndDate) {
+    return false;
+  }
+
+  return parseIsoDateOnly(movie.screeningEndDate) < toDateOnly(referenceDate);
+}
+
 const movieService = {
   getMovies,
   getMovieById,
@@ -91,6 +104,7 @@ const movieService = {
   deleteMovie,
   isMovieReleased,
   getDaysUntilRelease,
+  isMovieArchived,
   parseIsoDateOnly,
 };
 

@@ -69,6 +69,18 @@ const movies = [
     description:
       "Kalabalık şehirden taşrada sessiz bir eve taşınan bir aile, evin geçmişiyle ilgili açıklanamayan olaylarla karşı karşıya kalır.",
   },
+  {
+    id: 7,
+    title: "Son Tren",
+    genre: "Dram",
+    duration: 112,
+    ageRating: "13+",
+    releaseYear: 2026,
+    releaseDate: "2026-03-06",
+    screeningEndDate: "2026-04-03",
+    description:
+      "Sınırlı bir gösterim süresiyle vizyona giren bu dram, gece treninde karşılaşan iki yabancının bir daha asla göremeyecekleri şehirlerini geride bırakışını anlatır.",
+  },
 ];
 
 export default movies;

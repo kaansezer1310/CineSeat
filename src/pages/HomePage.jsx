@@ -65,11 +65,17 @@ function HomePage() {
     );
   }
 
-  const nowShowingMovies = movies.filter((movie) => {
+  // REQ-05: vizyon süresi dolan filmler arşive düşer, ana sayfada hiçbir
+  // sekmede gösterilmez (veri movies.js'ten silinmez, sadece burada elenir).
+  const activeMovies = movies.filter((movie) => {
+    return !movieService.isMovieArchived(movie);
+  });
+
+  const nowShowingMovies = activeMovies.filter((movie) => {
     return movieService.isMovieReleased(movie);
   });
 
-  const comingSoonMovies = movies.filter((movie) => {
+  const comingSoonMovies = activeMovies.filter((movie) => {
     return !movieService.isMovieReleased(movie);
   });
 
