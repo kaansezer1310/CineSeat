@@ -6,6 +6,8 @@ import MovieDetailsPage from "./pages/MovieDetailsPage.jsx";
 import BookingPage from "./pages/BookingPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import SuccessPage from "./pages/SuccessPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
 
 import AdminLayout from "./components/admin/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -36,6 +38,8 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cinemas" element={<CinemasPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
