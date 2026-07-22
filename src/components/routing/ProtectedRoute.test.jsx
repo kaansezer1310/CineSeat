@@ -13,6 +13,7 @@ function renderProtectedAdminRoute() {
         <AuthProvider>
           <Routes>
             <Route path="/" element={<p>Ana sayfa</p>} />
+            <Route path="/login" element={<p>Login sayfası</p>} />
 
             <Route
               element={<ProtectedRoute allowedRoles={["admin"]} />}
@@ -34,16 +35,16 @@ describe("ProtectedRoute", () => {
     sessionStorage.clear();
   });
 
-  it("giriş yapmamış kullanıcıyı admin rotasından ana sayfaya yönlendirir", () => {
+  it("giriş yapmamış kullanıcıyı admin rotasından login sayfasına yönlendirir", () => {
     renderProtectedAdminRoute();
 
-    expect(screen.getByText("Ana sayfa")).toBeInTheDocument();
+    expect(screen.getByText("Login sayfası")).toBeInTheDocument();
     expect(
       screen.queryByText("Admin içeriği")
     ).not.toBeInTheDocument();
   });
 
-  it("member rolündeki kullanıcıyı admin rotasından ana sayfaya yönlendirir", () => {
+  it("member rolündeki kullanıcıyı admin rotasından login sayfasına yönlendirir", () => {
     sessionStorage.setItem(
       "cineseat_user",
       JSON.stringify({
@@ -56,7 +57,7 @@ describe("ProtectedRoute", () => {
 
     renderProtectedAdminRoute();
 
-    expect(screen.getByText("Ana sayfa")).toBeInTheDocument();
+    expect(screen.getByText("Login sayfası")).toBeInTheDocument();
     expect(
       screen.queryByText("Admin içeriği")
     ).not.toBeInTheDocument();

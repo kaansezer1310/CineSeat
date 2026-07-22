@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
+import { validateLoginForm } from "../services/validation.js";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -11,13 +12,11 @@ function LoginPage() {
     password: "",
   });
 
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [generalError, setGeneralError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Zaten giriş yapılmışsa ana sayfaya yönlendir.
-  // navigate() render sırasında değil, useEffect içinde çağrılmalı —
-  // React Router bunu render'da çağırmayı açıkça uyarıyor
-  // ("You should call navigate() in a React.useEffect()...").
   useEffect(() => {
     if (user) {
       navigate("/", { replace: true });
@@ -31,19 +30,25 @@ function LoginPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Kullanıcı yazmaya başladığında hatayı temizle
-    if (error) {
-      setError("");
+    if (errors[name]) {
+      setErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
+    }
+    if (generalError) {
+      setGeneralError("");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setGeneralError("");
 
-    // Basit boşluk kontrolü
-    if (!formData.email.trim() || !formData.password) {
-      setError("E-posta ve şifre alanlarını doldurunuz.");
+    const validationErrors = validateLoginForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -53,7 +58,7 @@ function LoginPage() {
       navigate("/", { replace: true });
     } catch (err) {
       // REQ-21: Genel hata mesajı (alan belirtmeden)
-      setError(err.message || "E-posta veya şifre hatalı.");
+      setGeneralError(err.message || "E-posta veya şifre hatalı.");
     } finally {
       setIsLoading(false);
     }
@@ -67,9 +72,9 @@ function LoginPage() {
           <p>CineSeat hesabınıza giriş yapın</p>
         </div>
 
-        {error && (
+        {generalError && (
           <div className="auth-error" role="alert">
-            {error}
+            {generalError}
           </div>
         )}
 
@@ -86,6 +91,9 @@ function LoginPage() {
               onChange={handleChange}
               disabled={isLoading}
             />
+            {errors.email && (
+              <span className="auth-field-error">{errors.email}</span>
+            )}
           </div>
 
           <div className="auth-field">
@@ -100,6 +108,9 @@ function LoginPage() {
               onChange={handleChange}
               disabled={isLoading}
             />
+            {errors.password && (
+              <span className="auth-field-error">{errors.password}</span>
+            )}
           </div>
 
           <button

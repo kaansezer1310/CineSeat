@@ -19,6 +19,15 @@ import {
 import movieService from "../services/movieService.js";
 import HomePage from "./HomePage.jsx";
 
+vi.mock("../context/WatchlistContext.jsx", () => ({
+  useWatchlist: () => ({
+    watchlist: [],
+    toggleFavorite: vi.fn(),
+    isFavorite: vi.fn(() => false),
+    getFavoriteMovieIds: vi.fn(() => []),
+  }),
+}));
+
 vi.mock("../services/movieService.js", async () => {
   const actual = await vi.importActual(
     "../services/movieService.js"

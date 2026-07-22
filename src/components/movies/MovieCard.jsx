@@ -1,5 +1,6 @@
 import MoviePoster from "./MoviePoster.jsx";
 import movieService from "../../services/movieService.js";
+import { useWatchlist } from "../../context/WatchlistContext.jsx";
 
 const releaseDateFormatter = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -20,8 +21,16 @@ function formatDaysRemainingLabel(daysRemaining) {
 }
 
 function MovieCard({ movie, onSelect }) {
+  const { toggleFavorite, isFavorite, watchlist } = useWatchlist();
+  const favorite = isFavorite(movie.id);
+
   function handleCardClick() {
     onSelect(movie.id);
+  }
+
+  function handleFavoriteClick(e) {
+    e.stopPropagation();
+    toggleFavorite(movie.id);
   }
 
   const isUpcoming = !movieService.isMovieReleased(movie);
@@ -43,6 +52,16 @@ function MovieCard({ movie, onSelect }) {
           <span className="movie-age-rating">
             {movie.ageRating}
           </span>
+          <button
+            type="button"
+            className={`watchlist-heart-button ${favorite ? 'watchlist-heart-button--active' : 'watchlist-heart-button--inactive'}`}
+            style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2, background: 'rgba(12, 9, 18, 0.82)', borderRadius: '50%', width: '38px', height: '38px' }}
+            onClick={handleFavoriteClick}
+            title={favorite ? "İzleme listesinden çıkar" : "İzleme listesine ekle"}
+            aria-label="Favori Ekle/Çıkar"
+          >
+            {favorite ? "♥" : "♡"}
+          </button>
         </div>
 
         <div className="movie-card-content">

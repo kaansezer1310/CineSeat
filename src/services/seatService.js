@@ -88,9 +88,26 @@ function writeSeatIdList(storageKey, seatIds) {
       JSON.stringify(seatIds)
     );
   } catch {
-    // localStorage yazımı (kota/gizli mod vb. nedenlerle) başarısız
-    // olsa bile bu bir mock/prototip katmanıdır; akışı çökertmemek için
-    // hata yutulur. Gerçek kalıcılık Faz-2 backend'inin sorumluluğudur.
+    // Hata yutulur
+  }
+}
+
+function readStoredLockedSeatsMap(storageKey) {
+  try {
+    const rawValue = localStorage.getItem(storageKey);
+    if (!rawValue) return {};
+    const parsed = JSON.parse(rawValue);
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeStoredLockedSeatsMap(storageKey, map) {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(map));
+  } catch {
+    // Hata yutulur
   }
 }
 
@@ -166,15 +183,16 @@ async function getLockedSeatIds(sessionId) {
 
   await wait(400);
 
-  const storedList = readStoredSeatIdList(
+  const storedMap = readStoredLockedSeatsMap(
     getLockStorageKey(numericSessionId)
   );
 
-  if (storedList === null) {
+  const seatIds = Object.keys(storedMap);
+  if (seatIds.length === 0) {
     return [...(initialLockedSeats[numericSessionId] ?? [])];
   }
 
-  return storedList;
+  return seatIds;
 }
 
 // Geriye dönük uyumluluk katmanı: `getReservedSeatsBySessionId`, mevcut
@@ -221,23 +239,25 @@ async function getSeatStatusesBySessionId(sessionId) {
 // akışı henüz bu fonksiyonu çağırmıyor (geri sayım/ödeme adımı 1.4.7/1.4.8
 // kapsamındadır); fonksiyon, o görev üzerine inşa edilecek şekilde burada
 // hazır tutulur ve zaten DOLU olan koltukları güvenle reddeder.
-async function lockSeats({ sessionId, seats }) {
+async function lockSeats({ sessionId, seats, lockToken }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
 
+  if (!lockToken) {
+    throw new ApiError("Kilit işlemi için token gereklidir.", { status: 400 });
+  }
+
   await wait(300);
 
-  const [currentDoluSeatIds, currentLockedSeatIds] =
-    await Promise.all([
-      getDoluSeatIds(numericSessionId),
-      getLockedSeatIds(numericSessionId),
-    ]);
+  const currentDoluSeatIds = await getDoluSeatIds(numericSessionId);
+  const storedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
 
-  const unavailableSeatIds = normalizedSeatIds.filter(
-    (seatId) => {
-      return currentDoluSeatIds.includes(seatId);
-    }
-  );
+  const unavailableSeatIds = normalizedSeatIds.filter((seatId) => {
+    // Eğer doluysa veya başka biri tarafından kilitliyse alınamaz
+    const isDolu = currentDoluSeatIds.includes(seatId);
+    const isLockedByOther = storedMap[seatId] && storedMap[seatId] !== lockToken;
+    return isDolu || isLockedByOther;
+  });
 
   if (unavailableSeatIds.length > 0) {
     throw new ConflictError(
@@ -245,46 +265,44 @@ async function lockSeats({ sessionId, seats }) {
     );
   }
 
-  const updatedLockedSeatIds = [
-    ...new Set([
-      ...currentLockedSeatIds,
-      ...normalizedSeatIds,
-    ]),
-  ];
+  // Token ile kilitle
+  normalizedSeatIds.forEach((seatId) => {
+    storedMap[seatId] = lockToken;
+  });
 
-  writeSeatIdList(
+  writeStoredLockedSeatsMap(
     getLockStorageKey(numericSessionId),
-    updatedLockedSeatIds
+    storedMap
   );
 
-  return updatedLockedSeatIds;
+  return Object.keys(storedMap);
 }
 
 // GECICI_KILITLI -> BOS geri dönüşü (REQ-19 zaman aşımı, REQ-12 kullanıcı
 // iptali, REQ-13 sayaç bitimi). 1.4.7'deki sayaç, süre dolduğunda veya
 // kullanıcı iptalinde bu fonksiyonu çağırarak koltukları serbest bırakır.
-async function releaseLockedSeats({ sessionId, seats }) {
+async function releaseLockedSeats({ sessionId, seats, lockToken }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
 
   await wait(200);
 
-  const currentLockedSeatIds = await getLockedSeatIds(
-    numericSessionId
-  );
+  const storedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
 
-  const updatedLockedSeatIds = currentLockedSeatIds.filter(
-    (seatId) => {
-      return !normalizedSeatIds.includes(seatId);
+  let mapChanged = false;
+  normalizedSeatIds.forEach((seatId) => {
+    // Yalnızca kilit sahibi kilidi açabilir
+    if (storedMap[seatId] && storedMap[seatId] === lockToken) {
+      delete storedMap[seatId];
+      mapChanged = true;
     }
-  );
+  });
 
-  writeSeatIdList(
-    getLockStorageKey(numericSessionId),
-    updatedLockedSeatIds
-  );
+  if (mapChanged) {
+    writeStoredLockedSeatsMap(getLockStorageKey(numericSessionId), storedMap);
+  }
 
-  return updatedLockedSeatIds;
+  return Object.keys(storedMap);
 }
 
 // GECICI_KILITLI (veya henüz kilitlenmemiş güncel akışta BOS) -> DOLU.
@@ -341,25 +359,24 @@ async function reserveSeats({ sessionId, seats }) {
 
   // Bu koltuklar önceden kilitlenmişse (GECICI_KILITLI -> DOLU), kilit
   // kaydı temizlenir; kilitlenmemişse (güncel akışta olduğu gibi) bu no-op'tur.
-  const updatedLockedSeatIds = currentLockedSeatIds.filter(
-    (seatId) => {
-      return !normalizedSeatIds.includes(seatId);
-    }
-  );
+  const lockedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
+  normalizedSeatIds.forEach((seatId) => {
+    delete lockedMap[seatId];
+  });
 
   writeSeatIdList(
     getDoluStorageKey(numericSessionId),
     updatedDoluSeatIds
   );
-  writeSeatIdList(
+  writeStoredLockedSeatsMap(
     getLockStorageKey(numericSessionId),
-    updatedLockedSeatIds
+    lockedMap
   );
 
   return updatedDoluSeatIds;
 }
 
-async function reserveAllSeats(sessionSeatPairs) {
+async function reserveAllSeats(sessionSeatPairs, lockToken) {
   await wait(500);
 
   // Doğrulama aşaması (atomik kontrol)
@@ -370,9 +387,15 @@ async function reserveAllSeats(sessionSeatPairs) {
     const normalizedSeatIds = normalizeSeatIdList(pair.seats);
     
     const currentDoluSeatIds = await getDoluSeatIds(numericSessionId);
-    currentStatusMap.set(numericSessionId, { currentDoluSeatIds, normalizedSeatIds });
+    const lockedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
+    
+    currentStatusMap.set(numericSessionId, { currentDoluSeatIds, normalizedSeatIds, lockedMap });
 
-    const conflictingSeatIds = normalizedSeatIds.filter((seatId) => currentDoluSeatIds.includes(seatId));
+    const conflictingSeatIds = normalizedSeatIds.filter((seatId) => {
+      const isDolu = currentDoluSeatIds.includes(seatId);
+      const isLockedByOther = lockedMap[seatId] && lockedMap[seatId] !== lockToken;
+      return isDolu || isLockedByOther;
+    });
     
     if (conflictingSeatIds.length > 0) {
       throw new ConflictError(`${conflictingSeatIds.join(", ")} koltukları artık müsait değil.`);
@@ -382,15 +405,17 @@ async function reserveAllSeats(sessionSeatPairs) {
   // Yazma aşaması (atomik yazım)
   for (const pair of sessionSeatPairs) {
     const numericSessionId = normalizeSessionId(pair.sessionId);
-    const { currentDoluSeatIds, normalizedSeatIds } = currentStatusMap.get(numericSessionId);
-    
-    const currentLockedSeatIds = await getLockedSeatIds(numericSessionId);
+    const { currentDoluSeatIds, normalizedSeatIds, lockedMap } = currentStatusMap.get(numericSessionId);
 
     const updatedDoluSeatIds = [...new Set([...currentDoluSeatIds, ...normalizedSeatIds])];
-    const updatedLockedSeatIds = currentLockedSeatIds.filter((seatId) => !normalizedSeatIds.includes(seatId));
+    
+    // Kilitleri temizle
+    normalizedSeatIds.forEach((seatId) => {
+      delete lockedMap[seatId];
+    });
 
     writeSeatIdList(getDoluStorageKey(numericSessionId), updatedDoluSeatIds);
-    writeSeatIdList(getLockStorageKey(numericSessionId), updatedLockedSeatIds);
+    writeStoredLockedSeatsMap(getLockStorageKey(numericSessionId), lockedMap);
   }
 }
 

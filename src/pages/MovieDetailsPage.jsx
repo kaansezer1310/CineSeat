@@ -13,10 +13,12 @@ import CommentList from "../components/movies/CommentList.jsx";
 import SessionList from "../components/sessions/SessionList.jsx";
 import movieService from "../services/movieService.js";
 import sessionService from "../services/sessionService.js";
+import { useWatchlist } from "../context/WatchlistContext.jsx";
 
 function MovieDetailsPage() {
   const { movieId } = useParams();
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useWatchlist();
 
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
 
@@ -90,7 +92,19 @@ function MovieDetailsPage() {
         <div className="movie-details-content">
           <p className="page-label">{movie.genre}</p>
 
-          <h1>{movie.title}</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <h1>{movie.title}</h1>
+            <button
+              type="button"
+              className={`watchlist-heart-button ${isFavorite(movie.id) ? 'watchlist-heart-button--active' : 'watchlist-heart-button--inactive'}`}
+              style={{ fontSize: "2.5rem" }}
+              onClick={() => toggleFavorite(movie.id)}
+              title={isFavorite(movie.id) ? "İzleme listesinden çıkar" : "İzleme listesine ekle"}
+              aria-label="Favori Ekle/Çıkar"
+            >
+              {isFavorite(movie.id) ? "♥" : "♡"}
+            </button>
+          </div>
 
           <div className="movie-details-meta">
             <span>{movie.releaseYear}</span>
