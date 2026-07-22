@@ -1,5 +1,6 @@
-import { createContext, useState, useContext, useCallback } from "react";
+import { useState, useCallback } from "react";
 import useAuth from "../hooks/useAuth.js";
+import WatchlistContext from "./WatchlistContext.js";
 
 /**
  * Sprint 3 / 1.2.7 — İzleme listesi state (REQ-24)
@@ -7,8 +8,6 @@ import useAuth from "../hooks/useAuth.js";
  * Kullanıcı başına localStorage'da tutulan favori film listesi.
  * Yalnız giriş yapan üyeler (member/admin) favori ekleyebilir.
  */
-
-const WatchlistContext = createContext(null);
 
 function getStorageKey(userId) {
   return `cineseat_watchlist_${userId}`;
@@ -35,27 +34,31 @@ function WatchlistProvider({ children }) {
 
   const [watchlist, setWatchlist] = useState(() => loadWatchlist(userId));
 
-  // Kullanıcı değiştiğinde watchlist'i yeniden yükle
-  const prevUserIdRef = { current: userId };
-  if (prevUserIdRef.current !== userId) {
-    prevUserIdRef.current = userId;
-    // Re-sync (bu sadece kullanıcı değişince — login/logout)
+  // Kullanıcı değiştiğinde (login/logout) watchlist'i yeni kullanıcının
+  // localStorage kaydından yeniden yükle. React'in "render sırasında state
+  // ayarlama" deseni kullanılıyor (bkz. react.dev/learn/you-might-not-need-an-effect)
+  // — bir `useEffect` içinde senkron `setState` yerine, önceki `userId`'yi
+  // ayrı bir state'te tutup render sırasında karşılaştırarak güncelliyoruz.
+  // Bu, ekstra bir render turu (effect sonrası) olmadan aynı anda commit
+  // edilir ve `react-hooks/set-state-in-effect` kuralını ihlal etmez.
+  const [syncedUserId, setSyncedUserId] = useState(userId);
+
+  if (syncedUserId !== userId) {
+    setSyncedUserId(userId);
+    setWatchlist(loadWatchlist(userId));
   }
 
   const toggleFavorite = useCallback(
     (movieId) => {
       if (!userId) return;
-      setWatchlist((prev) => {
-        const current = loadWatchlist(userId);
-        let updated;
-        if (current.includes(movieId)) {
-          updated = current.filter((id) => id !== movieId);
-        } else {
-          updated = [...current, movieId];
-        }
-        saveWatchlist(userId, updated);
-        return updated;
-      });
+
+      const current = loadWatchlist(userId);
+      const updated = current.includes(movieId)
+        ? current.filter((id) => id !== movieId)
+        : [...current, movieId];
+
+      saveWatchlist(userId, updated);
+      setWatchlist(updated);
     },
     [userId]
   );
@@ -82,13 +85,4 @@ function WatchlistProvider({ children }) {
   );
 }
 
-function useWatchlist() {
-  const context = useContext(WatchlistContext);
-  if (!context) {
-    throw new Error("useWatchlist must be used within a WatchlistProvider");
-  }
-  return context;
-}
-
-export { WatchlistProvider, useWatchlist };
-export default WatchlistContext;
+export default WatchlistProvider;

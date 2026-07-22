@@ -9,8 +9,8 @@ import {
 import App from "./App.jsx";
 import CartProvider from "./context/CartProvider.jsx";
 import AuthProvider from "./context/AuthProvider.jsx";
-import { ThemeProvider } from "./context/ThemeContext.jsx";
-import { WatchlistProvider } from "./context/WatchlistContext.jsx";
+import ThemeProvider from "./context/ThemeProvider.jsx";
+import WatchlistProvider from "./context/WatchlistProvider.jsx";
 import { shouldRetryQuery } from "./services/errors.js";
 
 import "./index.css";

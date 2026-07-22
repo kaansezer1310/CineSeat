@@ -3,7 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 
 import useCart from "../../hooks/useCart.js";
 import useAuth from "../../hooks/useAuth.js";
-import { useTheme } from "../../context/ThemeContext.jsx";
+import useTheme from "../../hooks/useTheme.js";
 
 function Layout() {
   const { state } = useCart();

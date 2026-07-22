@@ -2,6 +2,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import {
   QueryClient,
@@ -17,15 +18,11 @@ import {
 } from "vitest";
 
 import movieService from "../services/movieService.js";
+import useWatchlist from "../hooks/useWatchlist.js";
 import HomePage from "./HomePage.jsx";
 
-vi.mock("../context/WatchlistContext.jsx", () => ({
-  useWatchlist: () => ({
-    watchlist: [],
-    toggleFavorite: vi.fn(),
-    isFavorite: vi.fn(() => false),
-    getFavoriteMovieIds: vi.fn(() => []),
-  }),
+vi.mock("../hooks/useWatchlist.js", () => ({
+  default: vi.fn(),
 }));
 
 vi.mock("../services/movieService.js", async () => {
@@ -124,6 +121,12 @@ const archivedMovie = {
 describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useWatchlist.mockReturnValue({
+      watchlist: [],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => false),
+      getFavoriteMovieIds: vi.fn(() => []),
+    });
   });
 
   it("varsayılan olarak Vizyonda sekmesini gösterir", async () => {
@@ -240,6 +243,12 @@ describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
 describe("HomePage — Sıralama ve filtreleme (1.3.3 / 1.3.4)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useWatchlist.mockReturnValue({
+      watchlist: [],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => false),
+      getFavoriteMovieIds: vi.fn(() => []),
+    });
   });
 
   it("varsayılan sıralama vizyon tarihine göre yeniden eskiyedir", async () => {
@@ -333,5 +342,85 @@ describe("HomePage — Sıralama ve filtreleme (1.3.3 / 1.3.4)", () => {
         "Seçtiğin filtrelere uyan film bulunamadı."
       )
     ).toBeInTheDocument();
+  });
+});
+
+describe("HomePage — İzleme listesi vizyona giriş bildirimi (REQ-25 / 1.2.8)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("izleme listesindeki, yakın zamanda vizyona giren bir film için bildirim bandı gösterir", async () => {
+    useWatchlist.mockReturnValue({
+      watchlist: [1],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => true),
+      getFavoriteMovieIds: vi.fn(() => [1]),
+    });
+
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    const banner = await screen.findByRole("status");
+
+    expect(
+      within(banner).getByText(/vizyona girdi!/)
+    ).toBeInTheDocument();
+    expect(
+      within(banner).getByText(nowShowingMovie.title, {
+        exact: false,
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("izleme listesinde olmayan bir film için bildirim göstermez", async () => {
+    useWatchlist.mockReturnValue({
+      watchlist: [],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => false),
+      getFavoriteMovieIds: vi.fn(() => []),
+    });
+
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    expect(
+      screen.queryByText(/vizyona girdi!/)
+    ).not.toBeInTheDocument();
+  });
+
+  it("bildirimi kapat butonuna tıklayınca bant kaybolur", async () => {
+    useWatchlist.mockReturnValue({
+      watchlist: [1],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => true),
+      getFavoriteMovieIds: vi.fn(() => [1]),
+    });
+
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByText(/vizyona girdi!/);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Bildirimi kapat" })
+    );
+
+    expect(
+      screen.queryByText(/vizyona girdi!/)
+    ).not.toBeInTheDocument();
   });
 });
