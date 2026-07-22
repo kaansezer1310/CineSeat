@@ -8,6 +8,8 @@ import CartPage from "./pages/CartPage.jsx";
 import SuccessPage from "./pages/SuccessPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import PaymentPage from "./pages/PaymentPage.jsx";
+import PaymentErrorPage from "./pages/PaymentErrorPage.jsx";
 
 import AdminLayout from "./components/admin/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -36,6 +38,8 @@ function App() {
         />
 
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/odeme" element={<PaymentPage />} />
+        <Route path="/odeme-hata" element={<PaymentErrorPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cinemas" element={<CinemasPage />} />
         <Route path="/login" element={<LoginPage />} />

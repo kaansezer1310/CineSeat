@@ -11,10 +11,6 @@ const SEAT_STATUS_CLASS_NAMES = {
   [SEAT_STATUS.DOLU]: "seat-status-dolu",
 };
 
-// Koltuk, tek ve açık bir `status` prop'una göre render edilir (bkz.
-// `src/domain/seatStatus.js`). Servis/storage erişimi yoktur; yalnızca
-// aldığı durumu görsel ve erişilebilir şekilde sunan sunum (presentational)
-// bileşenidir.
 function Seat({ seatId, status, onSelect }) {
   const isSelectable = isSeatSelectable(status);
   const statusLabel = getSeatStatusLabel(status);

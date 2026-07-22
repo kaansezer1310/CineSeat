@@ -359,9 +359,41 @@ async function reserveSeats({ sessionId, seats }) {
   return updatedDoluSeatIds;
 }
 
-// DOLU -> BOS (rezervasyon iptali). Şu anki akışta bir rezervasyon iptal
-// ekranı yok; bu fonksiyon, o özellik eklendiğinde kullanılacak açık ve
-// geçerli bir geri dönüş sağlar.
+async function reserveAllSeats(sessionSeatPairs) {
+  await wait(500);
+
+  // Doğrulama aşaması (atomik kontrol)
+  const currentStatusMap = new Map();
+  
+  for (const pair of sessionSeatPairs) {
+    const numericSessionId = normalizeSessionId(pair.sessionId);
+    const normalizedSeatIds = normalizeSeatIdList(pair.seats);
+    
+    const currentDoluSeatIds = await getDoluSeatIds(numericSessionId);
+    currentStatusMap.set(numericSessionId, { currentDoluSeatIds, normalizedSeatIds });
+
+    const conflictingSeatIds = normalizedSeatIds.filter((seatId) => currentDoluSeatIds.includes(seatId));
+    
+    if (conflictingSeatIds.length > 0) {
+      throw new ConflictError(`${conflictingSeatIds.join(", ")} koltukları artık müsait değil.`);
+    }
+  }
+
+  // Yazma aşaması (atomik yazım)
+  for (const pair of sessionSeatPairs) {
+    const numericSessionId = normalizeSessionId(pair.sessionId);
+    const { currentDoluSeatIds, normalizedSeatIds } = currentStatusMap.get(numericSessionId);
+    
+    const currentLockedSeatIds = await getLockedSeatIds(numericSessionId);
+
+    const updatedDoluSeatIds = [...new Set([...currentDoluSeatIds, ...normalizedSeatIds])];
+    const updatedLockedSeatIds = currentLockedSeatIds.filter((seatId) => !normalizedSeatIds.includes(seatId));
+
+    writeSeatIdList(getDoluStorageKey(numericSessionId), updatedDoluSeatIds);
+    writeSeatIdList(getLockStorageKey(numericSessionId), updatedLockedSeatIds);
+  }
+}
+
 async function cancelReservedSeats({ sessionId, seats }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
@@ -392,6 +424,7 @@ const seatService = {
   lockSeats,
   releaseLockedSeats,
   reserveSeats,
+  reserveAllSeats,
   cancelReservedSeats,
 };
 

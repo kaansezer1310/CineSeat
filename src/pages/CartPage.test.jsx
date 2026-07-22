@@ -23,14 +23,24 @@ import { useEffect } from "react";
 import CartProvider from "../context/CartProvider.jsx";
 import { TICKET_TYPE } from "../domain/ticketType.js";
 import useCart from "../hooks/useCart.js";
-import reservationService from "../services/reservationService.js";
 import CartPage from "./CartPage.jsx";
+import { calcSubtotal, formatPrice } from "../services/pricing.js";
+import * as router from "react-router-dom";
 
-vi.mock("../services/reservationService.js", () => ({
-  default: {
-    createReservation: vi.fn(),
-  },
+vi.mock("../hooks/useAuth.js", () => ({
+  default: () => ({
+    user: null, // Guest default
+  }),
 }));
+
+const mockNavigate = vi.fn();
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 function createCartItem({
   id = "session-101",
@@ -110,7 +120,7 @@ function renderCartPage(items = [createCartItem()]) {
 
 describe("CartPage", () => {
   beforeEach(() => {
-    reservationService.createReservation.mockReset();
+    mockNavigate.mockReset();
   });
 
   it("her koltuğun mevcut bilet tipini gösterir", async () => {
@@ -176,19 +186,15 @@ describe("CartPage", () => {
     expect(
       within(summary).getByText("3")
     ).toBeInTheDocument();
+    
+    // (220 * 1.0) + (220 * 0.75) + (220 * 0.60) = 220 + 165 + 132 = 517
+    // locale tr-TR ile 517,00 TL formatlanır
     expect(
-      within(summary).getByText("660 TL")
+      within(summary).getByText("517,00 TL")
     ).toBeInTheDocument();
   });
 
-  it("checkout sırasında servise düz seatId listesi gönderir ve tipi korur", async () => {
-    reservationService.createReservation.mockResolvedValue({
-      id: "CS-1",
-      ticketCount: 3,
-      totalPrice: 660,
-      items: [createCartItem()],
-    });
-
+  it("checkout sırasında /odeme sayfasına yönlendirir", async () => {
     renderCartPage();
 
     await screen.findByRole("heading", {
@@ -197,38 +203,13 @@ describe("CartPage", () => {
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Rezervasyonu Tamamla",
+        name: "Ödemeye Geç",
       })
     );
 
     await waitFor(() => {
-      expect(
-        reservationService.createReservation
-      ).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith("/odeme");
     });
-
-    const submittedItems =
-      reservationService.createReservation.mock.calls[0][0];
-
-    expect(submittedItems[0].seats).toEqual([
-      {
-        seatId: "A1",
-        ticketType: TICKET_TYPE.ADULT,
-      },
-      {
-        seatId: "A2",
-        ticketType: TICKET_TYPE.STUDENT,
-      },
-      {
-        seatId: "A3",
-        ticketType: TICKET_TYPE.CHILD,
-      },
-    ]);
-    expect(
-      submittedItems[0].seats.map((seat) => seat.seatId)
-    ).toEqual(["A1", "A2", "A3"]);
-
-    await screen.findByText("Başarı sayfası");
   });
 
   it("koltuk kimliklerini metin olarak gösterir, [object Object] yazmaz", async () => {
@@ -242,3 +223,4 @@ describe("CartPage", () => {
     expect(screen.queryByText(/\[object Object\]/)).toBeNull();
   });
 });
+

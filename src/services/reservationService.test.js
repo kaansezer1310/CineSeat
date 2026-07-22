@@ -66,9 +66,9 @@ describe("reservationService", () => {
 
     expect(reservation).toMatchObject({
       ticketCount: 2,
-      totalPrice: 440,
+      totalPrice: 346.5,
     });
-    expect(reservation.id).toBe(`CS-${Date.now()}`);
+    expect(reservation.id).toMatch(/^RES-\d{5}$/);
     expect(reservedSeats).toEqual(["A1", "A2"]);
     expect(reservation.items[0].seats).toEqual([
       {
