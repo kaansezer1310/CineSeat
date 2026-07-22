@@ -24,8 +24,6 @@ import CartProvider from "../context/CartProvider.jsx";
 import { TICKET_TYPE } from "../domain/ticketType.js";
 import useCart from "../hooks/useCart.js";
 import CartPage from "./CartPage.jsx";
-import { calcSubtotal, formatPrice } from "../services/pricing.js";
-import * as router from "react-router-dom";
 
 vi.mock("../hooks/useAuth.js", () => ({
   default: () => ({

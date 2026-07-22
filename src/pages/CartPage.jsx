@@ -1,8 +1,4 @@
 import {
-  useQueryClient,
-} from "@tanstack/react-query";
-
-import {
   Link,
   useNavigate,
 } from "react-router-dom";

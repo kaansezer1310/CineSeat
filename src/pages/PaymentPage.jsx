@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useCart from "../hooks/useCart.js";
 import useAuth from "../hooks/useAuth.js";
@@ -28,10 +28,19 @@ function PaymentPage() {
     email: "",
   });
 
-  const { seconds, formatTime } = useCountdown(180, () => {
+  function handleTimeout() {
+    dispatch({ type: "CLEAR_CART" });
+    navigate("/cart");
+  }
+
+  const { formatTime } = useCountdown(180, () => {
     handleTimeout();
   });
 
+  // Kilitleme/kilit-açma yalnızca sayfaya girişte/çıkışta bir kez çalışmalı;
+  // sepet ödeme sırasında zaten değişmez (payload gönderilene kadar), bu
+  // yüzden `state.items` kasıtlı olarak dep listesine alınmadı. `navigate`
+  // react-router'da referans olarak sabittir.
   useEffect(() => {
     if (state.items.length === 0) {
       navigate("/cart");
@@ -43,7 +52,7 @@ function PaymentPage() {
       seatService.lockSeats({
         sessionId: item.sessionId,
         seats: item.seats.map((seat) => seat.seatId),
-      }).catch((err) => {
+      }).catch(() => {
         // Zaten doluysa sepete geri dön
         navigate("/cart");
       })
@@ -60,12 +69,8 @@ function PaymentPage() {
         });
       });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function handleTimeout() {
-    dispatch({ type: "CLEAR_CART" });
-    navigate("/cart");
-  }
 
   const subtotal = calcSubtotal(state.items);
   const { discountAmount } = campaignService.getCampaignDiscount(subtotal, user);
