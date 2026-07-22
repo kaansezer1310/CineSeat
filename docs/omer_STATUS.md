@@ -33,10 +33,72 @@
    - `src/components/layout/Layout.jsx` güncellenerek Header alanı dinamikleştirildi.
    - Kullanıcı giriş yapmamışsa **"Giriş Yap"** ve **"Kayıt Ol"** bağlantıları (Sprint 2'de kodlanacak sayfalar için), giriş yapmışsa **"Hoşgeldin [İsim]"**, **"Profilim"** ve **"Çıkış"** butonları gösterildi. Tasarım tutarlılığı adına `index.css`'teki `var(--color-yellow)` gibi tema değişkenleri korundu.
 
-## Sırada Ne Var?
+## Sırada Ne Var? (Sprint 1 anındaki not — artık tarihsel)
 Şu an Ömer'in Sprint 1 kapsamındaki görevleri başarıyla bitmiş durumda. Ekibin diğer üyelerinin (Kaan, Alptuğ, Berke) Sprint 1 görevleri olan:
 - 1.4.3 Koltuk 4 durum state makinesi (Kaan)
 - 1.5.7 Sinemalar sayfası + şehir dropdown (Alptuğ)
 - 1.3.1 Vizyonda / Yakında sekme yapısı (Berke)
 
 işlerine geçilebilir. Hazır olduğunuzda bu task'lerden birisini seçip talimat verebilirsiniz.
+
+---
+
+# Güncelleme — Sprint 2 / 1.2.1 (REQ-16, REQ-21)
+
+> **Not:** Bu bölüm başlangıçta ayrı bir `docs/omer_status_2.md` dosyasında yazılmıştı; ekipteki diğer herkes (Kaan, Berke) tek bir status dosyasını sprint sprint güncellediği için tutarlılık adına buraya taşındı ve `omer_status_2.md` silindi.
+
+**Görev:** 1.2.1 — Login / Register sayfaları (REQ-16, REQ-21)
+**Sprint:** Sprint 2
+**Durum:** ✅ Tamamlandı
+**Bağımlılık:** 1.2.3 (Sprint 1 — Auth Context) ✅ Hazır
+
+## 1. Yapılan Değişikliklerin Özeti
+
+### Mock Kullanıcı Verisi Genişletildi (`src/data/users.js`)
+Sprint 1'de sadece `id`, `name`, `email`, `password`, `role` alanları olan basit bir kullanıcı dizisi vardı. Sprint 2 kayıt formu için gerekli alanlar eklendi: `firstName`, `lastName`, `username`, `phone` (opsiyonel), `gender` (opsiyonel).
+
+**Geriye dönük uyumluluk:** Mevcut `name` alanı korundu çünkü `Layout.jsx` header'da `user.name` kullanıyor. Yeni kayıt olan kullanıcılar için `name`, `firstName + lastName` olarak otomatik oluşturuluyor.
+
+**Mevcut kullanıcı şifreleri güncellendi:** Mock kullanıcıların şifreleri, Sprint 3'te (1.2.2) gelecek "en az bir harf + bir rakam" regex kuralına hazırlık olarak güncellendi (ör: `Admin1!`, `Test12`).
+
+### Auth Service'e Register Fonksiyonu Eklendi (`src/services/authService.js`)
+Mevcut `login` fonksiyonu değiştirilmedi, yeni `register` fonksiyonu eklendi:
+- **E-posta benzersizlik kontrolü** (case-insensitive) → "Bu e-posta adresi zaten kayıtlı."
+- **Kullanıcı adı benzersizlik kontrolü** (case-insensitive) → "Bu kullanıcı adı zaten kullanılıyor."
+- **Güvenlik:** Password client state'ine sızmıyor (login ile aynı pattern).
+- **Mock kısıtlama:** `users.push(newUser)` ile ekleniyor, sayfa yenilenince sıfırlanır (backend yok, Faz-1 kapsamı).
+
+### AuthProvider Güncellendi (`src/context/AuthProvider.jsx`)
+Context'e `register` eklendi; kayıt sonrası **otomatik oturum açma** yapılıyor, `sessionStorage`'a yazılıyor.
+
+### Login / Register Sayfaları (`src/pages/LoginPage.jsx`, `src/pages/RegisterPage.jsx`) — YENİ
+- Login: E-posta + Şifre, boşluk kontrolü, REQ-21 genel hata mesajı, yükleme durumu, zaten-girişliyse-yönlendirme, "Kayıt Ol" linki.
+- Register: Ad/Soyad/E-posta/Kullanıcı Adı/Şifre/Şifre(Tekrar) zorunlu, Telefon/Cinsiyet opsiyonel, şifre eşleşme kontrolü, alan bazlı hatalar, benzersizlik hataları servisten.
+- Regex bazlı detaylı doğrulama (kullanıcı adı 5-12, şifre 6-15 vb.) bilinçli olarak **Sprint 3 / 1.2.2**'ye bırakıldı.
+
+### App.jsx + App.css
+`/login` ve `/register` rotaları `Layout` içinde (header görünür) eklendi. CSS, dosya sonuna ekleme olarak (`auth-*` sınıfları), mevcut tema tokenlarıyla.
+
+## 2. Doğrulama (Ömer'in kendi kontrolü)
+```
+npm run lint      → 0 hata, 0 uyarı ✅
+npm run test:run  → 14 dosya / 100 test PASS ✅
+npm run build     → başarılı (561ms) ✅
+```
+
+## 3. Kapsam Dışı Bırakılanlar (bilinçli kararlar)
+1. Regex doğrulama kuralları → Sprint 3 / 1.2.2.
+2. E-posta format doğrulaması (regex) → Sprint 3.
+3. Backend / kalıcı veri → Faz-1 kapsamı dışı.
+4. Profil sayfası → Sprint 5 / 1.2.5. Header'daki "Profilim" linki şu an 404'e (`NotFoundPage`) düşüyor.
+
+## 4. Berke'nin bu görev üzerine yaptığı sonradan-inceleme (code review) — eklenen not
+
+Bu bölüm Ömer'in orijinal raporunun parçası değildi; ekip geneli bir Sprint 2 review sırasında eklendi.
+
+**Bulunan ve düzeltilen 1 gerçek bug:**
+- `LoginPage.jsx` ve `RegisterPage.jsx`'te "zaten giriş yapmışsa yönlendir" mantığı `useEffect` yerine doğrudan render gövdesinde (`if (user) { navigate(...); return null; }`) yazılmıştı. Bu, React Router'ın kendi geliştirme uyarısını tetikliyordu ("You should call navigate() in a React.useEffect()...") ve bir testte **boş bir `<div />` render edilerek yönlendirmenin senkron olarak tamamlanmadığı** doğrulandı (gerçek tarayıcıda muhtemelen kısa bir boş-sayfa yanıp sönmesi + konsol uyarısı olurdu). `useEffect`'e taşınarak düzeltildi, regresyon testiyle (`LoginPage.test.jsx`) kilitlendi.
+
+**Eksik olup tamamlanan test kapsamı:** Bu görev hiç test dosyası içermiyordu (`authService.js`, `AuthProvider.jsx`, `LoginPage.jsx`, `RegisterPage.jsx` — 0 test). `authService.test.js`, `LoginPage.test.jsx`, `RegisterPage.test.jsx` eklendi (13 yeni test): giriş başarı/başarısızlık, boş alan kontrolü, kayıt zorunlu alan/şifre eşleşme/e-posta+kullanıcı adı benzersizlik kontrolleri, otomatik oturum açma.
+
+**Diğer bulgular:** Kritik/yüksek seviye başka bir sorun yok. `Layout.jsx`'in `user.name` kullanımı geriye dönük uyumluluk alanıyla korunmuş, `ProtectedRoute.jsx` (K2, Sprint 1) yeni `register` alanından etkilenmemiş, checkout akışı auth'a hâlâ bağımlı değil (beklenen, henüz o entegrasyon planlanmadı).

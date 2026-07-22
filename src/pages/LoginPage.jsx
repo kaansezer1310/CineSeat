@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 
@@ -14,9 +14,17 @@ function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Zaten giriş yapılmışsa ana sayfaya yönlendir
+  // Zaten giriş yapılmışsa ana sayfaya yönlendir.
+  // navigate() render sırasında değil, useEffect içinde çağrılmalı —
+  // React Router bunu render'da çağırmayı açıkça uyarıyor
+  // ("You should call navigate() in a React.useEffect()...").
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
+
   if (user) {
-    navigate("/", { replace: true });
     return null;
   }
 

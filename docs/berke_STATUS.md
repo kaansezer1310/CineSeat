@@ -2,15 +2,45 @@
 
 > Bu dosya çalışma ilerledikçe güncellenir. Her görev tamamlandığında ilgili bölüm eklenir/güncellenir. Ayrıntılı sprint planı için `docs/PLAN.md`, görev-durum analizi için `docs/WBS_GOREV_DAGILIMI.md`. Mentöre basit dille anlatım için `docs/berke_SPRINT1_ACIKLAMA.md`.
 
-**Son güncelleme:** Sprint 2 — Kaan'ın 1.4.4 (bilet tipi) eklemesi analiz edildi (temiz, kritik bulgu yok), Berke'nin kendi Sprint 2 görevi **1.3.5 (Otomatik kategorizasyon ve arşiv, REQ-05)** planına sadık şekilde tamamlandı.
+**Son güncelleme:** Sprint 2 **tamamen bitti** (Ömer/Kaan/Berke/Alptuğ). Ömer'in 1.2.1 (Login/Register) eklemesi analiz edildi, 1 gerçek bug bulundu ve düzeltildi (render sırasında `navigate()` çağrısı), sıfır olan test kapsamına 13 test eklendi. `docs/PLAN.md` yeniden yapılandırıldı: Kaan/Ömer/Berke'nin eski S3–S9 görevleri artık **tek bir konsolide "Sprint 3" backlog'una** toplandı (kişi başı tek liste, bağımlılık sırası korunarak).
 **Branch:** `berke` (origin/berke'nin ilerisinde; **push işlemi yapılmadı**, manuel push kullanıcıya ait)
 
-**Taze doğrulama (en son, tüm ekip kodu dahil — Sprint 1 + Sprint 2/Kaan + Sprint 2/Berke):**
-- `npm run test:run` → `Test Files 14 passed (14)` / `Tests 100 passed (100)`, exit 0
+**Taze doğrulama (en son, tüm ekip kodu dahil — Sprint 1 + Sprint 2 tamamı):**
+- `npm run test:run` → `Test Files 17 passed (17)` / `Tests 113 passed (113)`, exit 0
 - `npm run lint` → **0 hata, 0 uyarı**, exit 0
 - `npm run build` → başarılı, exit 0
-- `npm audit` → **0 zafiyet** (transitive `brace-expansion` DoS uyarısı `npm audit fix` ile temizlendi, testler tekrar doğrulandı)
-- Case-sensitivity: `git ls-files` + özel bir script ile **tüm** relative import'ların gerçek dosya case'iyle birebir eştiği doğrulandı (Linux'ta build'i kıran tek noktaydı, artık kapalı)
+- `npm audit` → **0 zafiyet**
+- Case-sensitivity: doğrulanmış durumda (Sprint 1'de kapatıldı)
+
+---
+
+## Sprint 2 — Ömer'in Eklemesi Analizi + PLAN.md Yeniden Yapılandırması
+
+### Ömer'in Sprint 2 eklemesi (1.2.1 — Login/Register, REQ-16/REQ-21) — analiz sonucu
+
+**1 gerçek bug bulundu ve düzeltildi:** `LoginPage.jsx` ve `RegisterPage.jsx`'te "zaten giriş yapmışsa ana sayfaya yönlendir" mantığı render gövdesinde doğrudan yazılmıştı:
+```js
+if (user) { navigate("/", { replace: true }); return null; }
+```
+Bu, React Router'ın kendi geliştirme uyarısını tetikliyor: *"You should call navigate() in a React.useEffect(), not when your component is first rendered."* Bunu tahminle değil, bir testle **kanıtladım**: aynı senaryoyu render edip konsolu izlediğimde uyarı çıktı VE sayfa boş bir `<div />` olarak render oldu (yönlendirme senkron tamamlanmadı) — gerçek tarayıcıda muhtemelen kısa bir boş-sayfa yanıp sönmesine denk gelirdi. `useEffect`'e taşıyarak düzelttim, aynı testle (artık geçiyor) kilitledim.
+
+**Eksik test kapsamı tamamlandı:** Bu görev hiç test dosyası içermiyordu (`authService.js`, `AuthProvider.jsx`, `LoginPage.jsx`, `RegisterPage.jsx` — 0 test, auth gibi güvenlik-hassas bir alan için önemli bir boşluk). `authService.test.js`, `LoginPage.test.jsx`, `RegisterPage.test.jsx` eklendi (13 yeni test): giriş başarı/başarısızlık/boş alan, kayıt zorunlu alan/şifre eşleşme/e-posta+kullanıcı adı benzersizlik, otomatik oturum açma, render-bug regresyonu.
+
+**Dokümantasyon tutarlılığı:** Ömer, Kaan ve benim tuttuğum "tek kişi = tek STATUS dosyası, sprint sprint güncellenir" kuralına uymayarak ayrı bir `docs/omer_status_2.md` dosyası oluşturmuştu. İçeriğini `docs/omer_STATUS.md`'ye taşıyıp (yeni bir "Sprint 2" bölümü olarak) `omer_status_2.md`'yi sildim — artık tek dosya.
+
+**Diğer bulgular:** Kritik/yüksek seviye başka sorun yok. `Layout.jsx`'in `user.name` kullanımı geriye dönük uyumluluk alanıyla korunmuş; `ProtectedRoute.jsx` (Sprint 1, K2) yeni `register` alanından etkilenmemiş; checkout akışı auth'a hâlâ bağımlı değil (beklenen, henüz planlanmadı).
+
+### PLAN.md yeniden yapılandırma — "kişi başı tek konsolide Sprint 3"
+
+Kullanıcı talebiyle: Kaan/Ömer/Berke'nin eskiden **S3'ten S9'a kadar** tek tek dağıtılmış kalan görevleri, **tek bir "Sprint 3" backlog'unda** birleştirildi — her kişi kendi listesini bağımlılık sırasına göre kendi hızında bitirir, sprint sınırları arasında zorunlu bekleme yok. Alptuğ'un modülü zaten tamamen bitmiş olduğu için ona yeni görev eklenmedi (tek taraflı bir karar değil, `SPRINT1_REVIEW.md`'de zaten not edilmiş bir konu).
+
+- **Kaan (5 görev):** 1.4.5 → 1.4.8 → 1.4.7 → 1.4.9 → 1.2.9
+- **Ömer (7 görev):** 1.2.2 → 1.2.4 → 1.2.5 → 1.2.7 → 1.2.8 → 1.2.6 → 1.5.9
+- **Berke (8 görev, benim):** 1.3.6 → 1.3.3 → 1.3.4 → 1.3.8 → 1.3.9 → 1.3.10 → 1.3.11 → 1.2.10
+
+Kişiler arası kritik köprüler korundu ve belirginleştirildi: Kaan'ın 1.4.5'i (ara toplam sözleşmesi) benim 1.2.10'umdan önce bitmeli; Kaan'ın 1.4.8'i (ödeme akışı, gerçek rezervasyon verisi üretir) Ömer'in 1.2.6'sından önce bitmeli. Her görevin tam detayı (Kabul/Dosyalar/Bağımlılık) hiçbir bilgi kaybı olmadan `docs/PLAN.md` §5 "SPRINT 3"e taşındı, sadece sprint sınırları kaldırıldı.
+
+`docs/WBS_GOREV_DAGILIMI.md` da bu yeni yapıya göre güncellendi (1.2.1 ✅ işaretlendi, özet sayaç 24/20'ye güncellendi, kişi bazlı tablolar PLAN.md'nin yeni sırasıyla eşleştirildi).
 
 ---
 
@@ -132,4 +162,4 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 
 ## Sırada Ne Var
 
-Sprint 1'in 4 görevi tamamlandı. Sprint 2'de şu ana kadar Kaan'ın 1.4.4'ü (analiz edildi, temiz) ve Berke'nin 1.3.5'i (bu oturumda tamamlandı) bitti. Sprint 2'nin geri kalanı — Ömer'in 1.2.1'i (Login/register) ve Alptuğ'un 1.5.8'i (zaten Sprint 1'de bitmişti, PLAN.md'nin yeniden dengelenmesi gerekiyor) — henüz yapılmadı; `docs/WBS_GOREV_DAGILIMI.md` §2'de kişi bazlı güncel kalan görev listesi var. Berke'nin bir sonraki kendi görevi **Sprint 3 / 1.3.3 — Sıralama modülü (tarih ve puan)**, PLAN.md'ye göre.
+Sprint 1 ve Sprint 2 tamamen bitti (4 kişi de). Artık sprint sprint değil, `docs/PLAN.md`'nin yeni "Sprint 3 — Konsolide Backlog" yapısına göre ilerleniyor: her kişinin kendi kalan görev listesi var, sprint sınırı yok. Benim (Berke'nin) sıradaki görevim backlog'umun ilk maddesi: **1.3.6 — Yakında 6 ay zaman kısıtı (REQ-15)**, `movieService.js` + `HomePage.jsx`; ardından sırayla 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, ve en son (Kaan'ın 1.4.5'ini bekleyen) 1.2.10. Tam liste ve gerekçeler `docs/PLAN.md` §5 SPRINT 3'te.
