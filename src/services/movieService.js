@@ -96,6 +96,26 @@ function isMovieArchived(movie, referenceDate = new Date()) {
   return parseIsoDateOnly(movie.screeningEndDate) < toDateOnly(referenceDate);
 }
 
+// REQ-15 — "Yakında" sekmesi vizyon tarihi bugünden itibaren en fazla
+// monthsAhead ay ileride olan filmlerle sınırlıdır. Veri movies.js'ten
+// silinmez/gizlenmez (admin listesi vb. etkilenmez), sadece bu pencerenin
+// dışındaki filmler ana sayfanın "Yakında" sekmesinde gösterilmez.
+function isWithinComingSoonWindow(movie, referenceDate = new Date(), monthsAhead = 6) {
+  if (!movie.releaseDate) {
+    return true;
+  }
+
+  const releaseDay = parseIsoDateOnly(movie.releaseDate);
+  const today = toDateOnly(referenceDate);
+  const windowEnd = new Date(
+    today.getFullYear(),
+    today.getMonth() + monthsAhead,
+    today.getDate()
+  );
+
+  return releaseDay <= windowEnd;
+}
+
 const movieService = {
   getMovies,
   getMovieById,
@@ -105,6 +125,7 @@ const movieService = {
   isMovieReleased,
   getDaysUntilRelease,
   isMovieArchived,
+  isWithinComingSoonWindow,
   parseIsoDateOnly,
 };
 

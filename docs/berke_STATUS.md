@@ -2,15 +2,44 @@
 
 > Bu dosya çalışma ilerledikçe güncellenir. Her görev tamamlandığında ilgili bölüm eklenir/güncellenir. Ayrıntılı sprint planı için `docs/PLAN.md`, görev-durum analizi için `docs/WBS_GOREV_DAGILIMI.md`. Mentöre basit dille anlatım için `docs/berke_SPRINT1_ACIKLAMA.md`.
 
-**Son güncelleme:** Sprint 2 **tamamen bitti** (Ömer/Kaan/Berke/Alptuğ). Ömer'in 1.2.1 (Login/Register) eklemesi analiz edildi, 1 gerçek bug bulundu ve düzeltildi (render sırasında `navigate()` çağrısı), sıfır olan test kapsamına 13 test eklendi. `docs/PLAN.md` yeniden yapılandırıldı: Kaan/Ömer/Berke'nin eski S3–S9 görevleri artık **tek bir konsolide "Sprint 3" backlog'una** toplandı (kişi başı tek liste, bağımlılık sırası korunarak).
+**Son güncelleme:** Sprint 3 konsolide backlog'umun ilk maddesi **1.3.6 (Yakında 6 ay zaman kısıtı, REQ-15) tamamlandı**. Sıradaki madde: 1.3.3 (sıralama modülü).
 **Branch:** `berke` (origin/berke'nin ilerisinde; **push işlemi yapılmadı**, manuel push kullanıcıya ait)
 
-**Taze doğrulama (en son, tüm ekip kodu dahil — Sprint 1 + Sprint 2 tamamı):**
-- `npm run test:run` → `Test Files 17 passed (17)` / `Tests 113 passed (113)`, exit 0
+**Taze doğrulama (en son, 1.3.6 dahil):**
+- `npm run test:run` → `Test Files 17 passed (17)` / `Tests 117 passed (117)`, exit 0
 - `npm run lint` → **0 hata, 0 uyarı**, exit 0
 - `npm run build` → başarılı, exit 0
 - `npm audit` → **0 zafiyet**
 - Case-sensitivity: doğrulanmış durumda (Sprint 1'de kapatıldı)
+
+---
+
+## Sprint 3 — Bağımlılık Doğrulaması (kullanıcı talebiyle)
+
+Kullanıcı, 1.3.6'ya geçmeden önce durup şunu netleştirdi: asıl istek her kişinin backlog'unu **tek bir kesintisiz prompt'ta** bitirebilmesiydi, sadece "tek sprint" değil. Bu yüzden `docs/PLAN.md` §5'teki 19 kalan görevin **her birinin** "Bağımlılık" satırı tek tek tarandı (kişi-içi ve kişiler-arası).
+
+**Sonuç:** Kaan'ın 5 görevi tamamen bağımsız. Ömer'in 7'sinden 6'sı, Berke'nin 7'sinden (1.3.6 hariç) 6'sı da bağımsız. **Tek bulgu:** Ömer'in listesinde Kaan'a bağımlı 1.2.6, sondan bir önceki (6/7) sıradaydı — en sonda değildi. Bu, Berke'nin 1.2.10'unda uygulanan "dış bağımlılık en sonda" desenine aykırıydı. Düzeltme: Ömer'in listesinde 1.5.9 ile 1.2.6 yer değiştirildi (1.5.9 madde 6, 1.2.6 madde 7 oldu) — artık ikisi de aynı desende: 6 bağımsız görev + en sonda 1 dış-bağımlı görev.
+
+`docs/PLAN.md`'ye yeni bir **§6 "Tek-Sprint Yürütme Sırası"** bölümü eklendi (eski §6/§7 numaraları §7/§8'e kaydı, referanslar güncellendi): Kaan'ın kendi ilk iki maddesi (1.4.5, 1.4.8) hem Ömer'i hem Berke'yi besliyor; bu iki madde Kaan'ın kendi sırasının başında olduğu için üç backlog paralel başlayabilir, kimse birbirini baştan beklemez. `docs/WBS_GOREV_DAGILIMI.md` §2 ve §3'e de aynı sıralama ve gerekçe yansıtıldı.
+
+---
+
+## Sprint 3 (konsolide backlog) — 1/8: 1.3.6 Yakında 6 ay zaman kısıtı
+
+**Görev:** 1.3.6 — REQ-15 — "Yakında" listesini bugünden itibaren en fazla 6 ay içinde vizyona girecek filmlerle sınırla.
+**Durum:** ✅ Tamamlandı
+**Bağımlılık:** 1.3.1 ✅, 1.3.5 ✅ (ikisi de hazırdı).
+
+**Ne yapıldı:**
+- `movieService.js`'e `isWithinComingSoonWindow(movie, referenceDate, monthsAhead = 6)` eklendi — saf (pure) fonksiyon, `isMovieArchived`/`isMovieReleased` ile aynı desende (`parseIsoDateOnly`/`toDateOnly` paylaşılıyor, ISO tarih manuel Y/M/D ile parse ediliyor, timezone off-by-one riski yok). `releaseDate` alanı yoksa `true` döner — `isMovieReleased`'daki güvenli varsayılanla tutarlı (zaten `!isMovieReleased` ile birlikte kullanıldığı için bu dal pratikte devreye girmez, ama fonksiyonun kendi sözleşmesi eksiksiz kalsın diye eklendi).
+- `HomePage.jsx`: `comingSoonMovies` filtresi artık `!isMovieReleased(movie) && isWithinComingSoonWindow(movie)` — 6 aydan uzak filmler "Yakında" sekmesinde görünmüyor ama `movies.js`'ten silinmiyor, admin panelinden hâlâ erişilebilir (kabul kriteriyle birebir).
+- **Veri değişikliği yok:** Mevcut `movies.js`'teki hiçbir filmin vizyon tarihi bugünden (2026-07-22) 6 aydan uzak değil, dolayısıyla görünür davranışta bir değişiklik yok — bu normal, kısıt gelecekte eklenecek uzak-tarihli filmler için bir güvenlik/temizlik kuralı. Test edilebilirlik için veri eklemedim (mevcut testler sınır durumlarını sentetik `referenceDate` ile zaten kapsıyor).
+
+**Testler (yeni, 4 test, `movieService.test.js`):** pencere içinde / pencere sınırında (tam 6 ay, dahil) / pencere dışında / `releaseDate` yok → `true`.
+
+**Kalite kontrolleri:** `npm run test:run` → 17 dosya / 117 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+
+> **Not:** Bu doğrulama turunda Bash aracı bir kere `vitest` worker havuzunu ortam kaynak kısıtı yüzünden çökertip "Vitest failed to find the current suite" hatası verdi (tüm 17 suite aynı anda, gerçek bir kod hatası değil). PowerShell'de tekrar çalıştırılınca temiz geçti — gerçek bir regresyon değildi, sadece o anki kabuk/ortam sorunuydu.
 
 ---
 
@@ -162,4 +191,4 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 
 ## Sırada Ne Var
 
-Sprint 1 ve Sprint 2 tamamen bitti (4 kişi de). Artık sprint sprint değil, `docs/PLAN.md`'nin yeni "Sprint 3 — Konsolide Backlog" yapısına göre ilerleniyor: her kişinin kendi kalan görev listesi var, sprint sınırı yok. Benim (Berke'nin) sıradaki görevim backlog'umun ilk maddesi: **1.3.6 — Yakında 6 ay zaman kısıtı (REQ-15)**, `movieService.js` + `HomePage.jsx`; ardından sırayla 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, ve en son (Kaan'ın 1.4.5'ini bekleyen) 1.2.10. Tam liste ve gerekçeler `docs/PLAN.md` §5 SPRINT 3'te.
+Sprint 1 ve Sprint 2 tamamen bitti (4 kişi de). Kendi Sprint 3 konsolide backlog'umdan 1.3.6 bitti (1/8). Sıradaki görevim: **1.3.3 — Sıralama modülü (tarih/puan, REQ-08.1)**, `src/components/movies/SortControl.jsx` (yeni) + `HomePage.jsx`. Ardından sırayla 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, ve en son (Kaan'ın 1.4.5'ini bekleyen) 1.2.10. Tam liste ve gerekçeler `docs/PLAN.md` §5 SPRINT 3'te.
