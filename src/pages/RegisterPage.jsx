@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
+import { validateRegisterForm } from "../services/validation.js";
 
 /**
  * Sprint 2 / 1.2.1 — Kayıt sayfası (REQ-16, REQ-21)
@@ -68,35 +69,7 @@ function RegisterPage() {
    * şu an temel zorunlu alan + şifre eşleşme kontrolü yapılıyor.
    */
   const validate = () => {
-    const newErrors = {};
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "Ad zorunludur.";
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Soyad zorunludur.";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "E-posta zorunludur.";
-    }
-
-    if (!formData.username.trim()) {
-      newErrors.username = "Kullanıcı adı zorunludur.";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Şifre zorunludur.";
-    }
-
-    if (!formData.passwordConfirm) {
-      newErrors.passwordConfirm = "Şifre tekrarı zorunludur.";
-    } else if (formData.password !== formData.passwordConfirm) {
-      newErrors.passwordConfirm = "Şifreler eşleşmiyor.";
-    }
-
-    return newErrors;
+    return validateRegisterForm(formData);
   };
 
   const handleSubmit = async (e) => {

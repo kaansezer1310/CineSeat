@@ -1,14 +1,18 @@
-import {
-  Link,
-  Outlet,
-} from "react-router-dom";
+import { useEffect } from "react";
+import { Link, Outlet } from "react-router-dom";
 
 import useCart from "../../hooks/useCart.js";
 import useAuth from "../../hooks/useAuth.js";
+import { useTheme } from "../../context/ThemeContext.jsx";
 
 function Layout() {
   const { state } = useCart();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+  }, [theme]);
 
   const totalTicketCount = state.items.reduce(
     (total, item) => {
@@ -61,6 +65,14 @@ function Layout() {
               {totalTicketCount}
             </span>
           </Link>
+
+          <button
+            onClick={toggleTheme}
+            className="theme-toggle-button"
+            title="Temayı Değiştir"
+          >
+            {theme === "light" ? "🌙" : "☀️"}
+          </button>
         </nav>
       </header>
 

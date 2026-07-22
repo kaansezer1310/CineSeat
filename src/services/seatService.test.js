@@ -139,7 +139,7 @@ describe("seatService", () => {
     it("koltukları DOLU'ya taşır ve mevcut kilit kaydını temizler", async () => {
       localStorage.setItem(
         "locked-seats-777",
-        JSON.stringify(["A1"])
+        JSON.stringify({ A1: "mock-token" })
       );
 
       const result = await flushWait(
@@ -160,7 +160,7 @@ describe("seatService", () => {
       );
 
       expect(storedDolu).toEqual(["A1"]);
-      expect(storedLocked).toEqual([]);
+      expect(storedLocked).toEqual({});
     });
 
     it("zaten DOLU olan bir koltuğu asla tekrar rezerve etmez (servis tarafı koruma)", async () => {
@@ -187,6 +187,7 @@ describe("seatService", () => {
         seatService.lockSeats({
           sessionId: 888,
           seats: ["C1"],
+          lockToken: "mock-token",
         })
       );
 
@@ -212,6 +213,7 @@ describe("seatService", () => {
         seatService.lockSeats({
           sessionId: 889,
           seats: ["C1"],
+          lockToken: "mock-token",
         })
       );
 
@@ -224,6 +226,7 @@ describe("seatService", () => {
         seatService.lockSeats({
           sessionId: 890,
           seats: ["D1"],
+          lockToken: "mock-token",
         })
       );
 
@@ -231,6 +234,7 @@ describe("seatService", () => {
         seatService.releaseLockedSeats({
           sessionId: 890,
           seats: ["D1"],
+          lockToken: "mock-token",
         })
       );
 
@@ -296,6 +300,7 @@ describe("seatService", () => {
         seatService.lockSeats({
           sessionId: 901,
           seats: [],
+          lockToken: "mock-token",
         })
       );
 

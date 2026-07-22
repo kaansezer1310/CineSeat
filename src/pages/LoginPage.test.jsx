@@ -86,17 +86,20 @@ describe("LoginPage — giriş akışı", () => {
     sessionStorage.clear();
   });
 
-  it("boş alanlarla gönderimde genel bir hata gösterir, giriş denemez", () => {
+  it("boş alanlarla gönderimde hata gösterir, giriş denemez", async () => {
     renderLoginPage();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Giriş Yap" })
-    );
+    const submitBtn = screen.getByRole("button", {
+      name: /Giriş Yap/i,
+    });
+    fireEvent.click(submitBtn);
 
     expect(
-      screen.getByText(
-        "E-posta ve şifre alanlarını doldurunuz."
-      )
+      await screen.findByText("E-posta zorunludur.")
+    ).toBeInTheDocument();
+    
+    expect(
+      await screen.findByText("Şifre zorunludur.")
     ).toBeInTheDocument();
   });
 

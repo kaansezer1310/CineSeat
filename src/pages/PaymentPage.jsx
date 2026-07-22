@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useCart from "../hooks/useCart.js";
@@ -28,12 +28,36 @@ function PaymentPage() {
     email: "",
   });
 
+  const isNavigatingToNextStep = useRef(false);
+
+  // Token ve Timer Başlangıcı
+  const [lockToken] = useState(() => {
+    let token = sessionStorage.getItem("cineseat_lock_token");
+    if (!token) {
+      token = Math.random().toString(36).substring(2);
+      sessionStorage.setItem("cineseat_lock_token", token);
+    }
+    return token;
+  });
+
+  const [initialTimeRemaining] = useState(() => {
+    let expiresAt = sessionStorage.getItem("cineseat_lock_expires");
+    if (!expiresAt) {
+      expiresAt = Date.now() + 180000;
+      sessionStorage.setItem("cineseat_lock_expires", expiresAt.toString());
+    }
+    const remaining = Math.max(0, Math.floor((parseInt(expiresAt) - Date.now()) / 1000));
+    return remaining;
+  });
+
   function handleTimeout() {
+    sessionStorage.removeItem("cineseat_lock_token");
+    sessionStorage.removeItem("cineseat_lock_expires");
     dispatch({ type: "CLEAR_CART" });
     navigate("/cart");
   }
 
-  const { formatTime } = useCountdown(180, () => {
+  const { formatTime } = useCountdown(initialTimeRemaining, () => {
     handleTimeout();
   });
 
@@ -52,6 +76,7 @@ function PaymentPage() {
       seatService.lockSeats({
         sessionId: item.sessionId,
         seats: item.seats.map((seat) => seat.seatId),
+        lockToken,
       }).catch(() => {
         // Zaten doluysa sepete geri dön
         navigate("/cart");
@@ -61,13 +86,18 @@ function PaymentPage() {
     Promise.all(lockPromises);
 
     return () => {
-      // Unmount olduğunda (ve başarılı değilse), kilitleri aç
-      state.items.forEach((item) => {
-        seatService.releaseLockedSeats({
-          sessionId: item.sessionId,
-          seats: item.seats.map((seat) => seat.seatId),
+      // Unmount olduğunda, eğer başarı veya hata sayfasına gitmiyorsak kilitleri aç
+      if (!isNavigatingToNextStep.current) {
+        state.items.forEach((item) => {
+          seatService.releaseLockedSeats({
+            sessionId: item.sessionId,
+            seats: item.seats.map((seat) => seat.seatId),
+            lockToken,
+          });
         });
-      });
+        sessionStorage.removeItem("cineseat_lock_token");
+        sessionStorage.removeItem("cineseat_lock_expires");
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -84,10 +114,15 @@ function PaymentPage() {
           queryClient.invalidateQueries({ queryKey: ["reservedSeats", item.sessionId] })
         )
       );
+      sessionStorage.removeItem("cineseat_lock_token");
+      sessionStorage.removeItem("cineseat_lock_expires");
       dispatch({ type: "CLEAR_CART" });
+      
+      isNavigatingToNextStep.current = true;
       navigate("/success", { state: { reservation } });
     },
     onError: () => {
+      isNavigatingToNextStep.current = true;
       navigate("/odeme-hata");
     }
   });
@@ -96,6 +131,7 @@ function PaymentPage() {
     e.preventDefault();
 
     if (paymentForm.cardNumber.startsWith("0000")) {
+      isNavigatingToNextStep.current = true;
       navigate("/odeme-hata");
       return;
     }
@@ -108,6 +144,7 @@ function PaymentPage() {
     const payload = {
       cartItems: cartSnapshot,
       visitorInfo: (!user || user.role === "guest") ? visitorForm : null,
+      lockToken,
     };
 
     reservationMutation.mutate(payload);
@@ -137,6 +174,8 @@ function PaymentPage() {
                 <input
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={50}
                   value={visitorForm.firstName}
                   onChange={(e) => setVisitorForm({ ...visitorForm, firstName: e.target.value })}
                 />
@@ -146,6 +185,8 @@ function PaymentPage() {
                 <input
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={50}
                   value={visitorForm.lastName}
                   onChange={(e) => setVisitorForm({ ...visitorForm, lastName: e.target.value })}
                 />

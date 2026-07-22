@@ -10,6 +10,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import PaymentErrorPage from "./pages/PaymentErrorPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 import AdminLayout from "./components/admin/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -44,6 +45,12 @@ function App() {
         <Route path="/cinemas" element={<CinemasPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Üye ve Admin görebilir */}
+        <Route element={<ProtectedRoute allowedRoles={["member", "admin"]} />}>
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 

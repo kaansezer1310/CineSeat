@@ -1,6 +1,27 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import useCart from "../hooks/useCart.js";
+import seatService from "../services/seatService.js";
 
 function PaymentErrorPage() {
+  const navigate = useNavigate();
+  const { state } = useCart();
+
+  function handleReturnToCart() {
+    const lockToken = sessionStorage.getItem("cineseat_lock_token");
+    if (lockToken) {
+      state.items.forEach((item) => {
+        seatService.releaseLockedSeats({
+          sessionId: item.sessionId,
+          seats: item.seats.map((seat) => seat.seatId),
+          lockToken,
+        });
+      });
+      sessionStorage.removeItem("cineseat_lock_token");
+      sessionStorage.removeItem("cineseat_lock_expires");
+    }
+    navigate("/cart");
+  }
+
   return (
     <section>
       <div className="page-heading checkout-error">
@@ -11,9 +32,9 @@ function PaymentErrorPage() {
           <Link className="primary-button" to="/odeme">
             Tekrar Dene
           </Link>
-          <Link className="secondary-button" to="/cart">
+          <button className="secondary-button" onClick={handleReturnToCart}>
             Sepete Dön
-          </Link>
+          </button>
         </div>
       </div>
     </section>

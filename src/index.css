@@ -21,6 +21,27 @@
   --font-ui: "Source Sans 3", "Segoe UI", Arial, sans-serif;
 }
 
+body[data-theme="light"] {
+  --color-background: #f7f5f9;
+  --color-background-soft: #fcfbfc;
+  --color-surface: #ffffff;
+  --color-surface-light: #f0eaf5;
+
+  --color-purple: #7a5499;
+  --color-purple-light: #8e6bb3;
+
+  --color-yellow: #bf9133;
+  --color-yellow-hover: #a87e28;
+
+  --color-text: #2d2633;
+  --color-text-muted: #5e5666;
+
+  --color-border: rgba(92, 62, 122, 0.15);
+  --color-border-strong: rgba(92, 62, 122, 0.3);
+
+  --color-success: #3b734d;
+}
+
 * {
   box-sizing: border-box;
 }

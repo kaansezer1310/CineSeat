@@ -80,6 +80,7 @@ async function createReservation(payload) {
   // Eskiden cartItems doğrudan geliyordu, simdi payload obje olarak geliyor
   const cartItems = payload.cartItems ? payload.cartItems : payload;
   const visitorInfo = payload.visitorInfo || null;
+  const lockToken = payload.lockToken || null;
 
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
     throw new Error(
@@ -94,7 +95,7 @@ async function createReservation(payload) {
   }));
 
   // Bu işlem artık atomiktir
-  await seatService.reserveAllSeats(sessionSeatPairs);
+  await seatService.reserveAllSeats(sessionSeatPairs, lockToken);
 
   const ticketCount = cartItems.reduce(
     (total, item) => {

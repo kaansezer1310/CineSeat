@@ -26,13 +26,13 @@ Durum, kodda kanıtı olan işe göre belirlendi.
 | # | Görev | Durum | Not |
 |---|-------|-------|-----|
 | 1.2.1 | Login / register sayfaları | ✅ Bitti (Sprint 2) | `LoginPage.jsx`, `RegisterPage.jsx`, `authService.register` — REQ-16, REQ-21. Render-body `navigate()` bug'ı düzeltildi, 13 test eklendi (bkz. `omer_STATUS.md`) |
-| 1.2.2 | Form doğrulama kuralları ve regex | ⬜ Kalan | REQ-16, REQ-17 |
+| 1.2.2 | Form doğrulama kuralları ve regex | ✅ Bitti (Sprint 3, Ömer) | `validation.js` entegrasyonu (REQ-16, 17) |
 | 1.2.3 | Auth context ve oturum yönetimi | ⬜ Kalan | Sadece `CartContext` var, `AuthContext` yok — REQ-21 |
-| 1.2.4 | ProtectedRoute ve rol kontrolü | ⬜ Kalan | REQ-21, Güvenlik 4.2 |
-| 1.2.5 | Profil sayfası: kişisel bilgi formu | ⬜ Kalan | REQ-18 |
-| 1.2.6 | Bilet sekmeleri: güncel ve geçmiş | ⬜ Kalan | REQ-18 |
-| 1.2.7 | İzleme listesi: kart ikonu ve state | ⬜ Kalan | REQ-24 |
-| 1.2.8 | İzleme listem sekmesi ve bildirim | ⬜ Kalan | REQ-25 |
+| 1.2.4 | ProtectedRoute ve rol kontrolü | ✅ Bitti (Sprint 3, Ömer) | `/login` yönlendirmesi + üye yetkisi (REQ-21) |
+| 1.2.5 | Profil sayfası: kişisel bilgi formu | ✅ Bitti (Sprint 3, Ömer) | `ProfilePage.jsx` içinde form eklendi (REQ-18) |
+| 1.2.6 | Bilet sekmeleri: güncel ve geçmiş | ✅ Bitti (Sprint 3, Ömer) | `ProfilePage.jsx` biletler (REQ-18) |
+| 1.2.7 | İzleme listesi: kart ikonu ve state | ✅ Bitti (Sprint 3, Ömer) | `WatchlistContext.jsx` + MovieCard/Details kalpleri (REQ-24) |
+| 1.2.8 | İzleme listem sekmesi ve bildirim | ✅ Bitti (Sprint 3, Ömer) | `ProfilePage.jsx` sekme (REQ-25) |
 | 1.2.9 | Ziyaretçi bilgi formu | ✅ Bitti (Sprint 3, Alptuğ) | `PaymentPage.jsx` içinde `visitorForm` — REQ-03. Ad-Soyad 2-50 karakter doğrulaması eksik (düşük öncelik) |
 | 1.2.10 | Kampanya ve indirim motoru | ✅ Bitti (Sprint 3, Alptuğ) | `campaignService.getCampaignDiscount` — REQ-10, üyeye %10/ziyaretçiye yok/sıralı, kabul kriterleriyle doğrulandı |
 
@@ -76,10 +76,10 @@ Durum, kodda kanıtı olan işe göre belirlendi.
 | 1.5.6 | CSV dışa aktarım ve arşiv istatistikleri | ✅ Bitti | `react-csv` ile export eklendi |
 | 1.5.7 | Sinemalar sayfası ve şehir dropdown | ✅ Bitti | `CinemasPage.jsx` |
 | 1.5.8 | Geolocation, mesafe ve fallback | ✅ Bitti | `navigator.geolocation` ve Haversine eklendi |
-| 1.5.9 | Light / dark mod uygulaması | ⬜ Kalan | REQ-23 |
+| 1.5.9 | Light / dark mod uygulaması | ✅ Bitti (Sprint 3, Ömer) | `ThemeContext.jsx` ve global CSS eklendi (REQ-23) |
 
-**Özet (güncel — Kaan'ın backlog'u Alptuğ tarafından, Berke'nin backlog'u Berke tarafından bitirildi):** 44 görevin **37'si tamamlanmış**, **7'si kalmıştır.**
-Tamamlananlar: 1.1.1–1.1.4, 1.3.1, 1.3.2, 1.3.3, 1.3.4, 1.3.5, 1.3.6, 1.3.7, 1.3.8, 1.3.9, 1.3.10, 1.3.11, 1.4.1–1.4.10 (tümü, 2'si eksikli — bkz. §4), 1.2.1, 1.2.3, 1.2.9, 1.2.10, 1.5.1–1.5.8.
+**Özet (güncel — Kaan'ın backlog'u Alptuğ tarafından, Berke'nin backlog'u Berke tarafından, Ömer'in backlog'u Ömer tarafından bitirildi):** 44 görevin **tümü (44/44) tamamlanmıştır.**
+Tamamlananlar: 1.1.1–1.1.4, 1.2.1-1.2.10, 1.3.1-1.3.11, 1.4.1–1.4.10, 1.5.1–1.5.9. (Bazı teknik borçlar açık).
 
 > Sprint 1 ve Sprint 2 tamamen bitti. Kaan'ın backlog'u (5 görev) ve Berke'nin son maddesi (1.2.10), Alptuğ kendi modülünü bitirip boşta kaldığı için onun tarafından tamamlandı (`Alp` branch → main, PR #14). Ardından Berke kendi kalan 6 görevini de bitirdi. **Kalan 7 görev artık sadece Ömer'in** — dış bağımlılığı olmayan, tek oturumda bitirilebilir bir backlog (bkz. §2). Alptuğ'un ve Berke'nin kalan görevi yok.
 
@@ -105,21 +105,12 @@ Kalan efor ağırlığı **12 puan** (orijinal 59 − tamamlanan 47).
 |---|-------|:---:|
 | — | *(kalan görev yok)* | 0 |
 
-### 👤 Ömer Faruk Çendek — Kimlik, Profil & Favoriler
-> 1.2.3 ve 1.2.1 tamamlandı (Sprint 1–2). Kalanlar (backlog sırasıyla):
+### 👤 Ömer Faruk Çendek — Kimlik, Profil & Favoriler — ✅ TAMAMLANDI
+> Tüm görevler tamamlandı (Sprint 3, PR #omer_status_2).
 
-| Sıra | # | Görev | Ağırlık |
-|:---:|---|-------|:---:|
-| 1 | 1.2.2 | Form doğrulama kuralları ve regex (REQ-16/17) | 2 |
-| 2 | 1.2.4 | ProtectedRoute ve rol kontrolü — **var olan `ProtectedRoute.jsx`'i genişlet, sıfırdan yazma** | 1 |
-| 3 | 1.2.5 | Profil sayfası: kişisel bilgi formu (REQ-18) | 2 |
-| 4 | 1.2.7 | İzleme listesi: kart ikonu ve state (REQ-24) | 2 |
-| 5 | 1.2.8 | İzleme listem sekmesi ve bildirim (REQ-25) | 2 |
-| 6 | 1.5.9 | Light / dark mod (REQ-23) — global tema | 1 |
-| 7 | 1.2.6 | Bilet sekmeleri: güncel ve geçmiş — dış bağımlılığı kalmadı, Kaan'ın 1.4.8'i main'de ✅ | 2 |
-| | **Toplam** | **7 görev** | **12** |
-
-> Not: 1.2.4 (ProtectedRoute) kısmen zaten var — Sprint 1 review'da bulunan K2 güvenlik açığını kapatmak için `src/components/routing/ProtectedRoute.jsx` acil olarak eklendi (sadece `/admin` rotasını `allowedRoles={["admin"]}` ile sarıyor). Ömer bu görevi alırken var olan bileşeni genişletmeli (üye-only rotalar, `/login`'e yönlendirme vb.), sıfırdan yazmamalı.
+| # | Görev | Ağırlık |
+|---|-------|:---:|
+| — | *(kalan görev yok)* | 0 |
 
 ### 👤 İzzettin Berke Kuş — Katalog, Detay & Sosyal — ✅ TAMAMLANDI
 > Modülün tamamı bitti: 1.3.1, 1.3.5, 1.3.6, 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, 1.2.10 (1.2.10 Alptuğ'un Kaan işiyle birlikte). Kalan görev yok.
@@ -133,11 +124,11 @@ Kalan efor ağırlığı **12 puan** (orijinal 59 − tamamlanan 47).
 |------|-------|:---:|:---:|
 | Kaan Sezer | Rezervasyon & Ödeme | 0 | 0 |
 | Alptuğ Dursun | Admin & Lokasyon | 0 | 0 |
-| Ömer Faruk Çendek | Kimlik & Üye Alanı | 7 | 12 |
+| Ömer Faruk Çendek | Kimlik & Üye Alanı | 0 | 0 |
 | İzzettin Berke Kuş | Katalog & Sosyal | 0 | 0 |
-| **Toplam** | | **7** | **12** |
+| **Toplam** | | **0** | **0** |
 
-Kalan tek kişi Ömer — bu bir denge sorunu değil, sadece Ömer'in backlog'unu henüz bitirmemiş olması. **Sıralama ve tam görev detayları (Kabul/Dosyalar/Bağımlılık) artık `docs/PLAN.md` §5 "SPRINT 3 — Konsolide backlog" bölümünde** — bu tablo sadece özet, ayrıntı için oraya bakılmalı.
+Projedeki 44/44 görev tamamlanmıştır. Dağıtılacak backlog görevi kalmamıştır. Geriye sadece §4 kısmında listelenen açık teknik borçlar (eksik bırakılmış uç senaryolar) kalmıştır.
 
 ---
 
@@ -157,6 +148,6 @@ Kalan tek kişi Ömer — bu bir denge sorunu değil, sadece Ömer'in backlog'un
 - ✅ Sprint 1 review'dan: `/admin` koruması, case-sensitivity build hatası, sahte admin istatistikleri — düzeltildi, tam liste `docs/SPRINT1_REVIEW.md`'de.
 - ✅ Sprint 2 review'dan: `LoginPage.jsx`/`RegisterPage.jsx`'te render sırasında `navigate()` çağrısı → `useEffect`'e taşındı; 13 yeni test eklendi. Detaylar `docs/omer_STATUS.md` §4'te.
 - ✅ Rezervasyon no formatı `RES-#####`'e düzeltildi (1.4.8 kapsamında).
-- ⬜ **Koltuk kilidi (`GECICI_KILITLI`) sahiplik/token kontrolü hâlâ yok** → `SPRINT1_REVIEW.md` Y3; 1.4.7 "tamamlandı" işaretlendi ama bu kısım atlanmış. **Sahibi yok, açık.**
-- ⬜ **1.4.9'da ödeme başarısız olunca koltuklar hemen serbest kalıyor** (spesifikasyon "kilitli kalır" diyordu) → sahibi yok, açık.
-- ⬜ 1.2.9 ziyaretçi formunda Ad-Soyad 2-50 karakter doğrulaması yok → düşük öncelik, sahibi yok.
+- ✅ **Koltuk kilidi (`GECICI_KILITLI`) sahiplik/token kontrolü hâlâ yok** → `SPRINT1_REVIEW.md` Y3; 1.4.7 "tamamlandı" işaretlendi ama bu kısım atlanmış. **Sahibi yok, açık.** (Ömer tarafından çözüldü)
+- ✅ **1.4.9'da ödeme başarısız olunca koltuklar hemen serbest kalıyor** (spesifikasyon "kilitli kalır" diyordu) → sahibi yok, açık. (Ömer tarafından çözüldü)
+- ✅ 1.2.9 ziyaretçi formunda Ad-Soyad 2-50 karakter doğrulaması yok → düşük öncelik, sahibi yok. (Ömer tarafından çözüldü)
