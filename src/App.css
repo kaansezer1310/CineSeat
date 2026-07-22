@@ -1728,3 +1728,362 @@
     gap: 18px;
   }
 }
+
+/* 1.3.3 / 1.3.4 — Sıralama ve filtreleme kontrolleri */
+.movie-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.movie-sort-control,
+.movie-filter-control label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.movie-filter-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.movie-sort-select,
+.movie-filter-select {
+  min-height: 40px;
+  padding: 0 0.75rem;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+
+  font-size: 0.85rem;
+
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+.movie-sort-select:hover,
+.movie-filter-select:hover {
+  border-color: var(--color-purple-light);
+  background-color: var(--color-surface-light);
+}
+
+.movie-sort-select:focus-visible,
+.movie-filter-select:focus-visible {
+  border-color: var(--color-yellow);
+  outline: 2px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+
+.movie-filter-clear-button {
+  align-self: flex-end;
+  min-height: 40px;
+}
+
+@media (max-width: 650px) {
+  .movie-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .movie-sort-select,
+  .movie-filter-select {
+    width: 100%;
+  }
+}
+
+/* 1.3.8 — Fragman modalı */
+.trailer-open-button {
+  align-self: flex-start;
+  margin: 4px 0 20px;
+}
+
+.trailer-open-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trailer-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+
+  background: rgba(12, 9, 18, 0.82);
+}
+
+.trailer-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 860px;
+
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-strong);
+
+  background: var(--color-surface);
+}
+
+.trailer-modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+
+  background: var(--color-background-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+
+  cursor: pointer;
+}
+
+.trailer-modal-close-button:hover {
+  background: var(--color-surface-light);
+}
+
+.trailer-modal-iframe-wrapper {
+  position: relative;
+
+  width: 100%;
+  padding-top: 56.25%;
+
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.trailer-modal-iframe-wrapper iframe {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  border: none;
+}
+
+.trailer-modal-fallback-link {
+  display: inline-block;
+  margin-top: 14px;
+
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.trailer-modal-fallback-link:hover {
+  color: var(--color-yellow);
+}
+
+.trailer-modal-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+
+  padding: 40px 10px;
+
+  color: var(--color-text-muted);
+}
+
+/* 1.3.9 — Puanlama (yıldız) */
+.movie-details-social {
+  margin-top: 32px;
+  padding-top: 24px;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.rating-stars {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rating-stars-row {
+  display: flex;
+  gap: 4px;
+}
+
+.rating-star {
+  font-size: 1.6rem;
+  line-height: 1;
+
+  color: var(--color-border-strong);
+  background: transparent;
+
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.rating-star-filled {
+  color: var(--color-yellow);
+}
+
+.rating-star:disabled {
+  cursor: not-allowed;
+}
+
+.rating-summary-text {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.rating-guest-hint {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* 1.3.10 / 1.3.11 — Yorum formu ve listesi */
+.comment-guest-hint {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin-bottom: 24px;
+}
+
+.comment-form label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.comment-textarea {
+  min-height: 90px;
+  padding: 10px 12px;
+  resize: vertical;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.comment-textarea:focus-visible {
+  border-color: var(--color-yellow);
+  outline: 2px solid var(--color-yellow);
+  outline-offset: 2px;
+}
+
+.comment-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.comment-char-counter {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.comment-char-counter-invalid {
+  color: #d98f8f;
+}
+
+.comment-form-error {
+  color: #d98f8f;
+  font-size: 0.85rem;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  list-style: none;
+  padding: 0;
+}
+
+.comment-list-status {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.comment-item {
+  padding: 14px 16px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background: var(--color-background-soft);
+}
+
+.comment-item-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.comment-item-date {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.comment-item-text {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-item-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.comment-action-button {
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.comment-action-button:hover {
+  color: var(--color-yellow);
+}
+
+.comment-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.comment-edit-actions {
+  display: flex;
+  gap: 10px;
+}

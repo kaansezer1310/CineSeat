@@ -116,6 +116,62 @@ function isWithinComingSoonWindow(movie, referenceDate = new Date(), monthsAhead
   return releaseDay <= windowEnd;
 }
 
+// REQ-08.1 — "Vizyonda" listesini vizyon tarihine veya kullanıcı puanına
+// göre sırala. Varsayılan `date-desc` (yeniden eskiye). Orijinal diziyi
+// mutasyona uğratmaz (yeni bir kopya döner).
+function sortMovies(movieList, sortValue) {
+  const sorted = [...movieList];
+
+  const getReleaseTime = (movie) => {
+    return movie.releaseDate
+      ? parseIsoDateOnly(movie.releaseDate).getTime()
+      : 0;
+  };
+
+  const getAverageRating = (movie) => movie.rating?.average ?? 0;
+
+  switch (sortValue) {
+    case "date-asc":
+      sorted.sort((a, b) => getReleaseTime(a) - getReleaseTime(b));
+      break;
+    case "rating-desc":
+      sorted.sort((a, b) => getAverageRating(b) - getAverageRating(a));
+      break;
+    case "rating-asc":
+      sorted.sort((a, b) => getAverageRating(a) - getAverageRating(b));
+      break;
+    case "date-desc":
+    default:
+      sorted.sort((a, b) => getReleaseTime(b) - getReleaseTime(a));
+  }
+
+  return sorted;
+}
+
+// REQ-08.1 — tür ve izleyici (yaş) kısıtına göre filtrele. `"all"` ya da
+// boş değer o kritere göre filtre uygulamaz.
+function filterMovies(movieList, { genre = "all", ageRating = "all" } = {}) {
+  return movieList.filter((movie) => {
+    const matchesGenre = genre === "all" || movie.genre === genre;
+    const matchesAgeRating =
+      ageRating === "all" || movie.ageRating === ageRating;
+
+    return matchesGenre && matchesAgeRating;
+  });
+}
+
+function getAvailableGenres(movieList) {
+  return Array.from(
+    new Set(movieList.map((movie) => movie.genre))
+  ).sort((a, b) => a.localeCompare(b, "tr-TR"));
+}
+
+function getAvailableAgeRatings(movieList) {
+  return Array.from(
+    new Set(movieList.map((movie) => movie.ageRating))
+  ).sort((a, b) => a.localeCompare(b, "tr-TR"));
+}
+
 const movieService = {
   getMovies,
   getMovieById,
@@ -126,6 +182,10 @@ const movieService = {
   getDaysUntilRelease,
   isMovieArchived,
   isWithinComingSoonWindow,
+  sortMovies,
+  filterMovies,
+  getAvailableGenres,
+  getAvailableAgeRatings,
   parseIsoDateOnly,
 };
 
