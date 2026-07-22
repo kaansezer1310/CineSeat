@@ -25,6 +25,16 @@ function AuthProvider({ children }) {
     return loggedInUser;
   };
 
+  /**
+   * Sprint 2 / 1.2.1 — Kayıt sonrası otomatik oturum açma.
+   */
+  const register = async (data) => {
+    const registeredUser = await authService.register(data);
+    setUser(registeredUser);
+    sessionStorage.setItem("cineseat_user", JSON.stringify(registeredUser));
+    return registeredUser;
+  };
+
   const logout = () => {
     setUser(null);
     sessionStorage.removeItem("cineseat_user");
@@ -35,6 +45,7 @@ function AuthProvider({ children }) {
     user,
     role: user?.role || "guest", // REQ-21: rol (guest/member/admin) context'ten okunabilir
     login,
+    register,
     logout,
   };
 
