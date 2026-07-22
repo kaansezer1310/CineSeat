@@ -1,4 +1,6 @@
 import seatService from "./seatService.js";
+import { calcSubtotal } from "./pricing.js";
+import campaignService from "./campaignService.js";
 
 const RESERVATIONS_STORAGE_KEY = "cineseat-reservations";
 
@@ -9,7 +11,8 @@ function wait(milliseconds) {
 }
 
 function createReservationId() {
-  return `CS-${Date.now()}`;
+  const randomNum = Math.floor(10000 + Math.random() * 90000);
+  return `RES-${randomNum}`;
 }
 
 function getStoredReservations() {
@@ -71,8 +74,12 @@ function cloneCartSeats(seats) {
   });
 }
 
-async function createReservation(cartItems) {
+async function createReservation(payload) {
   await wait(600);
+
+  // Eskiden cartItems doğrudan geliyordu, simdi payload obje olarak geliyor
+  const cartItems = payload.cartItems ? payload.cartItems : payload;
+  const visitorInfo = payload.visitorInfo || null;
 
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
     throw new Error(
@@ -80,52 +87,14 @@ async function createReservation(cartItems) {
     );
   }
 
-  const seatChecks = await Promise.all(
-    cartItems.map(async (item) => {
-      const reservedSeats =
-        await seatService.getReservedSeatsBySessionId(
-          item.sessionId
-        );
+  // Atomik kontrol ve yazım işlemi için tüm oturum/koltuk çiftlerini hazırla
+  const sessionSeatPairs = cartItems.map((item) => ({
+    sessionId: item.sessionId,
+    seats: getSeatIdsFromCartSeats(item.seats),
+  }));
 
-      const seatIds = getSeatIdsFromCartSeats(item.seats);
-
-      const conflictingSeats = seatIds.filter(
-        (seatId) => {
-          return reservedSeats.includes(seatId);
-        }
-      );
-
-      return {
-        sessionId: item.sessionId,
-        movieTitle: item.movieTitle,
-        seatIds,
-        conflictingSeats,
-      };
-    })
-  );
-
-  const conflictingSession = seatChecks.find(
-    (seatCheck) => {
-      return seatCheck.conflictingSeats.length > 0;
-    }
-  );
-
-  if (conflictingSession) {
-    throw new Error(
-      `${conflictingSession.movieTitle} seansındaki ` +
-        `${conflictingSession.conflictingSeats.join(", ")} ` +
-        "koltukları artık müsait değil. Sepetten kaldırıp tekrar seçim yapmalısın."
-    );
-  }
-
-  await Promise.all(
-    cartItems.map((item, index) => {
-      return seatService.reserveSeats({
-        sessionId: item.sessionId,
-        seats: seatChecks[index].seatIds,
-      });
-    })
-  );
+  // Bu işlem artık atomiktir
+  await seatService.reserveAllSeats(sessionSeatPairs);
 
   const ticketCount = cartItems.reduce(
     (total, item) => {
@@ -134,21 +103,16 @@ async function createReservation(cartItems) {
     0
   );
 
-  const totalPrice = cartItems.reduce(
-    (total, item) => {
-      const itemTotal =
-        item.seats.length * item.unitPrice;
-
-      return total + itemTotal;
-    },
-    0
-  );
+  const subtotal = calcSubtotal(cartItems);
+  const { discountAmount } = campaignService.getCampaignDiscount(subtotal, !visitorInfo ? { role: 'member' } : null);
+  const totalPrice = subtotal - discountAmount;
 
   const reservation = {
     id: createReservationId(),
     createdAt: new Date().toISOString(),
     ticketCount,
     totalPrice,
+    visitorInfo,
 
     items: cartItems.map((item) => {
       return {
