@@ -75,8 +75,14 @@ function HomePage() {
     return movieService.isMovieReleased(movie);
   });
 
+  // REQ-15: "Yakında" sekmesi bugünden itibaren en fazla 6 ay ileride
+  // vizyona girecek filmlerle sınırlıdır (daha uzak filmler veride kalır,
+  // sadece burada gösterilmez).
   const comingSoonMovies = activeMovies.filter((movie) => {
-    return !movieService.isMovieReleased(movie);
+    return (
+      !movieService.isMovieReleased(movie) &&
+      movieService.isWithinComingSoonWindow(movie)
+    );
   });
 
   const visibleMovies =

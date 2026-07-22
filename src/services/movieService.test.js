@@ -125,6 +125,50 @@ describe("REQ-05 — arşivlenen film verisi silinmez", () => {
   });
 });
 
+describe("movieService.isWithinComingSoonWindow", () => {
+  it("vizyon tarihi 6 ay penceresi içindeyse true döner", () => {
+    const movie = { releaseDate: "2027-01-10" };
+
+    expect(
+      movieService.isWithinComingSoonWindow(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+
+  it("vizyon tarihi tam 6 ay sonraysa (pencere sınırı) true döner", () => {
+    const movie = { releaseDate: "2027-01-16" };
+
+    expect(
+      movieService.isWithinComingSoonWindow(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+
+  it("vizyon tarihi 6 aydan uzaksa false döner", () => {
+    const movie = { releaseDate: "2027-01-17" };
+
+    expect(
+      movieService.isWithinComingSoonWindow(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(false);
+  });
+
+  it("releaseDate alanı yoksa true döner (isMovieReleased ile aynı güvenli varsayılan)", () => {
+    expect(
+      movieService.isWithinComingSoonWindow(
+        {},
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+});
+
 describe("movieService.parseIsoDateOnly", () => {
   it("ISO tarih dizisini yerel tarihe çevirir", () => {
     const parsed = movieService.parseIsoDateOnly(

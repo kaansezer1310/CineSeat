@@ -44,7 +44,7 @@ Durum, kodda kanıtı olan işe göre belirlendi.
 | 1.3.3 | Sıralama modülü: tarih ve puan | ⬜ Kalan | REQ-08.1 |
 | 1.3.4 | Filtreleme modülü: tür ve yaş kısıtı | ⬜ Kalan | REQ-08.1 |
 | 1.3.5 | Otomatik kategorizasyon ve arşiv | ✅ Bitti (Sprint 2) | `movieService.isMovieArchived` + `HomePage.jsx` filtresi — REQ-05; veri `movies.js`'ten silinmiyor, `getMovieById` ile hâlâ erişilebilir |
-| 1.3.6 | Yakında 6 ay zaman kısıtı | ⬜ Kalan | REQ-15 |
+| 1.3.6 | Yakında 6 ay zaman kısıtı | ✅ Bitti (Sprint 3) | `movieService.isWithinComingSoonWindow` + `HomePage.jsx` filtresi — REQ-15; veri `movies.js`'ten silinmiyor |
 | 1.3.7 | Film detay sayfası | ✅ Bitti (temel) | `pages/MovieDetailsPage.jsx` — poster/meta/açıklama/seans var; fragman & yorum yok |
 | 1.3.8 | Fragman modalı ve fallback | ⬜ Kalan | REQ-09 / REQ-09.1 |
 | 1.3.9 | Puanlama modülü: 1-5 yıldız | ⬜ Kalan | REQ-11 |
@@ -78,18 +78,18 @@ Durum, kodda kanıtı olan işe göre belirlendi.
 | 1.5.8 | Geolocation, mesafe ve fallback | ✅ Bitti | `navigator.geolocation` ve Haversine eklendi |
 | 1.5.9 | Light / dark mod uygulaması | ⬜ Kalan | REQ-23 |
 
-**Özet (güncel — Sprint 2 tamamen bitti):** 44 görevin **24'ü tamamlanmış**, **20'si kalmıştır.**
-Tamamlananlar: 1.1.1–1.1.4, 1.3.1, 1.3.2, 1.3.5, 1.3.7, 1.4.1, 1.4.2, 1.4.3, 1.4.4, 1.4.6, 1.4.10, 1.2.1, 1.2.3, 1.5.1–1.5.8.
+**Özet (güncel — Sprint 1–2 tamamen bitti + Berke'nin Sprint 3 backlog'undan 1.3.6):** 44 görevin **25'i tamamlanmış**, **19'u kalmıştır.**
+Tamamlananlar: 1.1.1–1.1.4, 1.3.1, 1.3.2, 1.3.5, 1.3.6, 1.3.7, 1.4.1, 1.4.2, 1.4.3, 1.4.4, 1.4.6, 1.4.10, 1.2.1, 1.2.3, 1.5.1–1.5.8.
 
-> Sprint 1 ve Sprint 2, 4 kişinin de (Ömer, Kaan, Alptuğ, Berke) atanan görevleriyle tamamen bitti. **Kalan 20 görev artık sprint sprint değil, `docs/PLAN.md`'nin yeni "Sprint 3 — Konsolide Backlog" yapısına göre** kişi başı tek bir listeye toplandı (bkz. aşağıdaki §2). Alptuğ'un kalan görevi yok.
+> Sprint 1 ve Sprint 2, 4 kişinin de (Ömer, Kaan, Alptuğ, Berke) atanan görevleriyle tamamen bitti. **Kalan 19 görev artık sprint sprint değil, `docs/PLAN.md`'nin yeni "Sprint 3 — Konsolide Backlog" yapısına göre** kişi başı tek bir listeye toplandı (bkz. aşağıdaki §2). Alptuğ'un kalan görevi yok.
 
 ---
 
 ## 2. Kalan Görevlerin Dağılımı — GÜNCEL (Sprint 2 sonrası, konsolide Sprint 3 backlog'u)
 
-> Bu bölüm orijinal 34 görevlik dağıtımdı; artık **14 görev tamamlandığı** için aşağıdaki tablolar sadece **gerçekten kalan 20 görevi** gösterir. Tamamlanan görevler (1.2.1, 1.2.3, 1.3.1, 1.3.5, 1.4.3, 1.4.4, 1.5.1–1.5.8) çıkarıldı — kanıtları §1'de. **Sıralama artık bağımlılık zincirini yansıtır** (`docs/PLAN.md` §5 SPRINT 3'teki sırayla birebir aynı) — eskiden olduğu gibi ayrı sprintlere değil, kişi başı **tek bir backlog'a** karşılık gelir.
+> Bu bölüm orijinal 34 görevlik dağıtımdı; artık **15 görev tamamlandığı** için aşağıdaki tablolar sadece **gerçekten kalan 19 görevi** gösterir. Tamamlanan görevler (1.2.1, 1.2.3, 1.3.1, 1.3.5, 1.3.6, 1.4.3, 1.4.4, 1.5.1–1.5.8) çıkarıldı — kanıtları §1'de. **Sıralama artık bağımlılık zincirini yansıtır** (`docs/PLAN.md` §5 SPRINT 3'teki sırayla birebir aynı) — eskiden olduğu gibi ayrı sprintlere değil, kişi başı **tek bir backlog'a** karşılık gelir.
 
-Kalan efor ağırlığı **32 puan** (orijinal 59 − tamamlanan 27).
+Kalan efor ağırlığı **31 puan** (orijinal 59 − tamamlanan 28).
 
 ### 👤 Kaan Sezer — Rezervasyon & Ödeme Akışı
 > 1.4.3 ve 1.4.4 tamamlandı (Sprint 1–2). Kalanlar (backlog sırasıyla, `PLAN.md` §5 SPRINT 3 ile birebir):
@@ -120,18 +120,18 @@ Kalan efor ağırlığı **32 puan** (orijinal 59 − tamamlanan 27).
 | 3 | 1.2.5 | Profil sayfası: kişisel bilgi formu (REQ-18) | 2 |
 | 4 | 1.2.7 | İzleme listesi: kart ikonu ve state (REQ-24) | 2 |
 | 5 | 1.2.8 | İzleme listem sekmesi ve bildirim (REQ-25) | 2 |
-| 6 | 1.2.6 | Bilet sekmeleri: güncel ve geçmiş — **Kaan'ın 1.4.8'ini bekler** | 2 |
-| 7 | 1.5.9 | Light / dark mod (REQ-23) — global tema | 1 |
+| 6 | 1.5.9 | Light / dark mod (REQ-23) — global tema | 1 |
+| 7 | 1.2.6 | Bilet sekmeleri: güncel ve geçmiş — **Kaan'ın 1.4.8'ini bekler, bu yüzden en sona alındı** (madde 1-6 tamamen bağımsız) | 2 |
 | | **Toplam** | **7 görev** | **12** |
 
 > Not: 1.2.4 (ProtectedRoute) kısmen zaten var — Sprint 1 review'da bulunan K2 güvenlik açığını kapatmak için `src/components/routing/ProtectedRoute.jsx` acil olarak eklendi (sadece `/admin` rotasını `allowedRoles={["admin"]}` ile sarıyor). Ömer bu görevi alırken var olan bileşeni genişletmeli (üye-only rotalar, `/login`'e yönlendirme vb.), sıfırdan yazmamalı.
 
 ### 👤 İzzettin Berke Kuş — Katalog, Detay & Sosyal
-> 1.3.1 ve 1.3.5 tamamlandı (Sprint 1–2). Kalanlar (backlog sırasıyla):
+> 1.3.1, 1.3.5 ve 1.3.6 tamamlandı (Sprint 1–3). Kalanlar (backlog sırasıyla):
 
 | Sıra | # | Görev | Ağırlık |
 |:---:|---|-------|:---:|
-| 1 | 1.3.6 | Yakında 6 ay zaman kısıtı (REQ-15) | 1 |
+| ~~1~~ | ~~1.3.6~~ | ~~Yakında 6 ay zaman kısıtı (REQ-15)~~ | ✅ Bitti |
 | 2 | 1.3.3 | Sıralama modülü: tarih ve puan | 1 |
 | 3 | 1.3.4 | Filtreleme modülü: tür ve yaş kısıtı | 2 |
 | 4 | 1.3.8 | Fragman modalı ve fallback (REQ-09) | 2 |
@@ -139,7 +139,7 @@ Kalan efor ağırlığı **32 puan** (orijinal 59 − tamamlanan 27).
 | 6 | 1.3.10 | Yorum formu ve kısıtlar (REQ-11.1) | 2 |
 | 7 | 1.3.11 | Yorum listeleme ve sıralama | 1 |
 | 8 | 1.2.10 | Kampanya ve indirim motoru (REQ-10) — **Kaan'ın 1.4.5'ini bekler, bu yüzden en sonda** | 2 |
-| | **Toplam** | **8 görev** | **12** |
+| | **Toplam (kalan)** | **7 görev** | **11** |
 
 ### Denge Özeti (kalan)
 | Kişi | Modül | Kalan Görev | Kalan Ağırlık |
@@ -147,8 +147,8 @@ Kalan efor ağırlığı **32 puan** (orijinal 59 − tamamlanan 27).
 | Kaan Sezer | Rezervasyon & Ödeme | 5 | 8 |
 | Alptuğ Dursun | Admin & Lokasyon | 0 | 0 |
 | Ömer Faruk Çendek | Kimlik & Üye Alanı | 7 | 12 |
-| İzzettin Berke Kuş | Katalog & Sosyal | 8 | 12 |
-| **Toplam** | | **20** | **32** |
+| İzzettin Berke Kuş | Katalog & Sosyal | 7 | 11 |
+| **Toplam** | | **19** | **31** |
 
 Alptuğ'un iş yükü tükendiği için denge artık bozuk — bu, `SPRINT1_REVIEW.md`'de zaten süreç sorunu olarak işaretlendi (§5, "Alptuğ'un scope taşması"). Yeniden dengeleme ekiple birlikte yapılmalı, tek taraflı üstlenilmedi. **Sıralama ve tam görev detayları (Kabul/Dosyalar/Bağımlılık) artık `docs/PLAN.md` §5 "SPRINT 3 — Konsolide backlog" bölümünde** — bu tablo sadece özet, ayrıntı için oraya bakılmalı.
 
@@ -161,6 +161,7 @@ Alptuğ'un iş yükü tükendiği için denge artık bozuk — bu, `SPRINT1_REVI
 3. **1.4.10 başarı ekranı zaten var** ama rezervasyon no formatı hâlâ `CS-…` → doküman `RES-#####` istiyor (REQ-22). Henüz düzeltilmedi; Kaan bunu 1.4.8 (ödeme ekranı) kapsamında ele almalı (PLAN.md'de zaten bu şekilde not edilmiş).
 4. ✅ **1.4.3 koltuk 4 durumu** — tamamlandı (Sprint 1), `domain/seatStatus.js` + `seatService.js` yeniden yazıldı.
 5. **1.5.9 tema (Ömer)** hâlâ yapılmadı; global CSS/Layout'a dokunacağı için erken yapılırsa sonraki ekranlar temaya uyumlu doğar — bu tavsiye hâlâ geçerli.
+6. **Tek-sprint yürütme sırası (yeni):** Kaan'ın 5 görevi ve Ömer/Berke'nin 6'şar görevi tamamen dış bağımlılıksız — her kişi kendi backlog'unu tek oturumda bitirebilir. Tek istisna: Ömer'in 1.2.6'sı (Kaan'ın 1.4.8'ini bekler) ve Berke'nin 1.2.10'u (Kaan'ın 1.4.5'ini bekler) — ikisi de bilinçli olarak kendi listelerinin **en sonuna** alındı. Kaan'ın bu iki maddesi (1.4.5, 1.4.8) kendi 5'li listesinin ilk ikisi olduğu için üç backlog paralel başlayabilir. Ayrıntılı gerekçe: `docs/PLAN.md` §6.
 
 ## 4. Kod incelemesinden taşınan teknik borç (dağıtım dışı, sahiplenilmeli)
 - ✅ **seatService** güvenli olmayan `JSON.parse` → Kaan tarafından 1.4.3 kapsamında düzeltildi (`try/catch` + şema doğrulama).
