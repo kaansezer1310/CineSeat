@@ -55,7 +55,7 @@ function MovieCard({ movie, onSelect }) {
           <button
             type="button"
             className={`watchlist-heart-button ${favorite ? 'watchlist-heart-button--active' : 'watchlist-heart-button--inactive'}`}
-            style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2, background: 'rgba(12, 9, 18, 0.82)', borderRadius: '50%', width: '38px', height: '38px' }}
+            style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2, background: 'var(--color-overlay-scrim)', borderRadius: '50%', width: '38px', height: '38px' }}
             onClick={handleFavoriteClick}
             title={favorite ? "İzleme listesinden çıkar" : "İzleme listesine ekle"}
             aria-label="Favori Ekle/Çıkar"

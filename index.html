@@ -13,6 +13,19 @@
     <title>CineSeat</title>
   </head>
   <body>
+    <script>
+      // Tema flash'ını (FOUC) önlemek için, uygulama yüklenmeden
+      // önce kayıtlı temayı body'ye uygula. Kaynak: localStorage.
+      (function () {
+        try {
+          var stored = localStorage.getItem("cineseat_theme");
+          document.body.dataset.theme =
+            stored === "light" ? "light" : "dark";
+        } catch (e) {
+          document.body.dataset.theme = "dark";
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
