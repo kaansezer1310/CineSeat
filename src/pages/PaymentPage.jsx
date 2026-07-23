@@ -163,15 +163,17 @@ function PaymentPage() {
         </p>
       </div>
 
-      <div className="payment-layout" style={{ display: 'flex', gap: '2rem' }}>
-        <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
+      <div className="payment-layout">
+        <form className="auth-form payment-form" onSubmit={handleSubmit}>
+
           {(!user || user.role === "guest") && (
             <div className="form-group-section">
               <h2>Ziyaretçi Bilgileri</h2>
-              <label>
-                Ad
+
+              <div className="auth-field">
+                <label htmlFor="payment-visitor-first-name">Ad</label>
                 <input
+                  id="payment-visitor-first-name"
                   type="text"
                   required
                   minLength={2}
@@ -179,10 +181,12 @@ function PaymentPage() {
                   value={visitorForm.firstName}
                   onChange={(e) => setVisitorForm({ ...visitorForm, firstName: e.target.value })}
                 />
-              </label>
-              <label>
-                Soyad
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="payment-visitor-last-name">Soyad</label>
                 <input
+                  id="payment-visitor-last-name"
                   type="text"
                   required
                   minLength={2}
@@ -190,63 +194,73 @@ function PaymentPage() {
                   value={visitorForm.lastName}
                   onChange={(e) => setVisitorForm({ ...visitorForm, lastName: e.target.value })}
                 />
-              </label>
-              <label>
-                E-posta
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="payment-visitor-email">E-posta</label>
                 <input
+                  id="payment-visitor-email"
                   type="email"
                   required
                   value={visitorForm.email}
                   onChange={(e) => setVisitorForm({ ...visitorForm, email: e.target.value })}
                 />
-              </label>
+              </div>
             </div>
           )}
 
           <div className="form-group-section">
             <h2>Kart Bilgileri</h2>
-            <label>
-              Kart Sahibinin Adı
+
+            <div className="auth-field">
+              <label htmlFor="payment-card-name">Kart Sahibinin Adı</label>
               <input
+                id="payment-card-name"
                 type="text"
                 required
                 value={paymentForm.cardName}
                 onChange={(e) => setPaymentForm({ ...paymentForm, cardName: e.target.value })}
               />
-            </label>
-            <label>
-              Kart Numarası (Hata için 0000 ile başlayın)
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="payment-card-number">Kart Numarası (Hata için 0000 ile başlayın)</label>
               <input
+                id="payment-card-number"
                 type="text"
                 required
                 value={paymentForm.cardNumber}
                 onChange={(e) => setPaymentForm({ ...paymentForm, cardNumber: e.target.value })}
               />
-            </label>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <label style={{ flex: 1 }}>
-                Son Kullanma (AA/YY)
+            </div>
+
+            <div className="auth-row">
+              <div className="auth-field">
+                <label htmlFor="payment-card-expiry">Son Kullanma (AA/YY)</label>
                 <input
+                  id="payment-card-expiry"
                   type="text"
                   required
                   value={paymentForm.expiryDate}
                   onChange={(e) => setPaymentForm({ ...paymentForm, expiryDate: e.target.value })}
                 />
-              </label>
-              <label style={{ flex: 1 }}>
-                CVV
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="payment-card-cvv">CVV</label>
                 <input
+                  id="payment-card-cvv"
                   type="text"
                   required
                   value={paymentForm.cvv}
                   onChange={(e) => setPaymentForm({ ...paymentForm, cvv: e.target.value })}
                 />
-              </label>
+              </div>
             </div>
           </div>
 
           <button
-            className="primary-button"
+            className="primary-button auth-submit"
             type="submit"
             disabled={reservationMutation.isPending}
           >
@@ -254,7 +268,7 @@ function PaymentPage() {
           </button>
         </form>
 
-        <aside style={{ flex: 1 }}>
+        <aside className="payment-summary">
           <div className="cart-summary">
             <h2>Sipariş Özeti</h2>
             <div className="cart-summary-total">
