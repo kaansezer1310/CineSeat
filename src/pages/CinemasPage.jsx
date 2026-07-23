@@ -74,13 +74,9 @@ export default function CinemasPage() {
   }
 
   return (
-    <div className="page-container cinemas-page">
-      <div className="page-heading-row">
-        <div className="page-heading">
-          <p className="page-label">LOKASYONLAR</p>
-          <h1>Sinemalarımız</h1>
-          <p>{locationStatus}</p>
-        </div>
+    <div className="cinemas-page">
+      <div className="cinemas-location-status" style={{ marginBottom: '20px', color: 'var(--color-text-muted)' }}>
+        <p>{locationStatus}</p>
       </div>
 
       <div className="cinemas-filter">

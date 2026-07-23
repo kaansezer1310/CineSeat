@@ -37,8 +37,6 @@ function getStoredReservations() {
   }
 }
 
-// seatService düz koltuk kimliği listesi bekler; sepet ise
-// { seatId, ticketType } nesneleri taşır. Sınırda dönüştürülür.
 function getSeatIdsFromCartSeats(seats) {
   if (!Array.isArray(seats)) {
     return [];
@@ -77,7 +75,6 @@ function cloneCartSeats(seats) {
 async function createReservation(payload) {
   await wait(600);
 
-  // Eskiden cartItems doğrudan geliyordu, simdi payload obje olarak geliyor
   const cartItems = payload.cartItems ? payload.cartItems : payload;
   const visitorInfo = payload.visitorInfo || null;
 
@@ -87,13 +84,10 @@ async function createReservation(payload) {
     );
   }
 
-  // Atomik kontrol ve yazım işlemi için tüm oturum/koltuk çiftlerini hazırla
   const sessionSeatPairs = cartItems.map((item) => ({
     sessionId: item.sessionId,
     seats: getSeatIdsFromCartSeats(item.seats),
   }));
-
-  // Bu işlem artık atomiktir
   await seatService.reserveAllSeats(sessionSeatPairs);
 
   const ticketCount = cartItems.reduce(

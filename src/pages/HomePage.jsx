@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 import MovieList from "../components/movies/MovieList.jsx";
 import movieService from "../services/movieService.js";
+import CinemasPage from "./CinemasPage.jsx";
 
 const MOVIE_TABS = [
   { id: "nowShowing", label: "Vizyonda" },
   { id: "comingSoon", label: "Yakında" },
+  { id: "cinemas", label: "Sinemalar" },
 ];
 
 function HomePage() {
@@ -87,12 +89,16 @@ function HomePage() {
   const pageHeading =
     activeTab === "nowShowing"
       ? "Vizyondaki Filmler"
-      : "Yakında Vizyona Girecek Filmler";
+      : activeTab === "comingSoon"
+      ? "Yakında Vizyona Girecek Filmler"
+      : "Sinemalarımız";
 
   const pageDescription =
     activeTab === "nowShowing"
       ? "Film seçerek seansları inceleyebilir ve bilet oluşturabilirsin."
-      : "Yakında vizyona girecek filmleri keşfet, vizyon tarihini kaçırma.";
+      : activeTab === "comingSoon"
+      ? "Yakında vizyona girecek filmleri keşfet, vizyon tarihini kaçırma."
+      : "Size en yakın sinemaları keşfedin ve detayları görün.";
 
   const emptyStateMessage =
     activeTab === "nowShowing"
@@ -108,14 +114,16 @@ function HomePage() {
           <p>{pageDescription}</p>
         </div>
 
-        <button
-          className="refresh-button"
-          type="button"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          {isFetching ? "Yenileniyor..." : "↻ Filmleri Yenile"}
-        </button>
+        {activeTab !== "cinemas" && (
+          <button
+            className="refresh-button"
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            {isFetching ? "Yenileniyor..." : "↻ Filmleri Yenile"}
+          </button>
+        )}
       </div>
 
       <div
@@ -144,7 +152,9 @@ function HomePage() {
         })}
       </div>
 
-      {visibleMovies.length === 0 ? (
+      {activeTab === "cinemas" ? (
+        <CinemasPage />
+      ) : visibleMovies.length === 0 ? (
         <div className="temporary-panel">
           {emptyStateMessage}
         </div>

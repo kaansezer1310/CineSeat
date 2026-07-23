@@ -3,11 +3,6 @@ import {
 } from "../domain/seatStatus.js";
 import { ApiError, ConflictError } from "./errors.js";
 
-// ---------------------------------------------------------------------------
-// Mock/seed veri
-// ---------------------------------------------------------------------------
-// DOLU (ödemesi tamamlanmış) koltuklar — seans başına başlangıç durumu.
-// localStorage'da hiç kayıt yoksa bu değerler kullanılır.
 const initialReservedSeats = {
   101: ["A2", "A3", "B5", "C1", "D7"],
   102: ["A1", "A8", "B2", "B3", "C6"],
@@ -26,10 +21,6 @@ const initialReservedSeats = {
   403: ["A2", "A7", "B5", "D6"],
 };
 
-// GECICI_KILITLI (REQ-19 sayaç işleyen, geçici tutulan) koltuklar için
-// başlangıç durumu. Şu an hiçbir akış otomatik olarak koltuk kilitlemiyor
-// (1.4.7'nin kapsamı); burada yalnızca 101 seansında dört durumu bir arada
-// gösterebilmek için küçük bir örnek veri tutuluyor.
 const initialLockedSeats = {
   101: ["A5", "A6"],
 };
@@ -40,15 +31,6 @@ function wait(milliseconds) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Güvenli storage erişimi
-// ---------------------------------------------------------------------------
-// localStorage hiçbir zaman güvenilir/yetkili veri olarak kabul edilmez;
-// bozuk JSON, beklenmeyen şema veya eksik değer durumlarında sistemi asla
-// çökertmeyecek şekilde okunur. `null` dönüşü "storage'da hiç kayıt yok"
-// anlamına gelir (bu durumda mock başlangıç verisine düşülür); bozuk/şema
-// dışı veri ise sessizce boş listeye (`[]`) normalize edilir — eski (mock)
-// veriyi geri diriltmeyiz, çünkü storage anahtarı zaten "kullanılmış".
 function readStoredSeatIdList(storageKey) {
   let rawValue;
 
@@ -88,9 +70,6 @@ function writeSeatIdList(storageKey, seatIds) {
       JSON.stringify(seatIds)
     );
   } catch {
-    // localStorage yazımı (kota/gizli mod vb. nedenlerle) başarısız
-    // olsa bile bu bir mock/prototip katmanıdır; akışı çökertmemek için
-    // hata yutulur. Gerçek kalıcılık Faz-2 backend'inin sorumluluğudur.
   }
 }
 
@@ -102,9 +81,6 @@ function getLockStorageKey(sessionId) {
   return `locked-seats-${sessionId}`;
 }
 
-// ---------------------------------------------------------------------------
-// Girdi doğrulama
-// ---------------------------------------------------------------------------
 function normalizeSessionId(sessionId) {
   const numericSessionId = Number(sessionId);
 
@@ -142,9 +118,6 @@ function normalizeSeatIdList(seats) {
   return [...new Set(validSeatIds)];
 }
 
-// ---------------------------------------------------------------------------
-// Depolanan durumların okunması
-// ---------------------------------------------------------------------------
 async function getDoluSeatIds(sessionId) {
   const numericSessionId = normalizeSessionId(sessionId);
 
@@ -177,20 +150,10 @@ async function getLockedSeatIds(sessionId) {
   return storedList;
 }
 
-// Geriye dönük uyumluluk katmanı: `getReservedSeatsBySessionId`, mevcut
-// `reservationService` ve daha önceki bileşenler tarafından "bu seanstaki
-// dolu/alınmış koltuklar" anlamında kullanılıyordu. Dört durumlu modelde bu,
-// tam olarak DOLU koltuklar kümesine karşılık gelir; imza ve dönüş şekli
-// (string dizisi) değişmeden korunur.
 async function getReservedSeatsBySessionId(sessionId) {
   return getDoluSeatIds(sessionId);
 }
 
-// Bir seanstaki her koltuğun *depolanan* (BOS dışındaki) durumunu döner:
-// { [seatId]: "GECICI_KILITLI" | "DOLU" }. BOS koltuklar haritada yer almaz;
-// bir seatId haritada yoksa BOS kabul edilir. SECILI bu haritada asla yer
-// almaz — SECILI, kullanıcının yerel seçimiyle türetilen bir görüntüleme
-// durumudur, servis tarafında kalıcı tutulmaz (bkz. `resolveDisplaySeatStatus`).
 async function getSeatStatusesBySessionId(sessionId) {
   const numericSessionId = normalizeSessionId(sessionId);
 
@@ -205,8 +168,6 @@ async function getSeatStatusesBySessionId(sessionId) {
     statusesBySeatId[seatId] = SEAT_STATUS.GECICI_KILITLI;
   });
 
-  // DOLU, GECICI_KILITLI ile aynı koltukta çakışırsa (normalde olmaması
-  // gereken bir durum) DOLU üstün gelir — REQ-01'de DOLU nihai durumdur.
   doluSeatIds.forEach((seatId) => {
     statusesBySeatId[seatId] = SEAT_STATUS.DOLU;
   });
@@ -214,13 +175,6 @@ async function getSeatStatusesBySessionId(sessionId) {
   return statusesBySeatId;
 }
 
-// ---------------------------------------------------------------------------
-// Durum geçişleri (yazma işlemleri)
-// ---------------------------------------------------------------------------
-// GECICI_KILITLI oluşturur (SECILI/BOS -> GECICI_KILITLI). Şu anki booking
-// akışı henüz bu fonksiyonu çağırmıyor (geri sayım/ödeme adımı 1.4.7/1.4.8
-// kapsamındadır); fonksiyon, o görev üzerine inşa edilecek şekilde burada
-// hazır tutulur ve zaten DOLU olan koltukları güvenle reddeder.
 async function lockSeats({ sessionId, seats }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
@@ -260,9 +214,7 @@ async function lockSeats({ sessionId, seats }) {
   return updatedLockedSeatIds;
 }
 
-// GECICI_KILITLI -> BOS geri dönüşü (REQ-19 zaman aşımı, REQ-12 kullanıcı
-// iptali, REQ-13 sayaç bitimi). 1.4.7'deki sayaç, süre dolduğunda veya
-// kullanıcı iptalinde bu fonksiyonu çağırarak koltukları serbest bırakır.
+
 async function releaseLockedSeats({ sessionId, seats }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
@@ -287,27 +239,6 @@ async function releaseLockedSeats({ sessionId, seats }) {
   return updatedLockedSeatIds;
 }
 
-// GECICI_KILITLI (veya henüz kilitlenmemiş güncel akışta BOS) -> DOLU.
-// Rezervasyon akışının koltukları nihai olarak DOLU'ya taşıdığı sınırdır;
-// `reservationService`, çakışma tespiti sonrası bunu her sepet öğesi için
-// çağırır. Zaten DOLU olan bir koltuk asla tekrar rezerve edilemez —
-// arayüz kontrolü atlatılsa bile bu koruma serviste kalır.
-//
-// BİLİNEN AÇIK (Sprint 1 review, K/Y3 — kasıtlı olarak burada bırakıldı):
-// GECICI_KILITLI koltuklar için bir "kilit sahibi" (token/oturum) kavramı
-// yok. Bu yüzden reserveSeats, bir koltuğun GECICI_KILITLI durumda olup
-// olmadığına HİÇ bakmıyor — sadece DOLU çakışmasını kontrol ediyor. Bugün
-// bunun canlı bir etkisi yok çünkü hiçbir gerçek akış lockSeats'i çağırmıyor
-// (1.4.7 henüz yok). 1.4.7 (sayaç/kilit UI'ı) bağlandığı an: A kullanıcısı
-// bir koltuğu kilitleyip ödemedeyken, B kullanıcısı aynı koltuğu (kendi
-// kilidi olmadan) reserveSeats ile doğrudan alabilir — çünkü fonksiyon
-// "bu kilit gerçekten benim mi" diye soramıyor. Doğru çözüm: lockSeats'in
-// döndürdüğü bir token'ı reserveSeats'e de geçirmek ve GECICI_KILITLI bir
-// koltuğu yalnızca eşleşen token'la finalize etmek (aksi halde ConflictError).
-// Bunu şimdiden tahminle eklemedim çünkü 1.4.7'nin UI akışı henüz yok ve
-// yanlış bir token tasarımı, o görevi üstlenecek kişiye (bu satırdaki
-// reserveSeats testine bakan herkes — bkz. seatService.test.js:139) daha
-// pahalıya patlar. 1.4.7 planlanırken bu not mutlaka okunmalı.
 async function reserveSeats({ sessionId, seats }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
@@ -339,8 +270,6 @@ async function reserveSeats({ sessionId, seats }) {
     ]),
   ];
 
-  // Bu koltuklar önceden kilitlenmişse (GECICI_KILITLI -> DOLU), kilit
-  // kaydı temizlenir; kilitlenmemişse (güncel akışta olduğu gibi) bu no-op'tur.
   const updatedLockedSeatIds = currentLockedSeatIds.filter(
     (seatId) => {
       return !normalizedSeatIds.includes(seatId);
@@ -362,7 +291,6 @@ async function reserveSeats({ sessionId, seats }) {
 async function reserveAllSeats(sessionSeatPairs) {
   await wait(500);
 
-  // Doğrulama aşaması (atomik kontrol)
   const currentStatusMap = new Map();
   
   for (const pair of sessionSeatPairs) {
@@ -379,7 +307,6 @@ async function reserveAllSeats(sessionSeatPairs) {
     }
   }
 
-  // Yazma aşaması (atomik yazım)
   for (const pair of sessionSeatPairs) {
     const numericSessionId = normalizeSessionId(pair.sessionId);
     const { currentDoluSeatIds, normalizedSeatIds } = currentStatusMap.get(numericSessionId);
