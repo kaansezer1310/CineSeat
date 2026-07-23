@@ -10,6 +10,7 @@ import FilterControl, {
   ALL_VALUE,
 } from "../components/movies/FilterControl.jsx";
 import movieService from "../services/movieService.js";
+import CinemasPage from "./CinemasPage.jsx";
 import useWatchlist from "../hooks/useWatchlist.js";
 
 // REQ-25 — favori bir film vizyona girdiğinde girişte bildirim bandı.
@@ -36,6 +37,7 @@ function isRecentlyReleased(movie) {
 const MOVIE_TABS = [
   { id: "nowShowing", label: "Vizyonda" },
   { id: "comingSoon", label: "Yakında" },
+  { id: "cinemas", label: "Sinemalar" },
 ];
 
 function HomePage() {
@@ -154,12 +156,16 @@ function HomePage() {
   const pageHeading =
     activeTab === "nowShowing"
       ? "Vizyondaki Filmler"
-      : "Yakında Vizyona Girecek Filmler";
+      : activeTab === "comingSoon"
+      ? "Yakında Vizyona Girecek Filmler"
+      : "Sinemalarımız";
 
   const pageDescription =
     activeTab === "nowShowing"
       ? "Film seçerek seansları inceleyebilir ve bilet oluşturabilirsin."
-      : "Yakında vizyona girecek filmleri keşfet, vizyon tarihini kaçırma.";
+      : activeTab === "comingSoon"
+      ? "Yakında vizyona girecek filmleri keşfet, vizyon tarihini kaçırma."
+      : "Size en yakın sinemaları keşfedin ve detayları görün.";
 
   const emptyStateMessage =
     tabMovies.length === 0
@@ -201,14 +207,16 @@ function HomePage() {
           <p>{pageDescription}</p>
         </div>
 
-        <button
-          className="refresh-button"
-          type="button"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          {isFetching ? "Yenileniyor..." : "↻ Filmleri Yenile"}
-        </button>
+        {activeTab !== "cinemas" && (
+          <button
+            className="refresh-button"
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            {isFetching ? "Yenileniyor..." : "↻ Filmleri Yenile"}
+          </button>
+        )}
       </div>
 
       <div
@@ -237,38 +245,42 @@ function HomePage() {
         })}
       </div>
 
-      {tabMovies.length > 0 && (
-        <div className="movie-controls-row">
-          <SortControl
-            value={sortValue}
-            onChange={setSortValue}
-          />
+      {activeTab === "cinemas" ? (
+        <CinemasPage />
+      ) : (
+        <>
+          {tabMovies.length > 0 && (
+            <div className="movie-controls-row">
+              <SortControl
+                value={sortValue}
+                onChange={setSortValue}
+              />
 
-          <FilterControl
-            genres={availableGenres}
-            ageRatings={availableAgeRatings}
-            selectedGenre={genreFilter}
-            selectedAgeRating={ageRatingFilter}
-            onGenreChange={setGenreFilter}
-            onAgeRatingChange={setAgeRatingFilter}
-          />
+              <FilterControl
+                genres={availableGenres}
+                ageRatings={availableAgeRatings}
+                selectedGenre={genreFilter}
+                selectedAgeRating={ageRatingFilter}
+                onGenreChange={setGenreFilter}
+                onAgeRatingChange={setAgeRatingFilter}
+              />
 
-          {isFilterActive && (
-            <button
-              type="button"
-              className="secondary-button movie-filter-clear-button"
-              onClick={() => {
-                setGenreFilter(ALL_VALUE);
-                setAgeRatingFilter(ALL_VALUE);
-              }}
-            >
-              Filtreleri Temizle
-            </button>
+              {isFilterActive && (
+                <button
+                  type="button"
+                  className="secondary-button movie-filter-clear-button"
+                  onClick={() => {
+                    setGenreFilter(ALL_VALUE);
+                    setAgeRatingFilter(ALL_VALUE);
+                  }}
+                >
+                  Filtreleri Temizle
+                </button>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      {visibleMovies.length === 0 ? (
+          {visibleMovies.length === 0 ? (
         <div className="temporary-panel">
           {emptyStateMessage}
         </div>
@@ -277,6 +289,8 @@ function HomePage() {
           movies={visibleMovies}
           onMovieSelect={handleMovieSelect}
         />
+      )}
+        </>
       )}
     </section>
   );

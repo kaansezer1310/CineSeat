@@ -1,14 +1,12 @@
-// Mutable mock user store — register() pushes new entries at runtime.
-// Sprint 2 (1.2.1) genişletmesi: username, phone, gender alanları eklendi.
 export const users = [
   {
     id: 1,
     firstName: "Ömer Faruk",
     lastName: "Çendek",
-    name: "Ömer Faruk", // backward-compat (Layout header uses `user.name`)
+    name: "Ömer Faruk",
     username: "omerfaruk",
     email: "omer@cineseat.com",
-    password: "Admin1!", // Mock data for testing
+    password: "Admin1!",
     phone: "",
     gender: "",
     role: "admin",
@@ -23,7 +21,7 @@ export const users = [
     password: "Test12",
     phone: "",
     gender: "",
-    role: "member",
+    role: "admin",
   },
   {
     id: 3,
@@ -47,6 +45,6 @@ export const users = [
     password: "Test12",
     phone: "",
     gender: "",
-    role: "member",
+    role: "admin",
   },
 ];

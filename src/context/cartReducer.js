@@ -42,9 +42,6 @@ function normalizeCartSeats(seats) {
     if (!normalizedSeat) {
       return;
     }
-
-    // Aynı seatId birden fazla gelirse son geçerli ticketType kazanır;
-    // Set(object) kullanılamaz çünkü nesne kimliğiyle dedupe yapar.
     seatsById.set(normalizedSeat.seatId, normalizedSeat);
   });
 

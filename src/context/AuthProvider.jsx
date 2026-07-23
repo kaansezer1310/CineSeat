@@ -16,7 +16,7 @@ function AuthProvider({ children }) {
     return null;
   });
   
-  const { dispatch } = useCart(); // Access to cart to clear on logout
+  const { dispatch } = useCart();
 
   const login = async (email, password) => {
     const loggedInUser = await authService.login(email, password);
@@ -25,9 +25,6 @@ function AuthProvider({ children }) {
     return loggedInUser;
   };
 
-  /**
-   * Sprint 2 / 1.2.1 — Kayıt sonrası otomatik oturum açma.
-   */
   const register = async (data) => {
     const registeredUser = await authService.register(data);
     setUser(registeredUser);
@@ -43,7 +40,7 @@ function AuthProvider({ children }) {
 
   const value = {
     user,
-    role: user?.role || "guest", // REQ-21: rol (guest/member/admin) context'ten okunabilir
+    role: user?.role || "guest",
     login,
     register,
     logout,
