@@ -30,6 +30,28 @@ export class ConflictError extends ApiError {
   }
 }
 
+export class ValidationError extends ApiError {
+  constructor(message) {
+    super(message, {
+      status: 422,
+      code: "VALIDATION_ERROR",
+    });
+
+    this.name = "ValidationError";
+  }
+}
+
+export class ForbiddenError extends ApiError {
+  constructor(message) {
+    super(message, {
+      status: 403,
+      code: "FORBIDDEN",
+    });
+
+    this.name = "ForbiddenError";
+  }
+}
+
 export function shouldRetryQuery(failureCount, error) {
   const status = error?.status;
 

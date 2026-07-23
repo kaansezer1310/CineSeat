@@ -2,15 +2,114 @@
 
 > Bu dosya çalışma ilerledikçe güncellenir. Her görev tamamlandığında ilgili bölüm eklenir/güncellenir. Ayrıntılı sprint planı için `docs/PLAN.md`, görev-durum analizi için `docs/WBS_GOREV_DAGILIMI.md`. Mentöre basit dille anlatım için `docs/berke_SPRINT1_ACIKLAMA.md`.
 
-**Son güncelleme:** Sprint 2 **tamamen bitti** (Ömer/Kaan/Berke/Alptuğ). Ömer'in 1.2.1 (Login/Register) eklemesi analiz edildi, 1 gerçek bug bulundu ve düzeltildi (render sırasında `navigate()` çağrısı), sıfır olan test kapsamına 13 test eklendi. `docs/PLAN.md` yeniden yapılandırıldı: Kaan/Ömer/Berke'nin eski S3–S9 görevleri artık **tek bir konsolide "Sprint 3" backlog'una** toplandı (kişi başı tek liste, bağımlılık sırası korunarak).
-**Branch:** `berke` (origin/berke'nin ilerisinde; **push işlemi yapılmadı**, manuel push kullanıcıya ait)
+**Son güncelleme:** **Proje tamamen bitti — 44/44 görev.** Kendi modülümü (9/9) bitirdikten sonra Ömer de kendi 7 görevini bitirip main'e aldı (PR #16). Bunun üzerine kullanıcı talebiyle **tüm projeyi (özellikle Ömer'in yeni işini) uçtan uca code review'dan geçirdim** — 3 gerçek bug/eksik buldum ve düzelttim, 8 lint hatası temizledim, housekeeping yaptım. Ayrıntı aşağıda.
+**Branch:** `Alp` → main'e mergelendi (PR #14); benim işim → main'e mergelendi (PR #15); Ömer'in işi → main'e mergelendi (PR #16). Bu review'daki düzeltmelerim şu an `berke` branch'inde, **push edilmedi**, manuel push kullanıcıya ait.
 
-**Taze doğrulama (en son, tüm ekip kodu dahil — Sprint 1 + Sprint 2 tamamı):**
-- `npm run test:run` → `Test Files 17 passed (17)` / `Tests 113 passed (113)`, exit 0
+**Taze doğrulama (en son, review düzeltmeleri dahil):**
+- `npm run test:run` → `Test Files 23 passed (23)` / `Tests 182 passed (182)`, exit 0
 - `npm run lint` → **0 hata, 0 uyarı**, exit 0
 - `npm run build` → başarılı, exit 0
-- `npm audit` → **0 zafiyet**
 - Case-sensitivity: doğrulanmış durumda (Sprint 1'de kapatıldı)
+
+---
+
+## Ekip-geneli final code review — Ömer'in işi + tüm proje (kullanıcı talebiyle)
+
+Kullanıcı: "Projenin güncel halini analiz et, status dosyalarına bak, kod hatalarını/eksikliklerini sapta, düzelt, test yap, MD'leri güncelle." Ömer'in main'e az önce aldığı PR #16 (`docs/omer_status_2.md`, "taskta eksik kalan kısımlar") dahil tüm proje incelendi.
+
+### Bulunan ve düzeltilen 3 gerçek bug/eksik
+
+1. **`WatchlistContext.jsx` — geçersiz sahte-ref bug'ı.** Kullanıcı değişince (login/logout) `watchlist` state'ini yeniden yüklemesi gereken kod, `const prevUserIdRef = { current: userId };` yazmıştı — bu gerçek bir `useRef()` değil, her render'da yeniden oluşan düz bir obje. Karşılaştırma (`prevUserIdRef.current !== userId`) aynı satırda aynı değere yapıldığı için **asla doğru olmuyordu** (dead code) — ayrıca `eslint react-hooks/refs` hatası veriyordu. React'in resmi "render sırasında state ayarlama" deseniyle (ayrı bir `syncedUserId` state'i + render'da karşılaştırma) düzelttim. Pratikte hiçbir tüketici ham `watchlist` state'ini okumuyordu (hepsi `isFavorite()`/`getFavoriteMovieIds()` ile taze okuyordu) ama context sözleşmesi bozuktu. Regresyon testi (`WatchlistProvider.test.jsx`) eklendi — eski kodla bu test **fail** ederdi, doğruladım.
+2. **`ProfilePage.jsx` bilet sekmeleri REQ-18'i yanlış uyguluyordu.** "Güncel"/"Geçmiş" ayrımı rezervasyonun `createdAt`'ine (satın alma zamanı) + sabit 3 saatlik bir pencereye bakıyordu — REQ-18 **gösterim saatini** istiyor. Somut hata: 2 hafta sonrası için bilet alıp 4 saat sonra profiline bakan biri, bileti yanlışlıkla "Geçmiş" görürdü. Sorunun kökeninde `sessions.js`'in tarihi yıl içermeyen bir Türkçe metin olarak tutması var (`"13 Temmuz"`); bunu gerçek `Date`'e çeviren bir Türkçe ay-adı parser'ı (`sessionService.parseSessionDateTime`/`hasSessionPassed`) yazıp `ProfilePage.jsx`'i buna göre düzelttim (bir rezervasyondaki herhangi bir seans henüz geçmemişse "Güncel"). 7 servis testi + 4 entegrasyon testi.
+3. **1.2.8'in "bildirim bandı" kısmı (REQ-25) hiç yazılmamıştı.** Sadece dosya başındaki yorumda vardı, `WBS_GOREV_DAGILIMI.md`'de yanlışlıkla "bitti" işaretliydi. `HomePage.jsx`'e, izleme listesindeki son 7 gün içinde vizyona giren filmler için kapatılabilir bir bildirim bandı ekledim.
+
+### Doğrulanan (Ömer'in iddia ettiği gibi gerçekten çalışıyor)
+
+`omer_status_2.md`'nin iddia ettiği kilit-token sistemi (Y3'ün çözümü) ve 1.4.9'daki kilit-koruma davranışını şüpheyle inceledim (önceki review'da ben bu ikisini "açık boşluk" olarak işaretlemiştim) — bu sefer **gerçekten uçtan uca bağlı**: `PaymentPage.jsx` bir `lockToken` üretiyor, `lockSeats`/`releaseLockedSeats`'e ve `reservationService.createReservation` üzerinden `reserveAllSeats`'e geçiriyor; `seatService.js`'teki kilit deposu buna uygun `{seatId: token}` map'ine dönüştürülmüş. Ziyaretçi formu 2-50 karakter doğrulaması da gerçekten eklenmiş.
+
+### Ek düzeltmeler (lint/kod kalitesi/housekeeping)
+
+- **8 lint hatası** düzeltildi: `MovieCard.jsx`/`ProfilePage.jsx`'te kullanılmayan değişkenler (`watchlist`, `login`); `seatService.js`'te kullanılmayan değişken + artık üretimde kullanılmayan `reserveSeats` fonksiyonundaki yanıltıcı/eski yorum (fonksiyon hâlâ geçerli test kapsamı olduğu için silinmedi, sadece yorum güncel duruma göre düzeltildi); `ThemeContext.jsx`/`WatchlistContext.jsx`'in `react-refresh/only-export-components` hatası — projenin `AuthContext.js`/`AuthProvider.jsx`/`useAuth.js` 3-dosya desenine uygun şekilde ayrı context/provider/hook dosyalarına bölündü (7 consumer dosyasının import'ları güncellendi).
+- Kök dizine yanlışlıkla commit edilmiş 4 adet `test_output*.txt` dosyası silindi.
+- `docs/omer_status_2.md` (Sprint 2'deki aynı hatanın tekrarı — ayrı status dosyası oluşturma) `omer_STATUS.md`'ye taşınıp silindi.
+
+### Yeni test kapsamı
+
+`sessionService.test.js` (yeni, 7 test), `WatchlistProvider.test.jsx` (yeni, 2 test), `ProfilePage.test.jsx` (yeni, 6 test — bu dosyanın hiç testi yoktu), `HomePage.test.jsx` (+3 test, bildirim bandı).
+
+**Sonuç:** `npm run test:run` → 23 dosya / 182 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅. `docs/PLAN.md`, `docs/WBS_GOREV_DAGILIMI.md`, `docs/omer_STATUS.md` güncellendi.
+
+---
+
+## Sprint 3 — Bağımlılık Doğrulaması (kullanıcı talebiyle)
+
+Kullanıcı, 1.3.6'ya geçmeden önce durup şunu netleştirdi: asıl istek her kişinin backlog'unu **tek bir kesintisiz prompt'ta** bitirebilmesiydi, sadece "tek sprint" değil. Bu yüzden `docs/PLAN.md` §5'teki 19 kalan görevin **her birinin** "Bağımlılık" satırı tek tek tarandı (kişi-içi ve kişiler-arası).
+
+**Sonuç:** Kaan'ın 5 görevi tamamen bağımsız. Ömer'in 7'sinden 6'sı, Berke'nin 7'sinden (1.3.6 hariç) 6'sı da bağımsız. **Tek bulgu:** Ömer'in listesinde Kaan'a bağımlı 1.2.6, sondan bir önceki (6/7) sıradaydı — en sonda değildi. Bu, Berke'nin 1.2.10'unda uygulanan "dış bağımlılık en sonda" desenine aykırıydı. Düzeltme: Ömer'in listesinde 1.5.9 ile 1.2.6 yer değiştirildi (1.5.9 madde 6, 1.2.6 madde 7 oldu) — artık ikisi de aynı desende: 6 bağımsız görev + en sonda 1 dış-bağımlı görev.
+
+`docs/PLAN.md`'ye yeni bir **§6 "Tek-Sprint Yürütme Sırası"** bölümü eklendi (eski §6/§7 numaraları §7/§8'e kaydı, referanslar güncellendi): Kaan'ın kendi ilk iki maddesi (1.4.5, 1.4.8) hem Ömer'i hem Berke'yi besliyor; bu iki madde Kaan'ın kendi sırasının başında olduğu için üç backlog paralel başlayabilir, kimse birbirini baştan beklemez. `docs/WBS_GOREV_DAGILIMI.md` §2 ve §3'e de aynı sıralama ve gerekçe yansıtıldı.
+
+---
+
+## Alp → main merge conflict çözümü (kullanıcı talebiyle)
+
+Kaan'ın backlog'unu devralan Alptuğ, `main`'in gerisinde kalan eski bir noktadan dallanmış olduğu için PR'ı GitHub'da "conflicts must be resolved" diyordu. İzole bir git worktree'de gerçek merge'ü deneyip **6 dosyada gerçek conflict** buldum:
+
+- **`BookingPage.jsx`:** Alp'in versiyonu her koltuğu hardcoded `"ADULT"` yapıyordu, aynı dosyadaki bilet-tipi dropdown'ını görmezden geliyordu — main'in doğru versiyonu korundu.
+- **`CartPage.jsx` / `CartPage.test.jsx`:** Alp, rezervasyon oluşturmayı `CartPage`'den tamamen çıkarıp `/odeme` akışına taşımıştı (Kaan'ın 1.4.8'inin amacı zaten buydu) — Alp'in tarafı alındı.
+- **`AdminDashBoard.jsx` (silinmiş/case):** Bu tam olarak Sprint 1'de bulunup düzeltilen **K1 case-sensitivity bug'ının** ta kendisiydi — Alp'in dosyası sahte hardcoded istatistik gösteren eski versiyondu. Ayrıca bu dosyayı silerken **Windows'un case-insensitive dosya sisteminde diskteki tek dosya olduğu için doğru `AdminDashboard.jsx` da fiziksel olarak silindi** — fark edip `git checkout-index` ile geri yükledim.
+- **`reservationService.js`:** Alp'in `reserveAllSeats`'i rezervasyonu **atomik hale getirmiş** — `SPRINT1_REVIEW.md`'deki O5 teknik borcunu çözüyor, alındı.
+- Merge sonrası 8 lint hatası çıktı (Alp hiç lint çalıştırmamış) — hepsi düzeltildi.
+
+Çözümü doğru `Alp` branch'ine (case-insensitive FS'te `alp`/`Alp` çakışmasını önlemek için önce sil-sonra-oluştur sırasıyla) taşıdım, kullanıcı push etti, main'e merge edildi (PR #14). Tam detay: bu konuşmanın önceki turları.
+
+---
+
+## Sprint 3 — Kalan 6 görev: 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11 — hepsi ✅
+
+Alp merge'i main'e alındıktan sonra kendi backlog'umun kalanını tek oturumda bitirdim.
+
+**Veri modeli genişletmeleri:** `data/movies.js`'e her filme `rating: {average, count}` ve `fragmanYoutubeId` eklendi (3 film kasıtlı `fragmanYoutubeId: null` — REQ-09.1 fallback'ini gerçek veriyle test edebilmek için). Yeni `data/comments.js` (2 seed yorum, id 1'e). Yeni servisler: `ratingService.js` (localStorage, kullanıcı puanı seed ortalamasının üzerine ağırlıklı ekleniyor), `commentService.js` (10-500 karakter + yasaklı kelime + sahiplik kontrolü). `errors.js`'e `ValidationError`/`ForbiddenError` eklendi.
+
+**1.3.3 + 1.3.4 (Sıralama + Filtreleme, REQ-08.1):** `movieService.sortMovies`/`filterMovies`/`getAvailableGenres`/`getAvailableAgeRatings` + `SortControl.jsx`/`FilterControl.jsx`, `HomePage.jsx`'e entegre, aktif sekmenin filmleri üzerinde birlikte çalışıyor, filtre sonucu boşsa ayrı bir empty-state mesajı var.
+
+**1.3.8 (Fragman modalı, REQ-09/09.1):** `TrailerModal.jsx` — YouTube iframe, Escape/backdrop/kapat butonuyla kapanır. Tarayıcıda iframe yükleme başarısızlığını güvenilir tespit etmenin bir yolu olmadığı için fallback iki katmanlı: `onError` + her zaman görünen "YouTube'da Aç" linki.
+
+**1.3.9 (Puanlama, REQ-11):** `RatingStars.jsx` — yalnız üye puanlar, **sadece vizyondaki (yayınlanmış) filmlerde gösteriliyor** (REQ-11'in "Vizyonda film detayında" ifadesine sadık kalındı — "Yakında" filmlerinde bölüm hiç render edilmiyor).
+
+**1.3.10 + 1.3.11 (Yorum formu + listeleme, REQ-11/11.1):** `CommentForm.jsx` + `CommentList.jsx` — ziyaretçiye form hiç render edilmiyor, sadece "giriş yap" mesajı; mock (`seed-`) + kullanıcı (`comment-`) yorumları birlikte listeleniyor, tarihe göre yeniden eskiye; yalnız kendi (seed olmayan) yorumunu düzenler/siler.
+
+**Self-review'da bulunan ve düzeltilen 3 gerçek sorun:**
+1. `RatingStars.jsx`'te yıldızlar `role="radiogroup"` içindeydi ama `<button>` çocukları `role="radio"` değildi — geçersiz ARIA kombinasyonu, kaldırıldı.
+2. Ziyaretçi için de yıldız hover önizlemesi çalışıyordu (tıklanamayacak bir etkileşim izlenimi veriyordu) — `role === "member"` koşuluna bağlandı.
+3. `SortControl.jsx`'te `SORT_OPTIONS` dizisini named export yapmıştım — `react-refresh/only-export-components` lint hatası verdi (bileşen dosyaları sadece bileşen export etmeli). Kullanılmadığı için export'u kaldırdım, dosya içinde private kaldı.
+
+Ayrıca test yazarken gerçek bir **test-tuzağı** buldum ve düzelttim: `findByText` bazen kontrollü `<textarea>`'nın kendi (React'in senkronize ettiği) metnini eşleştiriyordu, gerçek liste elemanını değil — testleri `within(list)` ile listeye scope'layarak ve mutation'ın gerçekten bitmesini bekleyerek düzelttim (yanlışlıkla "geçti" görünen ama aslında yanlış şeyi test eden 2 test).
+
+**Testler (yeni, ~47 test):** `movieService.test.js` +11 (sort/filter), `HomePage.test.jsx` +4, `MovieDetailsPage.test.jsx` yeni dosya +12 (trailer/rating/yorum), `ratingService.test.js` yeni +8, `commentService.test.js` yeni +12.
+
+**Kalite kontrolleri (son hâliyle):** `npm run test:run` → 20 dosya / 164 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+
+`docs/PLAN.md` ve `docs/WBS_GOREV_DAGILIMI.md` güncellendi: 44 görevin 37'si bitti, kalan 7'si Ömer'in.
+
+---
+
+## Sprint 3 (konsolide backlog) — 1/8: 1.3.6 Yakında 6 ay zaman kısıtı
+
+**Görev:** 1.3.6 — REQ-15 — "Yakında" listesini bugünden itibaren en fazla 6 ay içinde vizyona girecek filmlerle sınırla.
+**Durum:** ✅ Tamamlandı
+**Bağımlılık:** 1.3.1 ✅, 1.3.5 ✅ (ikisi de hazırdı).
+
+**Ne yapıldı:**
+- `movieService.js`'e `isWithinComingSoonWindow(movie, referenceDate, monthsAhead = 6)` eklendi — saf (pure) fonksiyon, `isMovieArchived`/`isMovieReleased` ile aynı desende (`parseIsoDateOnly`/`toDateOnly` paylaşılıyor, ISO tarih manuel Y/M/D ile parse ediliyor, timezone off-by-one riski yok). `releaseDate` alanı yoksa `true` döner — `isMovieReleased`'daki güvenli varsayılanla tutarlı (zaten `!isMovieReleased` ile birlikte kullanıldığı için bu dal pratikte devreye girmez, ama fonksiyonun kendi sözleşmesi eksiksiz kalsın diye eklendi).
+- `HomePage.jsx`: `comingSoonMovies` filtresi artık `!isMovieReleased(movie) && isWithinComingSoonWindow(movie)` — 6 aydan uzak filmler "Yakında" sekmesinde görünmüyor ama `movies.js`'ten silinmiyor, admin panelinden hâlâ erişilebilir (kabul kriteriyle birebir).
+- **Veri değişikliği yok:** Mevcut `movies.js`'teki hiçbir filmin vizyon tarihi bugünden (2026-07-22) 6 aydan uzak değil, dolayısıyla görünür davranışta bir değişiklik yok — bu normal, kısıt gelecekte eklenecek uzak-tarihli filmler için bir güvenlik/temizlik kuralı. Test edilebilirlik için veri eklemedim (mevcut testler sınır durumlarını sentetik `referenceDate` ile zaten kapsıyor).
+
+**Testler (yeni, 4 test, `movieService.test.js`):** pencere içinde / pencere sınırında (tam 6 ay, dahil) / pencere dışında / `releaseDate` yok → `true`.
+
+**Kalite kontrolleri:** `npm run test:run` → 17 dosya / 117 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+
+> **Not:** Bu doğrulama turunda Bash aracı bir kere `vitest` worker havuzunu ortam kaynak kısıtı yüzünden çökertip "Vitest failed to find the current suite" hatası verdi (tüm 17 suite aynı anda, gerçek bir kod hatası değil). PowerShell'de tekrar çalıştırılınca temiz geçti — gerçek bir regresyon değildi, sadece o anki kabuk/ortam sorunuydu.
 
 ---
 
@@ -162,4 +261,4 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 
 ## Sırada Ne Var
 
-Sprint 1 ve Sprint 2 tamamen bitti (4 kişi de). Artık sprint sprint değil, `docs/PLAN.md`'nin yeni "Sprint 3 — Konsolide Backlog" yapısına göre ilerleniyor: her kişinin kendi kalan görev listesi var, sprint sınırı yok. Benim (Berke'nin) sıradaki görevim backlog'umun ilk maddesi: **1.3.6 — Yakında 6 ay zaman kısıtı (REQ-15)**, `movieService.js` + `HomePage.jsx`; ardından sırayla 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, ve en son (Kaan'ın 1.4.5'ini bekleyen) 1.2.10. Tam liste ve gerekçeler `docs/PLAN.md` §5 SPRINT 3'te.
+**Proje tamamen bitti — 44/44 görev main'de, backlog kalmadı.** Bu oturumda yaptığım ekip-geneli review'da bulduğum 3 bug + 8 lint hatası + housekeeping düzeltmeleri şu an `berke` branch'inde, **push edilmedi**. Benim tarafımdan yapılacak bir sonraki geliştirme adımı yok; kullanıcının bu düzeltmeleri push edip main'e alması bekleniyor. İsteğe bağlı, düşük öncelikli açık kalan tek şeyler: admin panelindeki 4 hardcoded renk (tema tokenlarına bağlı değil) ve sinema kartındaki işlevsiz "Seansları Gör" butonu — ikisi de sahipsiz, ekiple konuşulmalı (bkz. `docs/PLAN.md` §8).

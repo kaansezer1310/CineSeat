@@ -15,6 +15,7 @@ import {
     isValidTicketType,
 } from "../domain/ticketType.js";
 import movieService from "../services/movieService.js";
+import { calcItemTotal, formatPrice } from "../services/pricing.js";
 import seatService from "../services/seatService.js";
 import sessionService from "../services/sessionService.js";
 import useCart from "../hooks/useCart.js";
@@ -289,8 +290,22 @@ function BookingPage() {
 
     const selectedSeatCount = selectedSeats.length;
 
+    // Bilet tipine göre fiyat farkını yansıtmak için sepetle aynı
+    // fiyatlandırma mantığı (`calcItemTotal`) kullanılır; düz
+    // `selectedSeatCount * session.price` çarpımı öğrenci/çocuk
+    // indirimini yok sayardı.
     const totalPrice = session
-        ? selectedSeatCount * session.price
+        ? calcItemTotal({
+              unitPrice: session.price,
+              seats: selectedSeats.map((seatId) => {
+                  return {
+                      seatId,
+                      ticketType:
+                          ticketTypesBySeatId[seatId] ??
+                          DEFAULT_TICKET_TYPE,
+                  };
+              }),
+          })
         : 0;
 
     const hasSelectedSeats = selectedSeatCount > 0;
@@ -475,7 +490,7 @@ function BookingPage() {
 
                     <div className="booking-total">
                         <span>Toplam</span>
-                        <strong>{totalPrice} TL</strong>
+                        <strong>{formatPrice(totalPrice)} TL</strong>
                     </div>
 
                     <button

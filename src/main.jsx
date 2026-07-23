@@ -9,6 +9,8 @@ import {
 import App from "./App.jsx";
 import CartProvider from "./context/CartProvider.jsx";
 import AuthProvider from "./context/AuthProvider.jsx";
+import ThemeProvider from "./context/ThemeProvider.jsx";
+import WatchlistProvider from "./context/WatchlistProvider.jsx";
 import { shouldRetryQuery } from "./services/errors.js";
 
 import "./index.css";
@@ -25,11 +27,15 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <CartProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </CartProvider>
+        <ThemeProvider>
+          <CartProvider>
+            <AuthProvider>
+              <WatchlistProvider>
+                <App />
+              </WatchlistProvider>
+            </AuthProvider>
+          </CartProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>

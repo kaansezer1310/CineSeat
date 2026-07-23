@@ -112,7 +112,7 @@ describe("RegisterPage", () => {
 
     fillRequiredFields({
       email: "berke@cineseat.com",
-      username: "yepyeni-kullanici-adi",
+      username: "yepyeniadi",
     });
 
     fireEvent.click(

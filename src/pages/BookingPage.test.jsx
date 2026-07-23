@@ -134,7 +134,7 @@ describe("BookingPage", () => {
     const summary = screen.getByRole("complementary");
 
     expect(
-      within(summary).getByText("220 TL")
+      within(summary).getByText("220,00 TL")
     ).toBeInTheDocument();
   });
 
@@ -221,7 +221,7 @@ describe("BookingPage", () => {
 
     const summary = screen.getByRole("complementary");
 
-    expect(within(summary).getByText("440 TL"))
+    expect(within(summary).getByText("440,00 TL"))
       .toBeInTheDocument();
 
     act(() => {
@@ -245,7 +245,7 @@ describe("BookingPage", () => {
     );
     expect(within(summary).getByText("B1"))
       .toBeInTheDocument();
-    expect(within(summary).getByText("220 TL"))
+    expect(within(summary).getByText("220,00 TL"))
       .toBeInTheDocument();
     expect(
       screen.queryByLabelText("A1 koltuğu bilet tipi")
@@ -393,6 +393,44 @@ describe("BookingPage", () => {
         ticketType: TICKET_TYPE.STUDENT,
       },
     ]);
+  });
+
+  it("bilet tipi değiştirildiğinde toplam fiyata yansır", async () => {
+    renderBookingPage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /A1 numaralı koltuk, Boş/,
+      })
+    );
+
+    const summary = screen.getByRole("complementary");
+
+    expect(
+      within(summary).getByText("220,00 TL")
+    ).toBeInTheDocument();
+
+    fireEvent.change(
+      screen.getByLabelText("A1 koltuğu bilet tipi"),
+      { target: { value: TICKET_TYPE.STUDENT } }
+    );
+
+    expect(
+      within(summary).getByText("165,00 TL")
+    ).toBeInTheDocument();
+
+    fireEvent.change(
+      screen.getByLabelText("A1 koltuğu bilet tipi"),
+      { target: { value: TICKET_TYPE.CHILD } }
+    );
+
+    expect(
+      within(summary).getByText("132,00 TL")
+    ).toBeInTheDocument();
   });
 
   it("kilitli veya dolu koltuğu sepete eklemez", async () => {

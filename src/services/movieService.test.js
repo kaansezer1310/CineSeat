@@ -125,6 +125,164 @@ describe("REQ-05 — arşivlenen film verisi silinmez", () => {
   });
 });
 
+describe("movieService.isWithinComingSoonWindow", () => {
+  it("vizyon tarihi 6 ay penceresi içindeyse true döner", () => {
+    const movie = { releaseDate: "2027-01-10" };
+
+    expect(
+      movieService.isWithinComingSoonWindow(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+
+  it("vizyon tarihi tam 6 ay sonraysa (pencere sınırı) true döner", () => {
+    const movie = { releaseDate: "2027-01-16" };
+
+    expect(
+      movieService.isWithinComingSoonWindow(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+
+  it("vizyon tarihi 6 aydan uzaksa false döner", () => {
+    const movie = { releaseDate: "2027-01-17" };
+
+    expect(
+      movieService.isWithinComingSoonWindow(
+        movie,
+        new Date(2026, 6, 16)
+      )
+    ).toBe(false);
+  });
+
+  it("releaseDate alanı yoksa true döner (isMovieReleased ile aynı güvenli varsayılan)", () => {
+    expect(
+      movieService.isWithinComingSoonWindow(
+        {},
+        new Date(2026, 6, 16)
+      )
+    ).toBe(true);
+  });
+});
+
+describe("movieService.sortMovies", () => {
+  const a = {
+    title: "A",
+    releaseDate: "2026-01-10",
+    rating: { average: 3.0 },
+  };
+  const b = {
+    title: "B",
+    releaseDate: "2026-03-05",
+    rating: { average: 4.5 },
+  };
+  const c = {
+    title: "C",
+    releaseDate: "2026-02-01",
+    rating: { average: 1.2 },
+  };
+
+  it("date-desc (varsayılan): vizyon tarihi yeniden eskiye sıralar", () => {
+    const sorted = movieService.sortMovies([a, b, c], "date-desc");
+
+    expect(sorted.map((m) => m.title)).toEqual(["B", "C", "A"]);
+  });
+
+  it("date-asc: vizyon tarihi eskiden yeniye sıralar", () => {
+    const sorted = movieService.sortMovies([a, b, c], "date-asc");
+
+    expect(sorted.map((m) => m.title)).toEqual(["A", "C", "B"]);
+  });
+
+  it("rating-desc: puanı yüksekten düşüğe sıralar", () => {
+    const sorted = movieService.sortMovies([a, b, c], "rating-desc");
+
+    expect(sorted.map((m) => m.title)).toEqual(["B", "A", "C"]);
+  });
+
+  it("rating-asc: puanı düşükten yükseğe sıralar", () => {
+    const sorted = movieService.sortMovies([a, b, c], "rating-asc");
+
+    expect(sorted.map((m) => m.title)).toEqual(["C", "A", "B"]);
+  });
+
+  it("orijinal diziyi mutasyona uğratmaz", () => {
+    const original = [a, b, c];
+    movieService.sortMovies(original, "rating-desc");
+
+    expect(original.map((m) => m.title)).toEqual(["A", "B", "C"]);
+  });
+});
+
+describe("movieService.filterMovies", () => {
+  const movies = [
+    { title: "A", genre: "Komedi", ageRating: "7+" },
+    { title: "B", genre: "Korku", ageRating: "18+" },
+    { title: "C", genre: "Komedi", ageRating: "13+" },
+  ];
+
+  it("genre 'all' ise türe göre filtrelemez", () => {
+    const result = movieService.filterMovies(movies, {
+      genre: "all",
+      ageRating: "all",
+    });
+
+    expect(result).toHaveLength(3);
+  });
+
+  it("belirli bir türe göre filtreler", () => {
+    const result = movieService.filterMovies(movies, {
+      genre: "Komedi",
+      ageRating: "all",
+    });
+
+    expect(result.map((m) => m.title)).toEqual(["A", "C"]);
+  });
+
+  it("tür ve yaş sınırını birlikte uygular", () => {
+    const result = movieService.filterMovies(movies, {
+      genre: "Komedi",
+      ageRating: "13+",
+    });
+
+    expect(result.map((m) => m.title)).toEqual(["C"]);
+  });
+
+  it("eşleşme yoksa boş dizi döner", () => {
+    const result = movieService.filterMovies(movies, {
+      genre: "Bilim Kurgu",
+      ageRating: "all",
+    });
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe("movieService.getAvailableGenres / getAvailableAgeRatings", () => {
+  const movies = [
+    { genre: "Korku", ageRating: "18+" },
+    { genre: "Komedi", ageRating: "7+" },
+    { genre: "Komedi", ageRating: "13+" },
+  ];
+
+  it("tekrarsız, alfabetik sıralı tür listesi döner", () => {
+    expect(movieService.getAvailableGenres(movies)).toEqual([
+      "Komedi",
+      "Korku",
+    ]);
+  });
+
+  it("tekrarsız, alfabetik sıralı yaş sınırı listesi döner", () => {
+    expect(
+      movieService.getAvailableAgeRatings(movies)
+    ).toEqual(["13+", "18+", "7+"]);
+  });
+});
+
 describe("movieService.parseIsoDateOnly", () => {
   it("ISO tarih dizisini yerel tarihe çevirir", () => {
     const parsed = movieService.parseIsoDateOnly(

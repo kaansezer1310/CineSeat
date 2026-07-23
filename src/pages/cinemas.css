@@ -77,6 +77,6 @@
 }
 
 .cinema-distance strong {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
   font-size: 1rem;
 }

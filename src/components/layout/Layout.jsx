@@ -1,14 +1,18 @@
-import {
-  Link,
-  Outlet,
-} from "react-router-dom";
+import { useEffect } from "react";
+import { Link, Outlet } from "react-router-dom";
 
 import useCart from "../../hooks/useCart.js";
 import useAuth from "../../hooks/useAuth.js";
+import useTheme from "../../hooks/useTheme.js";
 
 function Layout() {
   const { state } = useCart();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+  }, [theme]);
 
   const totalTicketCount = state.items.reduce(
     (total, item) => {
@@ -29,7 +33,7 @@ function Layout() {
 
           {user ? (
             <>
-              <span style={{ color: "var(--color-text-muted)" }}>
+              <span style={{ color: "var(--color-header-text-muted)" }}>
                 Hoşgeldin, {user.name}
               </span>
               <Link to="/profile">Profilim</Link>
@@ -37,7 +41,7 @@ function Layout() {
                 onClick={logout}
                 style={{
                   background: "transparent",
-                  color: "var(--color-yellow)",
+                  color: "var(--color-header-accent)",
                   cursor: "pointer",
                 }}
               >
@@ -61,6 +65,23 @@ function Layout() {
               {totalTicketCount}
             </span>
           </Link>
+
+          <button
+            onClick={toggleTheme}
+            className="theme-toggle-button"
+            title={
+              theme === "light"
+                ? "Koyu temaya geç"
+                : "Açık temaya geç"
+            }
+            aria-label={
+              theme === "light"
+                ? "Koyu temaya geç"
+                : "Açık temaya geç"
+            }
+          >
+            {theme === "light" ? "🌙" : "☀️"}
+          </button>
         </nav>
       </header>
 

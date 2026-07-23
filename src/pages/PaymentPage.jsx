@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useCart from "../hooks/useCart.js";
@@ -28,12 +28,36 @@ function PaymentPage() {
     email: "",
   });
 
+  const isNavigatingToNextStep = useRef(false);
+
+  // Token ve Timer Başlangıcı
+  const [lockToken] = useState(() => {
+    let token = sessionStorage.getItem("cineseat_lock_token");
+    if (!token) {
+      token = Math.random().toString(36).substring(2);
+      sessionStorage.setItem("cineseat_lock_token", token);
+    }
+    return token;
+  });
+
+  const [initialTimeRemaining] = useState(() => {
+    let expiresAt = sessionStorage.getItem("cineseat_lock_expires");
+    if (!expiresAt) {
+      expiresAt = Date.now() + 180000;
+      sessionStorage.setItem("cineseat_lock_expires", expiresAt.toString());
+    }
+    const remaining = Math.max(0, Math.floor((parseInt(expiresAt) - Date.now()) / 1000));
+    return remaining;
+  });
+
   function handleTimeout() {
+    sessionStorage.removeItem("cineseat_lock_token");
+    sessionStorage.removeItem("cineseat_lock_expires");
     dispatch({ type: "CLEAR_CART" });
     navigate("/cart");
   }
 
-  const { formatTime } = useCountdown(180, () => {
+  const { formatTime } = useCountdown(initialTimeRemaining, () => {
     handleTimeout();
   });
 
@@ -52,6 +76,7 @@ function PaymentPage() {
       seatService.lockSeats({
         sessionId: item.sessionId,
         seats: item.seats.map((seat) => seat.seatId),
+        lockToken,
       }).catch(() => {
         // Zaten doluysa sepete geri dön
         navigate("/cart");
@@ -61,13 +86,18 @@ function PaymentPage() {
     Promise.all(lockPromises);
 
     return () => {
-      // Unmount olduğunda (ve başarılı değilse), kilitleri aç
-      state.items.forEach((item) => {
-        seatService.releaseLockedSeats({
-          sessionId: item.sessionId,
-          seats: item.seats.map((seat) => seat.seatId),
+      // Unmount olduğunda, eğer başarı veya hata sayfasına gitmiyorsak kilitleri aç
+      if (!isNavigatingToNextStep.current) {
+        state.items.forEach((item) => {
+          seatService.releaseLockedSeats({
+            sessionId: item.sessionId,
+            seats: item.seats.map((seat) => seat.seatId),
+            lockToken,
+          });
         });
-      });
+        sessionStorage.removeItem("cineseat_lock_token");
+        sessionStorage.removeItem("cineseat_lock_expires");
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -84,10 +114,15 @@ function PaymentPage() {
           queryClient.invalidateQueries({ queryKey: ["reservedSeats", item.sessionId] })
         )
       );
+      sessionStorage.removeItem("cineseat_lock_token");
+      sessionStorage.removeItem("cineseat_lock_expires");
       dispatch({ type: "CLEAR_CART" });
+      
+      isNavigatingToNextStep.current = true;
       navigate("/success", { state: { reservation } });
     },
     onError: () => {
+      isNavigatingToNextStep.current = true;
       navigate("/odeme-hata");
     }
   });
@@ -96,6 +131,7 @@ function PaymentPage() {
     e.preventDefault();
 
     if (paymentForm.cardNumber.startsWith("0000")) {
+      isNavigatingToNextStep.current = true;
       navigate("/odeme-hata");
       return;
     }
@@ -108,6 +144,7 @@ function PaymentPage() {
     const payload = {
       cartItems: cartSnapshot,
       visitorInfo: (!user || user.role === "guest") ? visitorForm : null,
+      lockToken,
     };
 
     reservationMutation.mutate(payload);
@@ -126,86 +163,104 @@ function PaymentPage() {
         </p>
       </div>
 
-      <div className="payment-layout" style={{ display: 'flex', gap: '2rem' }}>
-        <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
+      <div className="payment-layout">
+        <form className="auth-form payment-form" onSubmit={handleSubmit}>
+
           {(!user || user.role === "guest") && (
             <div className="form-group-section">
               <h2>Ziyaretçi Bilgileri</h2>
-              <label>
-                Ad
+
+              <div className="auth-field">
+                <label htmlFor="payment-visitor-first-name">Ad</label>
                 <input
+                  id="payment-visitor-first-name"
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={50}
                   value={visitorForm.firstName}
                   onChange={(e) => setVisitorForm({ ...visitorForm, firstName: e.target.value })}
                 />
-              </label>
-              <label>
-                Soyad
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="payment-visitor-last-name">Soyad</label>
                 <input
+                  id="payment-visitor-last-name"
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={50}
                   value={visitorForm.lastName}
                   onChange={(e) => setVisitorForm({ ...visitorForm, lastName: e.target.value })}
                 />
-              </label>
-              <label>
-                E-posta
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="payment-visitor-email">E-posta</label>
                 <input
+                  id="payment-visitor-email"
                   type="email"
                   required
                   value={visitorForm.email}
                   onChange={(e) => setVisitorForm({ ...visitorForm, email: e.target.value })}
                 />
-              </label>
+              </div>
             </div>
           )}
 
           <div className="form-group-section">
             <h2>Kart Bilgileri</h2>
-            <label>
-              Kart Sahibinin Adı
+
+            <div className="auth-field">
+              <label htmlFor="payment-card-name">Kart Sahibinin Adı</label>
               <input
+                id="payment-card-name"
                 type="text"
                 required
                 value={paymentForm.cardName}
                 onChange={(e) => setPaymentForm({ ...paymentForm, cardName: e.target.value })}
               />
-            </label>
-            <label>
-              Kart Numarası (Hata için 0000 ile başlayın)
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="payment-card-number">Kart Numarası (Hata için 0000 ile başlayın)</label>
               <input
+                id="payment-card-number"
                 type="text"
                 required
                 value={paymentForm.cardNumber}
                 onChange={(e) => setPaymentForm({ ...paymentForm, cardNumber: e.target.value })}
               />
-            </label>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <label style={{ flex: 1 }}>
-                Son Kullanma (AA/YY)
+            </div>
+
+            <div className="auth-row">
+              <div className="auth-field">
+                <label htmlFor="payment-card-expiry">Son Kullanma (AA/YY)</label>
                 <input
+                  id="payment-card-expiry"
                   type="text"
                   required
                   value={paymentForm.expiryDate}
                   onChange={(e) => setPaymentForm({ ...paymentForm, expiryDate: e.target.value })}
                 />
-              </label>
-              <label style={{ flex: 1 }}>
-                CVV
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="payment-card-cvv">CVV</label>
                 <input
+                  id="payment-card-cvv"
                   type="text"
                   required
                   value={paymentForm.cvv}
                   onChange={(e) => setPaymentForm({ ...paymentForm, cvv: e.target.value })}
                 />
-              </label>
+              </div>
             </div>
           </div>
 
           <button
-            className="primary-button"
+            className="primary-button auth-submit"
             type="submit"
             disabled={reservationMutation.isPending}
           >
@@ -213,7 +268,7 @@ function PaymentPage() {
           </button>
         </form>
 
-        <aside style={{ flex: 1 }}>
+        <aside className="payment-summary">
           <div className="cart-summary">
             <h2>Sipariş Özeti</h2>
             <div className="cart-summary-total">

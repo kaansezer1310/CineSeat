@@ -3,6 +3,11 @@ import {
 } from "../domain/seatStatus.js";
 import { ApiError, ConflictError } from "./errors.js";
 
+// ---------------------------------------------------------------------------
+// Mock/seed veri
+// ---------------------------------------------------------------------------
+// DOLU (ödemesi tamamlanmış) koltuklar — seans başına başlangıç durumu.
+// localStorage'da hiç kayıt yoksa bu değerler kullanılır.
 const initialReservedSeats = {
   101: ["A2", "A3", "B5", "C1", "D7"],
   102: ["A1", "A8", "B2", "B3", "C6"],
@@ -21,6 +26,10 @@ const initialReservedSeats = {
   403: ["A2", "A7", "B5", "D6"],
 };
 
+// GECICI_KILITLI (REQ-19 sayaç işleyen, geçici tutulan) koltuklar için
+// başlangıç durumu. Şu an hiçbir akış otomatik olarak koltuk kilitlemiyor
+// (1.4.7'nin kapsamı); burada yalnızca 101 seansında dört durumu bir arada
+// gösterebilmek için küçük bir örnek veri tutuluyor.
 const initialLockedSeats = {
   101: ["A5", "A6"],
 };
@@ -31,6 +40,15 @@ function wait(milliseconds) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Güvenli storage erişimi
+// ---------------------------------------------------------------------------
+// localStorage hiçbir zaman güvenilir/yetkili veri olarak kabul edilmez;
+// bozuk JSON, beklenmeyen şema veya eksik değer durumlarında sistemi asla
+// çökertmeyecek şekilde okunur. `null` dönüşü "storage'da hiç kayıt yok"
+// anlamına gelir (bu durumda mock başlangıç verisine düşülür); bozuk/şema
+// dışı veri ise sessizce boş listeye (`[]`) normalize edilir — eski (mock)
+// veriyi geri diriltmeyiz, çünkü storage anahtarı zaten "kullanılmış".
 function readStoredSeatIdList(storageKey) {
   let rawValue;
 
@@ -70,6 +88,26 @@ function writeSeatIdList(storageKey, seatIds) {
       JSON.stringify(seatIds)
     );
   } catch {
+    // Hata yutulur
+  }
+}
+
+function readStoredLockedSeatsMap(storageKey) {
+  try {
+    const rawValue = localStorage.getItem(storageKey);
+    if (!rawValue) return {};
+    const parsed = JSON.parse(rawValue);
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeStoredLockedSeatsMap(storageKey, map) {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(map));
+  } catch {
+    // Hata yutulur
   }
 }
 
@@ -81,6 +119,9 @@ function getLockStorageKey(sessionId) {
   return `locked-seats-${sessionId}`;
 }
 
+// ---------------------------------------------------------------------------
+// Girdi doğrulama
+// ---------------------------------------------------------------------------
 function normalizeSessionId(sessionId) {
   const numericSessionId = Number(sessionId);
 
@@ -118,6 +159,9 @@ function normalizeSeatIdList(seats) {
   return [...new Set(validSeatIds)];
 }
 
+// ---------------------------------------------------------------------------
+// Depolanan durumların okunması
+// ---------------------------------------------------------------------------
 async function getDoluSeatIds(sessionId) {
   const numericSessionId = normalizeSessionId(sessionId);
 
@@ -139,21 +183,32 @@ async function getLockedSeatIds(sessionId) {
 
   await wait(400);
 
-  const storedList = readStoredSeatIdList(
+  const storedMap = readStoredLockedSeatsMap(
     getLockStorageKey(numericSessionId)
   );
 
-  if (storedList === null) {
+  const seatIds = Object.keys(storedMap);
+  if (seatIds.length === 0) {
     return [...(initialLockedSeats[numericSessionId] ?? [])];
   }
 
-  return storedList;
+  return seatIds;
 }
 
+// Geriye dönük uyumluluk katmanı: `getReservedSeatsBySessionId`, mevcut
+// `reservationService` ve daha önceki bileşenler tarafından "bu seanstaki
+// dolu/alınmış koltuklar" anlamında kullanılıyordu. Dört durumlu modelde bu,
+// tam olarak DOLU koltuklar kümesine karşılık gelir; imza ve dönüş şekli
+// (string dizisi) değişmeden korunur.
 async function getReservedSeatsBySessionId(sessionId) {
   return getDoluSeatIds(sessionId);
 }
 
+// Bir seanstaki her koltuğun *depolanan* (BOS dışındaki) durumunu döner:
+// { [seatId]: "GECICI_KILITLI" | "DOLU" }. BOS koltuklar haritada yer almaz;
+// bir seatId haritada yoksa BOS kabul edilir. SECILI bu haritada asla yer
+// almaz — SECILI, kullanıcının yerel seçimiyle türetilen bir görüntüleme
+// durumudur, servis tarafında kalıcı tutulmaz (bkz. `resolveDisplaySeatStatus`).
 async function getSeatStatusesBySessionId(sessionId) {
   const numericSessionId = normalizeSessionId(sessionId);
 
@@ -168,6 +223,8 @@ async function getSeatStatusesBySessionId(sessionId) {
     statusesBySeatId[seatId] = SEAT_STATUS.GECICI_KILITLI;
   });
 
+  // DOLU, GECICI_KILITLI ile aynı koltukta çakışırsa (normalde olmaması
+  // gereken bir durum) DOLU üstün gelir — REQ-01'de DOLU nihai durumdur.
   doluSeatIds.forEach((seatId) => {
     statusesBySeatId[seatId] = SEAT_STATUS.DOLU;
   });
@@ -175,23 +232,32 @@ async function getSeatStatusesBySessionId(sessionId) {
   return statusesBySeatId;
 }
 
-async function lockSeats({ sessionId, seats }) {
+// ---------------------------------------------------------------------------
+// Durum geçişleri (yazma işlemleri)
+// ---------------------------------------------------------------------------
+// GECICI_KILITLI oluşturur (SECILI/BOS -> GECICI_KILITLI). Şu anki booking
+// akışı henüz bu fonksiyonu çağırmıyor (geri sayım/ödeme adımı 1.4.7/1.4.8
+// kapsamındadır); fonksiyon, o görev üzerine inşa edilecek şekilde burada
+// hazır tutulur ve zaten DOLU olan koltukları güvenle reddeder.
+async function lockSeats({ sessionId, seats, lockToken }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
 
+  if (!lockToken) {
+    throw new ApiError("Kilit işlemi için token gereklidir.", { status: 400 });
+  }
+
   await wait(300);
 
-  const [currentDoluSeatIds, currentLockedSeatIds] =
-    await Promise.all([
-      getDoluSeatIds(numericSessionId),
-      getLockedSeatIds(numericSessionId),
-    ]);
+  const currentDoluSeatIds = await getDoluSeatIds(numericSessionId);
+  const storedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
 
-  const unavailableSeatIds = normalizedSeatIds.filter(
-    (seatId) => {
-      return currentDoluSeatIds.includes(seatId);
-    }
-  );
+  const unavailableSeatIds = normalizedSeatIds.filter((seatId) => {
+    // Eğer doluysa veya başka biri tarafından kilitliyse alınamaz
+    const isDolu = currentDoluSeatIds.includes(seatId);
+    const isLockedByOther = storedMap[seatId] && storedMap[seatId] !== lockToken;
+    return isDolu || isLockedByOther;
+  });
 
   if (unavailableSeatIds.length > 0) {
     throw new ConflictError(
@@ -199,57 +265,64 @@ async function lockSeats({ sessionId, seats }) {
     );
   }
 
-  const updatedLockedSeatIds = [
-    ...new Set([
-      ...currentLockedSeatIds,
-      ...normalizedSeatIds,
-    ]),
-  ];
+  // Token ile kilitle
+  normalizedSeatIds.forEach((seatId) => {
+    storedMap[seatId] = lockToken;
+  });
 
-  writeSeatIdList(
+  writeStoredLockedSeatsMap(
     getLockStorageKey(numericSessionId),
-    updatedLockedSeatIds
+    storedMap
   );
 
-  return updatedLockedSeatIds;
+  return Object.keys(storedMap);
 }
 
-
-async function releaseLockedSeats({ sessionId, seats }) {
+// GECICI_KILITLI -> BOS geri dönüşü (REQ-19 zaman aşımı, REQ-12 kullanıcı
+// iptali, REQ-13 sayaç bitimi). 1.4.7'deki sayaç, süre dolduğunda veya
+// kullanıcı iptalinde bu fonksiyonu çağırarak koltukları serbest bırakır.
+async function releaseLockedSeats({ sessionId, seats, lockToken }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
 
   await wait(200);
 
-  const currentLockedSeatIds = await getLockedSeatIds(
-    numericSessionId
-  );
+  const storedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
 
-  const updatedLockedSeatIds = currentLockedSeatIds.filter(
-    (seatId) => {
-      return !normalizedSeatIds.includes(seatId);
+  let mapChanged = false;
+  normalizedSeatIds.forEach((seatId) => {
+    // Yalnızca kilit sahibi kilidi açabilir
+    if (storedMap[seatId] && storedMap[seatId] === lockToken) {
+      delete storedMap[seatId];
+      mapChanged = true;
     }
-  );
+  });
 
-  writeSeatIdList(
-    getLockStorageKey(numericSessionId),
-    updatedLockedSeatIds
-  );
+  if (mapChanged) {
+    writeStoredLockedSeatsMap(getLockStorageKey(numericSessionId), storedMap);
+  }
 
-  return updatedLockedSeatIds;
+  return Object.keys(storedMap);
 }
 
+// GECICI_KILITLI (veya henüz kilitlenmemiş güncel akışta BOS) -> DOLU.
+//
+// NOT — bu fonksiyon artık üretim akışında kullanılmıyor (dead code, sadece
+// `seatService.test.js`te test kapsamı var): gerçek rezervasyon akışı
+// (`reservationService.createReservation`) atomiklik ve kilit-sahiplik
+// (token) kontrolü için `reserveAllSeats`'i çağırıyor — Y3'te (Sprint 1
+// review) bulunan "GECICI_KILITLI koltuklar için kilit sahibi kavramı yok"
+// açığı orada `lockToken` parametresiyle kapatıldı (bkz. `lockSeats`,
+// `releaseLockedSeats`, `reserveAllSeats`). Bu fonksiyon o kontrolü
+// içermiyor; silinmedi çünkü hâlâ geçerli test kapsamı var, ama yeni kod
+// bunu değil `reserveAllSeats`'i çağırmalı.
 async function reserveSeats({ sessionId, seats }) {
   const numericSessionId = normalizeSessionId(sessionId);
   const normalizedSeatIds = normalizeSeatIdList(seats);
 
   await wait(500);
 
-  const [currentDoluSeatIds, currentLockedSeatIds] =
-    await Promise.all([
-      getDoluSeatIds(numericSessionId),
-      getLockedSeatIds(numericSessionId),
-    ]);
+  const currentDoluSeatIds = await getDoluSeatIds(numericSessionId);
 
   const conflictingSeatIds = normalizedSeatIds.filter(
     (seatId) => {
@@ -270,27 +343,29 @@ async function reserveSeats({ sessionId, seats }) {
     ]),
   ];
 
-  const updatedLockedSeatIds = currentLockedSeatIds.filter(
-    (seatId) => {
-      return !normalizedSeatIds.includes(seatId);
-    }
-  );
+  // Bu koltuklar önceden kilitlenmişse (GECICI_KILITLI -> DOLU), kilit
+  // kaydı temizlenir; kilitlenmemişse (güncel akışta olduğu gibi) bu no-op'tur.
+  const lockedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
+  normalizedSeatIds.forEach((seatId) => {
+    delete lockedMap[seatId];
+  });
 
   writeSeatIdList(
     getDoluStorageKey(numericSessionId),
     updatedDoluSeatIds
   );
-  writeSeatIdList(
+  writeStoredLockedSeatsMap(
     getLockStorageKey(numericSessionId),
-    updatedLockedSeatIds
+    lockedMap
   );
 
   return updatedDoluSeatIds;
 }
 
-async function reserveAllSeats(sessionSeatPairs) {
+async function reserveAllSeats(sessionSeatPairs, lockToken) {
   await wait(500);
 
+  // Doğrulama aşaması (atomik kontrol)
   const currentStatusMap = new Map();
   
   for (const pair of sessionSeatPairs) {
@@ -298,26 +373,35 @@ async function reserveAllSeats(sessionSeatPairs) {
     const normalizedSeatIds = normalizeSeatIdList(pair.seats);
     
     const currentDoluSeatIds = await getDoluSeatIds(numericSessionId);
-    currentStatusMap.set(numericSessionId, { currentDoluSeatIds, normalizedSeatIds });
+    const lockedMap = readStoredLockedSeatsMap(getLockStorageKey(numericSessionId));
+    
+    currentStatusMap.set(numericSessionId, { currentDoluSeatIds, normalizedSeatIds, lockedMap });
 
-    const conflictingSeatIds = normalizedSeatIds.filter((seatId) => currentDoluSeatIds.includes(seatId));
+    const conflictingSeatIds = normalizedSeatIds.filter((seatId) => {
+      const isDolu = currentDoluSeatIds.includes(seatId);
+      const isLockedByOther = lockedMap[seatId] && lockedMap[seatId] !== lockToken;
+      return isDolu || isLockedByOther;
+    });
     
     if (conflictingSeatIds.length > 0) {
       throw new ConflictError(`${conflictingSeatIds.join(", ")} koltukları artık müsait değil.`);
     }
   }
 
+  // Yazma aşaması (atomik yazım)
   for (const pair of sessionSeatPairs) {
     const numericSessionId = normalizeSessionId(pair.sessionId);
-    const { currentDoluSeatIds, normalizedSeatIds } = currentStatusMap.get(numericSessionId);
-    
-    const currentLockedSeatIds = await getLockedSeatIds(numericSessionId);
+    const { currentDoluSeatIds, normalizedSeatIds, lockedMap } = currentStatusMap.get(numericSessionId);
 
     const updatedDoluSeatIds = [...new Set([...currentDoluSeatIds, ...normalizedSeatIds])];
-    const updatedLockedSeatIds = currentLockedSeatIds.filter((seatId) => !normalizedSeatIds.includes(seatId));
+    
+    // Kilitleri temizle
+    normalizedSeatIds.forEach((seatId) => {
+      delete lockedMap[seatId];
+    });
 
     writeSeatIdList(getDoluStorageKey(numericSessionId), updatedDoluSeatIds);
-    writeSeatIdList(getLockStorageKey(numericSessionId), updatedLockedSeatIds);
+    writeStoredLockedSeatsMap(getLockStorageKey(numericSessionId), lockedMap);
   }
 }
 

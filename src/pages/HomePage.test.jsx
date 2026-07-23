@@ -2,6 +2,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import {
   QueryClient,
@@ -17,7 +18,12 @@ import {
 } from "vitest";
 
 import movieService from "../services/movieService.js";
+import useWatchlist from "../hooks/useWatchlist.js";
 import HomePage from "./HomePage.jsx";
+
+vi.mock("../hooks/useWatchlist.js", () => ({
+  default: vi.fn(),
+}));
 
 vi.mock("../services/movieService.js", async () => {
   const actual = await vi.importActual(
@@ -72,6 +78,19 @@ const nowShowingMovie = {
   releaseYear: 2026,
   releaseDate: isoDateOffsetFromToday(-3),
   description: "Vizyondaki film.",
+  rating: { average: 3.5 },
+};
+
+const secondNowShowingMovie = {
+  id: 8,
+  title: "Yanlış Düğün",
+  genre: "Komedi",
+  duration: 101,
+  ageRating: "7+",
+  releaseYear: 2026,
+  releaseDate: isoDateOffsetFromToday(-10),
+  description: "İkinci vizyondaki film.",
+  rating: { average: 4.8 },
 };
 
 const comingSoonMovie = {
@@ -102,6 +121,12 @@ const archivedMovie = {
 describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useWatchlist.mockReturnValue({
+      watchlist: [],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => false),
+      getFavoriteMovieIds: vi.fn(() => []),
+    });
   });
 
   it("varsayılan olarak Vizyonda sekmesini gösterir", async () => {
@@ -211,6 +236,191 @@ describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
 
     expect(
       screen.queryByRole("heading", { name: "Son Tren" })
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("HomePage — Sıralama ve filtreleme (1.3.3 / 1.3.4)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useWatchlist.mockReturnValue({
+      watchlist: [],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => false),
+      getFavoriteMovieIds: vi.fn(() => []),
+    });
+  });
+
+  it("varsayılan sıralama vizyon tarihine göre yeniden eskiyedir", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    const headings = await screen.findAllByRole("heading", {
+      level: 2,
+    });
+
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "Neon Yağmuru",
+      "Yanlış Düğün",
+    ]);
+  });
+
+  it("puana göre sıralama seçilince sırayı değiştirir", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.change(screen.getByLabelText("Sırala"), {
+      target: { value: "rating-desc" },
+    });
+
+    const headings = await screen.findAllByRole("heading", {
+      level: 2,
+    });
+
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "Yanlış Düğün",
+      "Neon Yağmuru",
+    ]);
+  });
+
+  it("türe göre filtreleyince eşleşmeyen filmi gizler", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.change(screen.getByLabelText("Tür"), {
+      target: { value: "Komedi" },
+    });
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Yanlış Düğün",
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Neon Yağmuru" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("filtre sonucu boşsa 'eşleşen film yok' mesajı gösterir", async () => {
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+      secondNowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    fireEvent.change(screen.getByLabelText("Yaş Sınırı"), {
+      target: { value: "18+" },
+    });
+
+    expect(
+      await screen.findByText(
+        "Seçtiğin filtrelere uyan film bulunamadı."
+      )
+    ).toBeInTheDocument();
+  });
+});
+
+describe("HomePage — İzleme listesi vizyona giriş bildirimi (REQ-25 / 1.2.8)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("izleme listesindeki, yakın zamanda vizyona giren bir film için bildirim bandı gösterir", async () => {
+    useWatchlist.mockReturnValue({
+      watchlist: [1],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => true),
+      getFavoriteMovieIds: vi.fn(() => [1]),
+    });
+
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    const banner = await screen.findByRole("status");
+
+    expect(
+      within(banner).getByText(/vizyona girdi!/)
+    ).toBeInTheDocument();
+    expect(
+      within(banner).getByText(nowShowingMovie.title, {
+        exact: false,
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("izleme listesinde olmayan bir film için bildirim göstermez", async () => {
+    useWatchlist.mockReturnValue({
+      watchlist: [],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => false),
+      getFavoriteMovieIds: vi.fn(() => []),
+    });
+
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByRole("heading", {
+      name: "Neon Yağmuru",
+    });
+
+    expect(
+      screen.queryByText(/vizyona girdi!/)
+    ).not.toBeInTheDocument();
+  });
+
+  it("bildirimi kapat butonuna tıklayınca bant kaybolur", async () => {
+    useWatchlist.mockReturnValue({
+      watchlist: [1],
+      toggleFavorite: vi.fn(),
+      isFavorite: vi.fn(() => true),
+      getFavoriteMovieIds: vi.fn(() => [1]),
+    });
+
+    movieService.getMovies.mockResolvedValue([
+      nowShowingMovie,
+    ]);
+
+    renderHomePage();
+
+    await screen.findByText(/vizyona girdi!/);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Bildirimi kapat" })
+    );
+
+    expect(
+      screen.queryByText(/vizyona girdi!/)
     ).not.toBeInTheDocument();
   });
 });
