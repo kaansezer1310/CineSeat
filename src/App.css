@@ -14,14 +14,14 @@
   min-height: 72px;
   padding: 0 6%;
 
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-header-border);
 
-  background: rgba(12, 9, 18, 0.9);
+  background: var(--color-header-background);
   backdrop-filter: blur(14px);
 }
 
 .logo {
-  color: var(--color-text);
+  color: var(--color-header-text);
 
   font-size: 1.45rem;
   font-weight: 700;
@@ -35,7 +35,7 @@
 }
 
 .main-navigation a {
-  color: var(--color-text-muted);
+  color: var(--color-header-text-muted);
 
   font-size: 0.95rem;
   font-weight: 500;
@@ -45,9 +45,16 @@
     transform 150ms ease;
 }
 
-.main-navigation a:hover {
-  color: var(--color-yellow);
+.main-navigation a:hover,
+.main-navigation a:focus-visible {
+  color: var(--color-header-accent);
   transform: translateY(-1px);
+}
+
+.main-navigation a:focus-visible,
+.theme-toggle-button:focus-visible {
+  outline: 2px solid var(--color-header-accent);
+  outline-offset: 3px;
 }
 
 .page-container {
@@ -305,7 +312,7 @@
   transform: translateY(-4px);
   border-color: rgba(208, 172, 89, 0.4);
 
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 12px 28px var(--color-shadow);
 }
 
 .movie-poster-wrapper {
@@ -370,8 +377,8 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px;
 
-  background: rgba(12, 9, 18, 0.82);
-  color: var(--color-text);
+  background: var(--color-overlay-scrim);
+  color: var(--color-on-overlay);
 
   font-size: 0.78rem;
   font-weight: 600;
@@ -440,7 +447,7 @@
 }
 
 .movie-card-footer strong {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
   font-weight: 600;
 }
 
@@ -480,7 +487,7 @@
 
   background: var(--color-surface);
 
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 16px 36px var(--color-shadow-strong);
 }
 
 .movie-details-poster {
@@ -641,7 +648,7 @@
 }
 
 .session-price {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 
   font-size: 0.88rem;
   font-weight: 600;
@@ -692,7 +699,7 @@
 }
 
 .back-link:hover {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 .booking-meta {
@@ -839,8 +846,8 @@
 /* DOLU — ödemesi tamamlanmış, dolu koltuk. */
 .seat-status-dolu {
   border-color: transparent;
-  background: #3e3843;
-  color: #cfc9d3;
+  background: var(--color-seat-occupied-bg);
+  color: var(--color-seat-occupied-text);
 
   cursor: not-allowed;
   opacity: 0.6;
@@ -926,8 +933,6 @@
   padding: 16px 0 18px;
 
   border-bottom: 1px solid var(--color-border);
-
-  color-scheme: dark;
 }
 
 .booking-ticket-types-heading,
@@ -1017,7 +1022,6 @@
 
   appearance: none;
   -webkit-appearance: none;
-  color-scheme: dark;
 }
 
 .ticket-type-select:hover:not(:disabled) {
@@ -1061,7 +1065,7 @@
 }
 
 .booking-total strong {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 
   font-size: 1.35rem;
   font-weight: 700;
@@ -1074,8 +1078,8 @@
 }
 
 .booking-action-button:disabled {
-  background: #4a414f;
-  color: #89808d;
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
 
   cursor: not-allowed;
 }
@@ -1094,7 +1098,7 @@
 }
 
 .clear-selection-button:hover {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 @media (max-width: 900px) {
@@ -1261,7 +1265,7 @@
 }
 
 .cart-item-total {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 
   font-size: 1.35rem;
   font-weight: 700;
@@ -1341,7 +1345,7 @@
 }
 
 .cart-summary-total strong {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 
   font-size: 1.35rem;
   font-weight: 700;
@@ -1352,8 +1356,8 @@
 }
 
 .cart-checkout-button:disabled {
-  background: #4a414f;
-  color: #89808d;
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
 
   cursor: not-allowed;
 }
@@ -1411,17 +1415,17 @@
   margin-bottom: 17px;
   padding: 14px;
 
-  border: 1px solid rgba(215, 123, 130, 0.35);
+  border: 1px solid var(--color-error-border);
   border-radius: 8px;
 
-  background: rgba(215, 123, 130, 0.08);
+  background: var(--color-error-bg);
 }
 
 .checkout-error strong {
   display: block;
   margin-bottom: 6px;
 
-  color: #e29ba1;
+  color: var(--color-error-text);
 
   font-size: 0.88rem;
   font-weight: 600;
@@ -1488,7 +1492,7 @@
 }
 
 .success-reservation-details div:last-child strong {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 
   font-size: 1.1rem;
   font-weight: 700;
@@ -1595,10 +1599,10 @@
   margin-bottom: 20px;
 
   border-radius: 8px;
-  border: 1px solid rgba(220, 80, 80, 0.35);
+  border: 1px solid var(--color-error-border);
 
-  background: rgba(220, 80, 80, 0.1);
-  color: #e8a0a0;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
 
   font-size: 0.9rem;
   font-weight: 500;
@@ -1634,7 +1638,7 @@
 }
 
 .auth-required {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 .auth-field input,
@@ -1672,11 +1676,10 @@
 
 .auth-field select {
   cursor: pointer;
-  color-scheme: dark;
 }
 
 .auth-field-error {
-  color: #e8a0a0;
+  color: var(--color-error-text);
   font-size: 0.8rem;
   font-weight: 500;
 }
@@ -1705,7 +1708,7 @@
 }
 
 .auth-link {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
   font-weight: 600;
   transition: color 150ms ease;
 }
@@ -1768,7 +1771,6 @@
   font-size: 0.85rem;
 
   cursor: pointer;
-  color-scheme: dark;
 }
 
 .movie-sort-select:hover,
@@ -1888,7 +1890,7 @@
 }
 
 .trailer-modal-fallback-link:hover {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 .trailer-modal-fallback {
@@ -1934,7 +1936,7 @@
 }
 
 .rating-star-filled {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 .rating-star:disabled {
@@ -2006,11 +2008,11 @@
 }
 
 .comment-char-counter-invalid {
-  color: #d98f8f;
+  color: var(--color-error-text);
 }
 
 .comment-form-error {
-  color: #d98f8f;
+  color: var(--color-error-text);
   font-size: 0.85rem;
 }
 
@@ -2073,7 +2075,7 @@
 }
 
 .comment-action-button:hover {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 .comment-edit-form {
@@ -2106,7 +2108,7 @@
 }
 
 .theme-toggle-button:hover {
-  background: var(--color-surface-light);
+  background: var(--color-header-hover-surface);
   transform: scale(1.1);
 }
 
@@ -2138,13 +2140,13 @@
 }
 
 .movie-tab-button-active {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
   border-bottom-color: var(--color-yellow);
 }
 
 .profile-tab-badge {
   background: var(--color-yellow);
-  color: #000;
+  color: var(--color-on-accent);
   font-size: 0.75rem;
   padding: 2px 6px;
   border-radius: 10px;
@@ -2208,7 +2210,7 @@
   display: flex;
   justify-content: space-between;
   font-weight: 600;
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 /* Watchlist Grid */
@@ -2323,12 +2325,24 @@
 }
 
 .watchlist-heart-button--active {
-  color: var(--color-yellow);
+  color: var(--color-yellow-text);
 }
 
 .watchlist-heart-button--inactive {
   color: var(--color-text-muted);
-  opacity: 0.5;
+  opacity: 0.6;
+}
+
+/* Poster üzerindeki (koyu scrim daire) kalp ikonu her iki temada da
+   açık kalmalı; global light-tema metin rengini buraya uygulamayız. */
+.movie-poster-wrapper .watchlist-heart-button--active {
+  color: var(--color-header-accent);
+  opacity: 1;
+}
+
+.movie-poster-wrapper .watchlist-heart-button--inactive {
+  color: var(--color-on-overlay);
+  opacity: 0.92;
 }
 
 /* REQ-25 — izleme listesi vizyona giriş bildirimi */
