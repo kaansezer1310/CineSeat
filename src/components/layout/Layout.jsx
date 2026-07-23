@@ -33,7 +33,7 @@ function Layout() {
 
           {user ? (
             <>
-              <span style={{ color: "var(--color-text-muted)" }}>
+              <span style={{ color: "var(--color-header-text-muted)" }}>
                 Hoşgeldin, {user.name}
               </span>
               <Link to="/profile">Profilim</Link>
@@ -41,7 +41,7 @@ function Layout() {
                 onClick={logout}
                 style={{
                   background: "transparent",
-                  color: "var(--color-yellow)",
+                  color: "var(--color-header-accent)",
                   cursor: "pointer",
                 }}
               >
@@ -69,7 +69,16 @@ function Layout() {
           <button
             onClick={toggleTheme}
             className="theme-toggle-button"
-            title="Temayı Değiştir"
+            title={
+              theme === "light"
+                ? "Koyu temaya geç"
+                : "Açık temaya geç"
+            }
+            aria-label={
+              theme === "light"
+                ? "Koyu temaya geç"
+                : "Açık temaya geç"
+            }
           >
             {theme === "light" ? "🌙" : "☀️"}
           </button>

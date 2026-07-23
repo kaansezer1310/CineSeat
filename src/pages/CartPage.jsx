@@ -256,14 +256,14 @@ function CartPage() {
           </div>
           
           {campaignsApplied.map((campaign, index) => (
-            <div className="cart-summary-row" key={index} style={{ color: 'var(--success)', marginTop: '0.5rem' }}>
+            <div className="cart-summary-row" key={index} style={{ color: 'var(--color-success)', marginTop: '0.5rem' }}>
               <span>{campaign.name}</span>
               <strong>-{formatPrice(campaign.amount)} TL</strong>
             </div>
           ))}
           
           {discountAmount > 0 && (
-             <div className="cart-summary-total" style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+             <div className="cart-summary-total" style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
                <span>Ödenecek Tutar</span>
                <strong>{formatPrice(cartTotal)} TL</strong>
              </div>

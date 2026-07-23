@@ -1,4 +1,15 @@
+/* ═══════════════════════════════════════════════════════
+   Tema sistemi — semantik CSS değişkenleri (REQ-23)
+
+   :root                    → dark tema (varsayılan, değiştirilmedi)
+   body[data-theme="light"] → light tema (erişilebilir açık palet)
+
+   Değişkenler bileşenler arasında tutarlı biçimde kullanılır;
+   bileşene özel dağınık renk override'ları yerine tercih edilir.
+   ═══════════════════════════════════════════════════════ */
 :root {
+  color-scheme: dark;
+
   --color-background: #0c0912;
   --color-background-soft: #14101c;
   --color-surface: #1b1425;
@@ -7,8 +18,11 @@
   --color-purple: #8765a3;
   --color-purple-light: #a181ba;
 
+  /* Matte-gold aksan: yüzey/kenarlık/odak için parlak ton,
+     küçük metin/linkler için ayrı `--color-yellow-text` tonu. */
   --color-yellow: #d0ac59;
   --color-yellow-hover: #ddbd70;
+  --color-yellow-text: #d0ac59;
 
   --color-text: #f2edf5;
   --color-text-muted: #aaa0b4;
@@ -16,30 +30,84 @@
   --color-border: rgba(190, 164, 207, 0.14);
   --color-border-strong: rgba(190, 164, 207, 0.25);
 
+  /* On-accent: gold/yeşil dolgular üzerindeki koyu metin. */
+  --color-on-accent: #211a0b;
+
+  /* Durum renkleri */
   --color-success: #71947c;
+  --color-error: #d77b82;
+  --color-error-text: #e8a0a0;
+  --color-error-bg: rgba(220, 80, 80, 0.1);
+  --color-error-border: rgba(220, 80, 80, 0.35);
+
+  /* Pasif (disabled) alan/aksiyonlar */
+  --color-disabled-bg: #4a414f;
+  --color-disabled-text: #89808d;
+
+  /* Dolu koltuk durumu */
+  --color-seat-occupied-bg: #3e3843;
+  --color-seat-occupied-text: #cfc9d3;
+
+  /* Odak halkası */
+  --color-focus-ring: var(--color-yellow);
+
+  /* Gölgeler */
+  --color-shadow: rgba(0, 0, 0, 0.22);
+  --color-shadow-strong: rgba(0, 0, 0, 0.28);
+
+  /* Poster üzeri katman (her iki temada koyu kalır) */
+  --color-overlay-scrim: rgba(12, 9, 18, 0.82);
+  --color-on-overlay: #f2edf5;
+
+  /* Header (her iki temada CineSeat marka çıpası olarak koyu kalır) */
+  --color-header-background: rgba(12, 9, 18, 0.9);
+  --color-header-border: rgba(190, 164, 207, 0.14);
+  --color-header-text: #f2edf5;
+  --color-header-text-muted: #c3b8d0;
+  --color-header-accent: #d8b662;
+  --color-header-hover-surface: rgba(255, 255, 255, 0.12);
 
   --font-ui: "Source Sans 3", "Segoe UI", Arial, sans-serif;
 }
 
 body[data-theme="light"] {
-  --color-background: #f7f5f9;
-  --color-background-soft: #fcfbfc;
+  color-scheme: light;
+
+  --color-background: #f3f1f7;
+  --color-background-soft: #eae5f1;
   --color-surface: #ffffff;
-  --color-surface-light: #f0eaf5;
+  --color-surface-light: #e5def0;
 
-  --color-purple: #7a5499;
-  --color-purple-light: #8e6bb3;
+  --color-purple: #6b4790;
+  --color-purple-light: #6f4f99;
 
-  --color-yellow: #bf9133;
-  --color-yellow-hover: #a87e28;
+  --color-yellow: #b3852b;
+  --color-yellow-hover: #9c7222;
+  --color-yellow-text: #7e5c11;
 
-  --color-text: #2d2633;
-  --color-text-muted: #5e5666;
+  --color-text: #251f2e;
+  --color-text-muted: #574f61;
 
-  --color-border: rgba(92, 62, 122, 0.15);
-  --color-border-strong: rgba(92, 62, 122, 0.3);
+  --color-border: rgba(92, 62, 122, 0.18);
+  --color-border-strong: rgba(92, 62, 122, 0.32);
 
   --color-success: #3b734d;
+  --color-error: #c0392b;
+  --color-error-text: #b3261e;
+  --color-error-bg: rgba(192, 57, 43, 0.08);
+  --color-error-border: rgba(192, 57, 43, 0.3);
+
+  --color-disabled-bg: #e2dced;
+  --color-disabled-text: #867d92;
+
+  --color-seat-occupied-bg: #cfc7d6;
+  --color-seat-occupied-text: #5f5769;
+
+  --color-shadow: rgba(76, 52, 112, 0.14);
+  --color-shadow-strong: rgba(76, 52, 112, 0.2);
+
+  /* Header + overlay değişkenleri kasıtlı olarak override EDİLMEZ;
+     header koyu, poster katmanları koyu kalır. */
 }
 
 * {
