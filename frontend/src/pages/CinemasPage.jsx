@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './cinemas.css';
 
 // Mock Data: Sinema Şubeleri
@@ -23,7 +24,8 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-export default function CinemasPage() {
+export default function CinemasPage({ onViewSessions } = {}) {
+  const navigate = useNavigate();
   const [selectedCity, setSelectedCity] = useState("Tümü");
   const [userLocation, setUserLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState(() => {
@@ -57,6 +59,21 @@ export default function CinemasPage() {
       }
     );
   }, []);
+
+  // sessions.js'deki seans kayıtları herhangi bir cinemaId/hallName eşlemesi
+  // içermediği için (bkz. src/data/sessions.js), belirli bir şubeye özel
+  // seans listesine yönlendirme şu an veri modelinde mümkün değil. Bu yüzden
+  // kullanıcıyı film/seans seçimine başladığı genel akışa (ana sayfa) götürür.
+  // Gerçek "bu şubenin seansları" filtrelemesi için sessions.js'e bir
+  // cinemaId alanı eklenmesi gerekir.
+  function handleViewSessions() {
+    if (onViewSessions) {
+      onViewSessions();
+      return;
+    }
+
+    navigate("/");
+  }
 
   // Sinemaları filtrele ve mesafe hesapla
   let filteredCinemas = CINEMAS;
@@ -96,13 +113,18 @@ export default function CinemasPage() {
         {filteredCinemas.map(cinema => (
           <div key={cinema.id} className="cinema-card">
             <h3>{cinema.name}</h3>
-            <p className="cinema-city">📍 {cinema.city}</p>
+            <p className="cinema-city">{cinema.city}</p>
             {cinema.distance !== undefined && (
               <p className="cinema-distance">
                 Size uzaklığı: <strong>{cinema.distance.toFixed(1)} km</strong>
               </p>
             )}
-            <button className="secondary-button" style={{ marginTop: '14px' }}>
+            <button
+              className="secondary-button"
+              style={{ marginTop: '14px' }}
+              type="button"
+              onClick={handleViewSessions}
+            >
               Seansları Gör
             </button>
           </div>

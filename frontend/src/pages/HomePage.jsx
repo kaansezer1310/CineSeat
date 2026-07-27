@@ -246,7 +246,9 @@ function HomePage() {
       </div>
 
       {activeTab === "cinemas" ? (
-        <CinemasPage />
+        <CinemasPage
+          onViewSessions={() => setActiveTab("nowShowing")}
+        />
       ) : (
         <>
           {tabMovies.length > 0 && (

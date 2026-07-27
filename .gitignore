@@ -20,5 +20,10 @@ dist-ssr
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
+
+# .NET backend build çıktıları — asla commit edilmez
+[Bb]in/
+[Oo]bj/
+*.user
+.vs/
