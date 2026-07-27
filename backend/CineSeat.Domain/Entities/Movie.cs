@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using CineSeat.Domain.Entities.Common;
 
 namespace CineSeat.Domain.Entities
@@ -18,18 +17,5 @@ namespace CineSeat.Domain.Entities
         // Derived alan (yorumlar üzerinden hesaplanacak)
         public decimal AvgScore { get; set; }
 
-        // Navigation Properties
-        public virtual ICollection<MovieGenre> MovieGenres { get; set; }
-        public virtual ICollection<Comment> Comments { get; set; }
-        public virtual ICollection<Showtime> Showtimes { get; set; }
-        public virtual ICollection<UserFavorites> UserFavorites { get; set; }
-
-        public Movie()
-        {
-            MovieGenres = new HashSet<MovieGenre>();
-            Comments = new HashSet<Comment>();
-            Showtimes = new HashSet<Showtime>();
-            UserFavorites = new HashSet<UserFavorites>();
-        }
     }
 }
