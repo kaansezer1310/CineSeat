@@ -9,12 +9,12 @@ namespace CineSeat.Models
 
     public class Reservation
     {
-        public long ReservationId { get; set; } 
+        public long ReservationId { get; set; }
         public string ResNo { get; set; }
         public long UserId { get; set; }
         public long ShowtimeId { get; set; }
-        public long? CampaignId { get; set; } 
-        public string BuyerFname { get; set; }
+        public long? CampaignId { get; set; }
+        public string BuyerFname { get; set; } 
         public string BuyerLname { get; set; }
         public string BuyerEmail { get; set; }
         public decimal Subtotal { get; set; }
