@@ -1,3 +1,5 @@
+using CineSeat.Domain.Entities.Common;
+
 namespace CineSeat.Domain.Entities
 {
     public class User : BaseEntity
