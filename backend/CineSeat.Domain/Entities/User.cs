@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CineSeat.Domain.Entities.Common;
 
 namespace CineSeat.Domain.Entities
@@ -13,6 +14,12 @@ namespace CineSeat.Domain.Entities
         public string? PhoneNum { get; set; }
         public string? Gender { get; set; }
 
-        public long RoleId { get; set; }   // düz sütun kalır — FK kısıtı yok, sorun değil
+        public long RoleId { get; set; }
+        public Role Role { get; set; }
+
+        public ICollection<UserFavorite> UserFavorites { get; set; }
+        public ICollection<Comment> Comments { get; set; }
+        public ICollection<SeatLock> SeatLocks { get; set; }
+        public ICollection<Reservation> Reservations { get; set; }
     }
 }
