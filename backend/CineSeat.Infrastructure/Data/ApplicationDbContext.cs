@@ -52,6 +52,23 @@ namespace CineSeat.Infrastructure.Data
                 .HasIndex(r => r.ResNo)
                 .IsUnique();
 
+            // Kimlik alanları benzersiz olmalı — aynı e-posta/kullanıcı adıyla
+            // iki kez kayıt olunamaz (auth güvenliği).
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            // Eşzamanlılık kilidi: aynı seans+koltuk yalnızca bir kez
+            // kilitlenebilir (iki kullanıcının aynı koltuğu aynı anda
+            // rezerve etmesini veritabanı seviyesinde engeller).
+            modelBuilder.Entity<SeatLock>()
+                .HasIndex(sl => new { sl.ShowtimeId, sl.SeatId })
+                .IsUnique();
+
             // Decimal Precision Configurations
             modelBuilder.Entity<Movie>()
                 .Property(m => m.AvgScore)

@@ -4,7 +4,7 @@ namespace CineSeat.Domain.Entities
 {
     public class HallTech : BaseEntity
     {
-        public long TechId { get; set; }
+        public long TechnologyId { get; set; }
         public Technology Technology { get; set; }
 
         public long HallId { get; set; }
