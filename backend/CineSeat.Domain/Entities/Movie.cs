@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CineSeat.Domain.Entities.Common;
 
 namespace CineSeat.Domain.Entities
@@ -14,8 +15,11 @@ namespace CineSeat.Domain.Entities
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         
-        // Derived alan (yorumlar üzerinden hesaplanacak)
         public decimal AvgScore { get; set; }
 
+        public ICollection<UserFavorite> UserFavorites { get; set; }
+        public ICollection<Comment> Comments { get; set; }
+        public ICollection<MovieGenre> MovieGenres { get; set; }
+        public ICollection<Showtime> Showtimes { get; set; }
     }
 }
