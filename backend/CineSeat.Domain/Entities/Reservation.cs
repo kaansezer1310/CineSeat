@@ -1,4 +1,4 @@
-namespace CineSeat.Models
+namespace CineSeat.Domain.Entities
 {
     public enum ReservationStatus
     {
