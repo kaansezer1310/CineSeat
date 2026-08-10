@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CineSeat.Domain/CineSeat.Domain.csproj" />
+  <Project Path="CineSeat.Application/CineSeat.Application.csproj" />
+  <Project Path="CineSeat.Infrastructure/CineSeat.Infrastructure.csproj" />
+  <Project Path="CineSeat.WebAPI/CineSeat.WebAPI.csproj" />
+</Solution>
