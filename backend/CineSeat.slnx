@@ -1,6 +1,13 @@
 <Solution>
-  <Project Path="CineSeat.Domain/CineSeat.Domain.csproj" />
-  <Project Path="CineSeat.Application/CineSeat.Application.csproj" />
-  <Project Path="CineSeat.Infrastructure/CineSeat.Infrastructure.csproj" />
-  <Project Path="CineSeat.WebAPI/CineSeat.WebAPI.csproj" />
+  <Folder Name="/Core/">
+    <Project Path="Core/CineSeat.Domain/CineSeat.Domain.csproj" />
+    <Project Path="Core/CineSeat.Application/CineSeat.Application.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="Infrastructure/CineSeat.Infrastructure/CineSeat.Infrastructure.csproj" />
+    <Project Path="Infrastructure/CineSeat.Persistence/CineSeat.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/Presentation/">
+    <Project Path="Presentation/CineSeat.WebAPI/CineSeat.WebAPI.csproj" />
+  </Folder>
 </Solution>
