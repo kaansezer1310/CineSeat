@@ -1,5 +1,5 @@
 using System;
-using CineSeat.Domain.Entities.Common;
+using CineSeat.Domain.Common;
 
 namespace CineSeat.Domain.Entities
 {

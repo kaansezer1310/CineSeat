@@ -1,6 +1,6 @@
 using System;
 
-namespace CineSeat.Domain.Entities.Common
+namespace CineSeat.Domain.Common
 {
     public abstract class BaseEntity
     {

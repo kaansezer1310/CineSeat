@@ -1,9 +1,16 @@
+using System.Linq.Expressions;
+using CineSeat.Application.Common.Interfaces;
+using CineSeat.Domain.Common;
 using CineSeat.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CineSeat.Infrastructure.Data
 {
-    public class ApplicationDbContext : DbContext
+    /// <summary>
+    /// Application katmanındaki <see cref="IApplicationDbContext"/> arayüzünün
+    /// somut karşılığı. Handler'lar bu sınıfı değil, arayüzü görür.
+    /// </summary>
+    public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -109,6 +116,33 @@ namespace CineSeat.Infrastructure.Data
             modelBuilder.Entity<Ticket>()
                 .Property(t => t.Price)
                 .HasPrecision(10, 2);
+
+            ApplySoftDeleteFilter(modelBuilder);
+        }
+
+        /// <summary>
+        /// BaseEntity'den türeyen her entity için "IsDeleted == false" global
+        /// query filter'ı ekler. Böylece silinmiş sayılan kayıtlar hiçbir sorguda
+        /// görünmez ve handler'ların bunu tek tek yazması gerekmez.
+        /// Gerektiğinde <c>IgnoreQueryFilters()</c> ile devre dışı bırakılabilir.
+        /// </summary>
+        private static void ApplySoftDeleteFilter(ModelBuilder modelBuilder)
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (!typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+                {
+                    continue;
+                }
+
+                var parameter = Expression.Parameter(entityType.ClrType, "e");
+                var body = Expression.Equal(
+                    Expression.Property(parameter, nameof(BaseEntity.IsDeleted)),
+                    Expression.Constant(false));
+
+                modelBuilder.Entity(entityType.ClrType)
+                    .HasQueryFilter(Expression.Lambda(body, parameter));
+            }
         }
     }
 }

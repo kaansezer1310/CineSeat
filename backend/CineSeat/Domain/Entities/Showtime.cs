@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using CineSeat.Domain.Entities.Common;
+using CineSeat.Domain.Common;
 using CineSeat.Domain.Enums;
 
 namespace CineSeat.Domain.Entities
