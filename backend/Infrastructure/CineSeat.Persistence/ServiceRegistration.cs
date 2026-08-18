@@ -28,5 +28,11 @@ public static class ServiceRegistration
 
         services.AddScoped<IMovieReadRepository, MovieReadRepository>();
         services.AddScoped<IMovieWriteRepository, MovieWriteRepository>();
+
+        services.AddScoped<IDistrictReadRepository, DistrictReadRepository>();
+        services.AddScoped<IDistrictWriteRepository, DistrictWriteRepository>();
+
+        services.AddScoped<ICinemaReadRepository, CinemaReadRepository>();
+        services.AddScoped<ICinemaWriteRepository, CinemaWriteRepository>();
     }
 }
