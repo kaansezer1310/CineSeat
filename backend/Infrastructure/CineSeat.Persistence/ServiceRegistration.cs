@@ -1,5 +1,7 @@
+using CineSeat.Application.Common.Interfaces;
 using CineSeat.Application.Repositories;
 using CineSeat.Persistence.Data;
+using CineSeat.Persistence.Data.Interceptors;
 using CineSeat.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -11,11 +13,20 @@ public static class ServiceRegistration
 {
     public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddSingleton<AuditableEntityInterceptor>();
+
+        services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
-                   .UseSnakeCaseNamingConvention());
+                   .UseSnakeCaseNamingConvention()
+                   .AddInterceptors(serviceProvider.GetRequiredService<AuditableEntityInterceptor>()));
+
+        // Application katmanının EF'e bakmadan sorgu materyalize edebilmesini sağlar.
+        services.AddSingleton<IAsyncQueryExecutor, EfAsyncQueryExecutor>();
 
         services.AddScoped<ICityReadRepository, CityReadRepository>();
         services.AddScoped<ICityWriteRepository, CityWriteRepository>();
+
+        services.AddScoped<IMovieReadRepository, MovieReadRepository>();
+        services.AddScoped<IMovieWriteRepository, MovieWriteRepository>();
     }
 }

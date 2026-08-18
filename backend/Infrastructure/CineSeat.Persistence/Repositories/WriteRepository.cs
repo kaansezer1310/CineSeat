@@ -14,17 +14,18 @@ public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
         _context = context;
     }
 
-    public DbSet<T> Table => _context.Set<T>();
+    // DbSet artık DIŞARI AÇILMIYOR — bkz. ReadRepository'deki not.
+    protected DbSet<T> Table => _context.Set<T>();
 
-    public async Task<bool> AddAsync(T model)
+    public async Task<bool> AddAsync(T model, CancellationToken cancellationToken = default)
     {
-        var entityEntry = await Table.AddAsync(model);
+        var entityEntry = await Table.AddAsync(model, cancellationToken);
         return entityEntry.State == EntityState.Added;
     }
 
-    public async Task<bool> AddRangeAsync(List<T> datas)
+    public async Task<bool> AddRangeAsync(List<T> datas, CancellationToken cancellationToken = default)
     {
-        await Table.AddRangeAsync(datas);
+        await Table.AddRangeAsync(datas, cancellationToken);
         return true;
     }
 
@@ -40,10 +41,13 @@ public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
         return true;
     }
 
-    public async Task<bool> RemoveAsync(string id)
+    public async Task<bool> RemoveAsync(long id, CancellationToken cancellationToken = default)
     {
-        T model = await Table.FirstOrDefaultAsync(data => data.Id == long.Parse(id));
-        return Remove(model);
+        // Eski hali string id alıp long.Parse ediyordu; geçersiz bir id
+        // FormatException fırlatıyor, bulunamayan kayıt ise Remove(null)
+        // ile NullReferenceException'a yol açıyordu. İkisi de kapatıldı.
+        T? model = await Table.FirstOrDefaultAsync(data => data.Id == id, cancellationToken);
+        return model is not null && Remove(model);
     }
 
     public bool Update(T model)
@@ -52,6 +56,6 @@ public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
         return entityEntry.State == EntityState.Modified;
     }
 
-    public async Task<int> SaveAsync()
-        => await _context.SaveChangesAsync();
+    public async Task<int> SaveAsync(CancellationToken cancellationToken = default)
+        => await _context.SaveChangesAsync(cancellationToken);
 }

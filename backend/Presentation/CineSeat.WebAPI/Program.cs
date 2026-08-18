@@ -1,5 +1,6 @@
 using CineSeat.Application;
 using CineSeat.Persistence;
+using CineSeat.WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,10 +16,19 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Uygulamadaki tek hata yakalama noktası — pipeline'ın en dışında olmalı.
+app.UseExceptionHandling();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // /openapi/v1.json belgesini üretir, /swagger adresinde arayüzle sunar.
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "CineSeat API v1");
+        options.RoutePrefix = "swagger";
+    });
 }
 
 app.UseHttpsRedirection();
