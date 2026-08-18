@@ -22,8 +22,8 @@ public class CreateCityCommandHandler : IRequestHandler<CreateCityCommand, long>
             CityName = request.CityName
         };
 
-        await _cityWriteRepository.AddAsync(city);
-        await _cityWriteRepository.SaveAsync();
+        await _cityWriteRepository.AddAsync(city, cancellationToken);
+        await _cityWriteRepository.SaveAsync(cancellationToken);
 
         return city.Id;
     }

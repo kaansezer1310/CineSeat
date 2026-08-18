@@ -15,7 +15,10 @@ public class ReadRepository<T> : IReadRepository<T> where T : BaseEntity
         _context = context;
     }
 
-    public DbSet<T> Table => _context.Set<T>();
+    // DbSet artık DIŞARI AÇILMIYOR: bu bir EF Core tipi ve Application
+    // katmanının onu görmemesi gerekiyor. Türetilmiş repository'ler
+    // ihtiyaç duyarsa protected erişimle kullanabilir.
+    protected DbSet<T> Table => _context.Set<T>();
 
     public IQueryable<T> GetAll(bool tracking = true)
     {
@@ -33,19 +36,25 @@ public class ReadRepository<T> : IReadRepository<T> where T : BaseEntity
         return query;
     }
 
-    public async Task<T> GetSingleAsync(Expression<Func<T, bool>> method, bool tracking = true)
+    public async Task<T?> GetSingleAsync(
+        Expression<Func<T, bool>> method,
+        bool tracking = true,
+        CancellationToken cancellationToken = default)
     {
         var query = Table.AsQueryable();
         if (!tracking)
             query = query.AsNoTracking();
-        return await query.FirstOrDefaultAsync(method);
+        return await query.FirstOrDefaultAsync(method, cancellationToken);
     }
 
-    public async Task<T> GetByIdAsync(string id, bool tracking = true)
+    public async Task<T?> GetByIdAsync(
+        long id,
+        bool tracking = true,
+        CancellationToken cancellationToken = default)
     {
         var query = Table.AsQueryable();
         if (!tracking)
             query = query.AsNoTracking();
-        return await query.FirstOrDefaultAsync(data => data.Id == long.Parse(id));
+        return await query.FirstOrDefaultAsync(data => data.Id == id, cancellationToken);
     }
 }
