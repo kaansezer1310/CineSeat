@@ -1,11 +1,12 @@
 using CineSeat.Application.Common.Interfaces;
+using CineSeat.Application.Common.Models;
 using CineSeat.Application.Features.Cinemas.DTOs;
 using CineSeat.Application.Repositories;
 using MediatR;
 
 namespace CineSeat.Application.Features.Cinemas.Queries.GetCinemasByCity;
 
-public class GetCinemasByCityQueryHandler : IRequestHandler<GetCinemasByCityQuery, List<CinemaDto>>
+public class GetCinemasByCityQueryHandler : IRequestHandler<GetCinemasByCityQuery, PagedResult<CinemaDto>>
 {
     private readonly ICinemaReadRepository _read;
     private readonly IAsyncQueryExecutor _executor;
@@ -16,10 +17,18 @@ public class GetCinemasByCityQueryHandler : IRequestHandler<GetCinemasByCityQuer
         _executor = executor;
     }
 
-    public async Task<List<CinemaDto>> Handle(GetCinemasByCityQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResult<CinemaDto>> Handle(
+        GetCinemasByCityQuery request, CancellationToken cancellationToken)
     {
         // Sinema → İlçe → Şehir: navigation üzerinden filtre (EF SQL'e JOIN olarak çevirir).
-        var query = _read.GetWhere(c => c.District.CityId == request.CityId, tracking: false)
+        var baseQuery = _read.GetWhere(c => c.District.CityId == request.CityId, tracking: false);
+
+        var totalCount = await _executor.CountAsync(baseQuery, cancellationToken);
+
+        var pageQuery = baseQuery
+            .OrderBy(c => c.Name)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
             .Select(c => new CinemaDto
             {
                 Id = c.Id,
@@ -30,6 +39,8 @@ public class GetCinemasByCityQueryHandler : IRequestHandler<GetCinemasByCityQuer
                 DistrictId = c.DistrictId
             });
 
-        return await _executor.ToListAsync(query, cancellationToken);
+        var items = await _executor.ToListAsync(pageQuery, cancellationToken);
+
+        return new PagedResult<CinemaDto>(items, totalCount, request.PageNumber, request.PageSize);
     }
 }

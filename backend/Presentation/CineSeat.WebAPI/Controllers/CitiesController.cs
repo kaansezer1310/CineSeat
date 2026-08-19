@@ -20,8 +20,8 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
-        => Ok(await _mediator.Send(new GetAllCitiesQuery()));
+    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        => Ok(await _mediator.Send(new GetAllCitiesQuery { PageNumber = pageNumber, PageSize = pageSize }));
 
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(long id)

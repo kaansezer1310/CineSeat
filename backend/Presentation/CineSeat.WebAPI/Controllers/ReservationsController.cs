@@ -19,8 +19,10 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet("my")]
-    public async Task<IActionResult> GetMy([FromQuery] long userId)
-        => Ok(await _mediator.Send(new GetMyReservationsQuery { UserId = userId }));
+    public async Task<IActionResult> GetMy(
+        [FromQuery] long userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        => Ok(await _mediator.Send(
+            new GetMyReservationsQuery { UserId = userId, PageNumber = pageNumber, PageSize = pageSize }));
 
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(long id)

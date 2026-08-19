@@ -1,11 +1,13 @@
 using CineSeat.Application.Common.Interfaces;
+using CineSeat.Application.Common.Models;
 using CineSeat.Application.Features.Reservations.DTOs;
 using CineSeat.Application.Repositories;
 using MediatR;
 
 namespace CineSeat.Application.Features.Reservations.Queries.GetMyReservations;
 
-public class GetMyReservationsQueryHandler : IRequestHandler<GetMyReservationsQuery, List<ReservationSummaryDto>>
+public class GetMyReservationsQueryHandler
+    : IRequestHandler<GetMyReservationsQuery, PagedResult<ReservationSummaryDto>>
 {
     private readonly IReservationReadRepository _read;
     private readonly IAsyncQueryExecutor _executor;
@@ -16,12 +18,18 @@ public class GetMyReservationsQueryHandler : IRequestHandler<GetMyReservationsQu
         _executor = executor;
     }
 
-    public async Task<List<ReservationSummaryDto>> Handle(
+    public async Task<PagedResult<ReservationSummaryDto>> Handle(
         GetMyReservationsQuery request, CancellationToken cancellationToken)
     {
+        var baseQuery = _read.GetWhere(r => r.UserId == request.UserId, tracking: false);
+
+        var totalCount = await _executor.CountAsync(baseQuery, cancellationToken);
+
         // Showtime.Movie navigation üzerinden JOIN — ayrı bir repository gerekmez.
-        var query = _read.GetWhere(r => r.UserId == request.UserId, tracking: false)
+        var pageQuery = baseQuery
             .OrderByDescending(r => r.CreatedAt)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
             .Select(r => new ReservationSummaryDto
             {
                 Id = r.Id,
@@ -33,6 +41,8 @@ public class GetMyReservationsQueryHandler : IRequestHandler<GetMyReservationsQu
                 Status = r.Status
             });
 
-        return await _executor.ToListAsync(query, cancellationToken);
+        var items = await _executor.ToListAsync(pageQuery, cancellationToken);
+
+        return new PagedResult<ReservationSummaryDto>(items, totalCount, request.PageNumber, request.PageSize);
     }
 }

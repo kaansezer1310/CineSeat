@@ -21,12 +21,16 @@ public class ShowtimesController : ControllerBase
     }
 
     [HttpGet("by-movie/{movieId:long}")]
-    public async Task<IActionResult> GetByMovie(long movieId)
-        => Ok(await _mediator.Send(new GetShowtimesByMovieQuery { MovieId = movieId }));
+    public async Task<IActionResult> GetByMovie(
+        long movieId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        => Ok(await _mediator.Send(
+            new GetShowtimesByMovieQuery { MovieId = movieId, PageNumber = pageNumber, PageSize = pageSize }));
 
     [HttpGet("by-cinema/{cinemaId:long}")]
-    public async Task<IActionResult> GetByCinema(long cinemaId)
-        => Ok(await _mediator.Send(new GetShowtimesByCinemaQuery { CinemaId = cinemaId }));
+    public async Task<IActionResult> GetByCinema(
+        long cinemaId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        => Ok(await _mediator.Send(
+            new GetShowtimesByCinemaQuery { CinemaId = cinemaId, PageNumber = pageNumber, PageSize = pageSize }));
 
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(long id)

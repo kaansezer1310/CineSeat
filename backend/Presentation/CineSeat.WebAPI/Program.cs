@@ -1,6 +1,8 @@
 using CineSeat.Application;
 using CineSeat.Persistence;
+using CineSeat.Persistence.Data;
 using CineSeat.WebAPI.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,13 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Başlangıçta bekleyen migration'ları uygula + örnek referans verisini (şehir/ilçe) ekle.
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DbInitializer.SeedAsync(context);
+}
 
 // Uygulamadaki tek hata yakalama noktası — pipeline'ın en dışında olmalı.
 app.UseExceptionHandling();
