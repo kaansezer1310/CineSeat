@@ -50,6 +50,15 @@ public class ExceptionHandlingMiddleware
                 detail = ex.Message
             });
         }
+        catch (UnauthorizedException ex)
+        {
+            await WriteAsync(context, StatusCodes.Status401Unauthorized, new
+            {
+                title = "Yetkisiz erişim",
+                status = StatusCodes.Status401Unauthorized,
+                detail = ex.Message
+            });
+        }
         catch (ConflictException ex)
         {
             await WriteAsync(context, StatusCodes.Status409Conflict, new

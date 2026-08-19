@@ -1,9 +1,11 @@
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Features.Cinemas.Commands.CreateCinema;
 using CineSeat.Application.Features.Cinemas.Commands.DeleteCinema;
 using CineSeat.Application.Features.Cinemas.Commands.UpdateCinema;
 using CineSeat.Application.Features.Cinemas.Queries.GetCinemaById;
 using CineSeat.Application.Features.Cinemas.Queries.GetCinemasByCity;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CineSeat.WebAPI.Controllers;
@@ -29,10 +31,12 @@ public class CinemasController : ControllerBase
     public async Task<IActionResult> GetById(long id)
         => Ok(await _mediator.Send(new GetCinemaByIdQuery { Id = id }));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCinemaCommand command)
         => Ok(await _mediator.Send(command));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateCinemaCommand command)
     {
@@ -41,6 +45,7 @@ public class CinemasController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

@@ -9,7 +9,7 @@ namespace CineSeat.Application.Features.Movies.Queries.GetMovies;
 /// CQRS'in özü tam olarak burada görülür: aynı Movie tablosuna
 /// yazma ve okuma iki ayrı tip, iki ayrı handler ile gider.
 /// </summary>
-public class GetMoviesQuery : IRequest<Result<PagedResult<MovieDto>>>
+public class GetMoviesQuery : IRequest<PagedResult<MovieDto>>
 {
     public string? Search { get; set; }
     public int Page { get; set; } = 1;

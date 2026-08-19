@@ -16,7 +16,8 @@ namespace CineSeat.Application.Features.Reservations.Commands.CreateReservation;
 //  4) Koltuklardan biri BAŞKA bir kullanıcı tarafından (süresi dolmamış) kilitli mi — reddet.
 //  5) Fiyat: seans.BasePrice × bilet-tipi çarpanı (bkz. TicketTypeMultiplier — domain'de
 //     resmi bir kural yok, bu bir varsayımdır, netleştirilmesi gerekebilir).
-//  6) Kampanya indirimi HENÜZ uygulanmaz (Ömer'in Campaign işi bu branch'te yok — bkz. Command notu).
+//  6) Kampanya indirimi: kampanya aktif mi + sepet MinCartTotal'i geçiyor mu doğrulanır,
+//     Percentage/FixedAmount tipine göre hesaplanır ve indirim asla ara toplamı aşamaz.
 //  7) Reservation + Ticket'lar aynı DbContext'te (scoped) eklenir, TEK SaveAsync ile kaydedilir.
 //  8) Koltuğa ait varsa SeatLock satırı(ları) aynı SaveChanges içinde silinir.
 public class CreateReservationCommandHandler : IRequestHandler<CreateReservationCommand, ReservationDto>
@@ -29,6 +30,8 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
     private readonly IShowtimeReadRepository _showtimeRead;
     private readonly ISeatReadRepository _seatRead;
     private readonly IUserReadRepository _userRead;
+    private readonly ICampaignReadRepository _campaignRead;
+    private readonly ICurrentUserService _currentUser;
     private readonly IAsyncQueryExecutor _executor;
 
     public CreateReservationCommandHandler(
@@ -40,6 +43,8 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
         IShowtimeReadRepository showtimeRead,
         ISeatReadRepository seatRead,
         IUserReadRepository userRead,
+        ICampaignReadRepository campaignRead,
+        ICurrentUserService currentUser,
         IAsyncQueryExecutor executor)
     {
         _reservationWrite = reservationWrite;
@@ -50,14 +55,19 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
         _showtimeRead = showtimeRead;
         _seatRead = seatRead;
         _userRead = userRead;
+        _campaignRead = campaignRead;
+        _currentUser = currentUser;
         _executor = executor;
     }
 
     public async Task<ReservationDto> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRead.GetByIdAsync(request.UserId, tracking: false, cancellationToken);
+        var userId = _currentUser.GetRequiredUserId();
+
+        // Token geçerli ama kullanıcı silinmiş olabilir — FK ihlaline düşmeden 404 dön.
+        var user = await _userRead.GetByIdAsync(userId, tracking: false, cancellationToken);
         if (user is null)
-            throw new NotFoundException("Kullanıcı", request.UserId);
+            throw new NotFoundException("Kullanıcı", userId);
 
         var showtime = await _showtimeRead.GetByIdAsync(request.ShowtimeId, tracking: false, cancellationToken);
         if (showtime is null)
@@ -101,7 +111,7 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
             _seatLockRead.GetWhere(
                     sl => sl.ShowtimeId == request.ShowtimeId
                           && seatIds.Contains(sl.SeatId)
-                          && sl.UserId != request.UserId
+                          && sl.UserId != userId
                           && sl.LockExpiresAt > now,
                     tracking: false)
                 .Select(sl => sl.SeatId),
@@ -124,13 +134,13 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
             });
         }
 
-        const decimal discount = 0; // Campaign henüz yok — indirimsiz.
+        var discount = await CalculateDiscountAsync(request.CampaignId, subtotal, cancellationToken);
         var total = subtotal - discount;
 
         var reservation = new Reservation
         {
             ResNo = GenerateResNo(),
-            UserId = request.UserId,
+            UserId = userId,
             ShowtimeId = request.ShowtimeId,
             CampaignId = request.CampaignId,
             BuyerFname = request.BuyerFname,
@@ -182,6 +192,40 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
                 Price = t.Price
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// Kampanya indirimini hesaplar. CampaignId verilmemişse 0 döner.
+    /// İndirim ara toplamı asla aşamaz — aşsaydı Total negatife düşerdi.
+    /// </summary>
+    private async Task<decimal> CalculateDiscountAsync(
+        long? campaignId, decimal subtotal, CancellationToken cancellationToken)
+    {
+        if (campaignId is null)
+            return 0m;
+
+        var campaign = await _campaignRead.GetByIdAsync(campaignId.Value, tracking: false, cancellationToken);
+        if (campaign is null)
+            throw new NotFoundException("Kampanya", campaignId.Value);
+
+        if (!campaign.IsActive)
+            throw new ConflictException("Bu kampanya aktif değil.");
+
+        // MembersOnly ayrıca kontrol edilmiyor: rezervasyon zaten giriş yapmış
+        // kullanıcı gerektiriyor, yani buraya gelen herkes üye.
+
+        if (subtotal < campaign.MinCartTotal)
+            throw new ConflictException(
+                $"Bu kampanya için sepet tutarı en az {campaign.MinCartTotal:0.00} olmalıdır.");
+
+        var raw = campaign.Type switch
+        {
+            CampaignType.Percentage => Math.Round(subtotal * campaign.Value / 100m, 2),
+            CampaignType.FixedAmount => campaign.Value,
+            _ => 0m
+        };
+
+        return Math.Min(raw, subtotal);
     }
 
     // Domain'de resmi bir bilet-tipi fiyat kuralı tanımlı değil; bu makul bir varsayımdır.

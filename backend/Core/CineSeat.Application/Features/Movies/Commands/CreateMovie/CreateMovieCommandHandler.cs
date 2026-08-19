@@ -1,5 +1,6 @@
+using CineSeat.Application.Common.Exceptions;
+using CineSeat.Application.Common.Extensions;
 using CineSeat.Application.Common.Interfaces;
-using CineSeat.Application.Common.Models;
 using CineSeat.Application.Repositories;
 using CineSeat.Domain.Entities;
 using MediatR;
@@ -13,7 +14,7 @@ namespace CineSeat.Application.Features.Movies.Commands.CreateMovie;
 /// - DbContext yok (IMovieRead/WriteRepository üzerinden gidiliyor).
 /// Geriye sadece iş kuralı kalıyor.
 /// </summary>
-public class CreateMovieCommandHandler : IRequestHandler<CreateMovieCommand, Result<long>>
+public class CreateMovieCommandHandler : IRequestHandler<CreateMovieCommand, long>
 {
     private readonly IMovieWriteRepository _movieWriteRepository;
     private readonly IMovieReadRepository _movieReadRepository;
@@ -29,21 +30,17 @@ public class CreateMovieCommandHandler : IRequestHandler<CreateMovieCommand, Res
         _queryExecutor = queryExecutor;
     }
 
-    public async Task<Result<long>> Handle(CreateMovieCommand request, CancellationToken cancellationToken)
+    public async Task<long> Handle(CreateMovieCommand request, CancellationToken cancellationToken)
     {
-        var startDate = ToUtc(request.StartDate);
-        var endDate = ToUtc(request.EndDate);
+        var startDate = request.StartDate.ToUtc();
+        var endDate = request.EndDate.ToUtc();
 
         // İş kuralı: aynı isimde ve aynı vizyon tarihinde ikinci bir film açılamaz.
         var existingQuery = _movieReadRepository
             .GetWhere(m => m.Title == request.Title && m.StartDate == startDate, tracking: false);
 
-        var alreadyExists = await _queryExecutor.AnyAsync(existingQuery, cancellationToken);
-
-        if (alreadyExists)
-        {
-            return Result<long>.Failure($"'{request.Title}' filmi bu vizyon tarihiyle zaten kayıtlı.");
-        }
+        if (await _queryExecutor.AnyAsync(existingQuery, cancellationToken))
+            throw new ConflictException($"'{request.Title}' filmi bu vizyon tarihiyle zaten kayıtlı.");
 
         var movie = new Movie
         {
@@ -62,18 +59,6 @@ public class CreateMovieCommandHandler : IRequestHandler<CreateMovieCommand, Res
         await _movieWriteRepository.AddAsync(movie, cancellationToken);
         await _movieWriteRepository.SaveAsync(cancellationToken);
 
-        return Result<long>.Success(movie.Id);
+        return movie.Id;
     }
-
-    /// <summary>
-    /// PostgreSQL'de start_date/end_date "timestamp with time zone" tipinde;
-    /// Npgsql bu kolonlara Kind'ı Utc olmayan DateTime yazılmasına izin vermez.
-    /// JSON'dan gelen tarihler Unspecified geldiği için burada UTC'ye sabitliyoruz.
-    /// </summary>
-    private static DateTime ToUtc(DateTime value) => value.Kind switch
-    {
-        DateTimeKind.Utc => value,
-        DateTimeKind.Local => value.ToUniversalTime(),
-        _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-    };
 }

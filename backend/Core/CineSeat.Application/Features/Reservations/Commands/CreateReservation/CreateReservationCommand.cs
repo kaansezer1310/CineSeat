@@ -10,16 +10,13 @@ public class ReservationSeatItem
     public TicketType TicketType { get; set; }
 }
 
-// NOT: Auth henüz bu branch'e eklenmedi (Ömer'in Faz 1 işi). UserId bu yüzden
-// şimdilik istekle birlikte gönderiliyor; auth gelince ICurrentUserService'ten
-// alınacak şekilde değiştirilmesi gerekir.
+// UserId BİLİNÇLİ OLARAK YOK — rezervasyonu yapan kullanıcı ICurrentUserService'ten
+// (JWT'den) okunur. İstekle gelseydi herkes başkası adına rezervasyon yapabilirdi.
 //
-// NOT: CampaignId kabul edilir ve Reservation'a kaydedilir ama indirim HENÜZ
-// UYGULANMAZ — Campaign CRUD/repository'si Ömer'in Faz 2 (Katalog) işi ve bu
-// branch'te henüz yok. Campaign eklenince Discount hesaplaması buraya bağlanmalı.
+// CampaignId verilirse indirim uygulanır; kampanyanın aktif olması ve sepetin
+// MinCartTotal eşiğini geçmesi handler'da doğrulanır.
 public class CreateReservationCommand : IRequest<ReservationDto>
 {
-    public long UserId { get; set; }
     public long ShowtimeId { get; set; }
     public long? CampaignId { get; set; }
     public string BuyerFname { get; set; } = string.Empty;

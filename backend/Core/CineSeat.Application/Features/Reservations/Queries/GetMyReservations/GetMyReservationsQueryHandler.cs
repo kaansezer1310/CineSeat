@@ -10,18 +10,25 @@ public class GetMyReservationsQueryHandler
     : IRequestHandler<GetMyReservationsQuery, PagedResult<ReservationSummaryDto>>
 {
     private readonly IReservationReadRepository _read;
+    private readonly ICurrentUserService _currentUser;
     private readonly IAsyncQueryExecutor _executor;
 
-    public GetMyReservationsQueryHandler(IReservationReadRepository read, IAsyncQueryExecutor executor)
+    public GetMyReservationsQueryHandler(
+        IReservationReadRepository read,
+        ICurrentUserService currentUser,
+        IAsyncQueryExecutor executor)
     {
         _read = read;
+        _currentUser = currentUser;
         _executor = executor;
     }
 
     public async Task<PagedResult<ReservationSummaryDto>> Handle(
         GetMyReservationsQuery request, CancellationToken cancellationToken)
     {
-        var baseQuery = _read.GetWhere(r => r.UserId == request.UserId, tracking: false);
+        var userId = _currentUser.GetRequiredUserId();
+
+        var baseQuery = _read.GetWhere(r => r.UserId == userId, tracking: false);
 
         var totalCount = await _executor.CountAsync(baseQuery, cancellationToken);
 

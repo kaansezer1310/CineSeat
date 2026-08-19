@@ -1,8 +1,10 @@
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Features.Seats.Commands.CreateSeats;
 using CineSeat.Application.Features.Seats.Commands.DeleteSeat;
 using CineSeat.Application.Features.Seats.Commands.UpdateSeat;
 using CineSeat.Application.Features.Seats.Queries.GetSeatMap;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CineSeat.WebAPI.Controllers;
@@ -22,10 +24,12 @@ public class SeatsController : ControllerBase
     public async Task<IActionResult> GetSeatMap([FromQuery] long hallId)
         => Ok(await _mediator.Send(new GetSeatMapQuery { HallId = hallId }));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPost("bulk")]
     public async Task<IActionResult> CreateSeats([FromBody] CreateSeatsCommand command)
         => Ok(await _mediator.Send(command));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateSeatCommand command)
     {
@@ -34,6 +38,7 @@ public class SeatsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

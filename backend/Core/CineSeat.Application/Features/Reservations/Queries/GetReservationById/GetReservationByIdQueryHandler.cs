@@ -1,3 +1,4 @@
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Common.Exceptions;
 using CineSeat.Application.Common.Interfaces;
 using CineSeat.Application.Features.Reservations.DTOs;
@@ -11,22 +12,32 @@ public class GetReservationByIdQueryHandler : IRequestHandler<GetReservationById
 {
     private readonly IReservationReadRepository _reservationRead;
     private readonly ITicketReadRepository _ticketRead;
+    private readonly ICurrentUserService _currentUser;
     private readonly IAsyncQueryExecutor _executor;
 
     public GetReservationByIdQueryHandler(
         IReservationReadRepository reservationRead,
         ITicketReadRepository ticketRead,
+        ICurrentUserService currentUser,
         IAsyncQueryExecutor executor)
     {
         _reservationRead = reservationRead;
         _ticketRead = ticketRead;
+        _currentUser = currentUser;
         _executor = executor;
     }
 
     public async Task<ReservationDto> Handle(GetReservationByIdQuery request, CancellationToken cancellationToken)
     {
+        var userId = _currentUser.GetRequiredUserId();
+        var isAdmin = _currentUser.Role == RoleNames.Admin;
+
         var reservation = await _reservationRead.GetByIdAsync(request.Id, tracking: false, cancellationToken);
-        if (reservation is null)
+
+        // Sahiplik kontrolü ŞART: olmasaydı id deneyen herkes başkasının
+        // rezervasyonunu (alıcı adı, e-postası, tutarı dahil) okuyabilirdi.
+        // Yetkisiz erişim, kaydın varlığını sızdırmamak için NotFound döner.
+        if (reservation is null || (reservation.UserId != userId && !isAdmin))
             throw new NotFoundException("Rezervasyon", request.Id);
 
         var ticketsQuery = _ticketRead.GetWhere(t => t.ReservationId == request.Id, tracking: false)

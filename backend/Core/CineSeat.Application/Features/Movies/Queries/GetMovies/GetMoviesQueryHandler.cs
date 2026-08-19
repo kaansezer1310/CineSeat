@@ -6,7 +6,7 @@ using MediatR;
 
 namespace CineSeat.Application.Features.Movies.Queries.GetMovies;
 
-public class GetMoviesQueryHandler : IRequestHandler<GetMoviesQuery, Result<PagedResult<MovieDto>>>
+public class GetMoviesQueryHandler : IRequestHandler<GetMoviesQuery, PagedResult<MovieDto>>
 {
     private readonly IMovieReadRepository _movieReadRepository;
     private readonly IAsyncQueryExecutor _queryExecutor;
@@ -19,7 +19,7 @@ public class GetMoviesQueryHandler : IRequestHandler<GetMoviesQuery, Result<Page
         _queryExecutor = queryExecutor;
     }
 
-    public async Task<Result<PagedResult<MovieDto>>> Handle(
+    public async Task<PagedResult<MovieDto>> Handle(
         GetMoviesQuery request,
         CancellationToken cancellationToken)
     {
@@ -64,7 +64,6 @@ public class GetMoviesQueryHandler : IRequestHandler<GetMoviesQuery, Result<Page
 
         var items = await _queryExecutor.ToListAsync(pageQuery, cancellationToken);
 
-        return Result<PagedResult<MovieDto>>.Success(
-            new PagedResult<MovieDto>(items, totalCount, page, pageSize));
+        return new PagedResult<MovieDto>(items, totalCount, page, pageSize);
     }
 }
