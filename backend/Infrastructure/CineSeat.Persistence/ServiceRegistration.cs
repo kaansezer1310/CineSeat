@@ -28,5 +28,37 @@ public static class ServiceRegistration
 
         services.AddScoped<IMovieReadRepository, MovieReadRepository>();
         services.AddScoped<IMovieWriteRepository, MovieWriteRepository>();
+
+        services.AddScoped<IDistrictReadRepository, DistrictReadRepository>();
+        services.AddScoped<IDistrictWriteRepository, DistrictWriteRepository>();
+
+        services.AddScoped<ICinemaReadRepository, CinemaReadRepository>();
+        services.AddScoped<ICinemaWriteRepository, CinemaWriteRepository>();
+
+        services.AddScoped<IHallReadRepository, HallReadRepository>();
+        services.AddScoped<IHallWriteRepository, HallWriteRepository>();
+
+        services.AddScoped<ITechnologyReadRepository, TechnologyReadRepository>();
+        services.AddScoped<ITechnologyWriteRepository, TechnologyWriteRepository>();
+
+        services.AddScoped<IHallTechReadRepository, HallTechReadRepository>();
+        services.AddScoped<IHallTechWriteRepository, HallTechWriteRepository>();
+
+        services.AddScoped<ISeatReadRepository, SeatReadRepository>();
+        services.AddScoped<ISeatWriteRepository, SeatWriteRepository>();
+
+        services.AddScoped<IShowtimeReadRepository, ShowtimeReadRepository>();
+        services.AddScoped<IShowtimeWriteRepository, ShowtimeWriteRepository>();
+
+        services.AddScoped<ISeatLockReadRepository, SeatLockReadRepository>();
+        services.AddScoped<ISeatLockWriteRepository, SeatLockWriteRepository>();
+
+        services.AddScoped<ITicketReadRepository, TicketReadRepository>();
+        services.AddScoped<ITicketWriteRepository, TicketWriteRepository>();
+
+        services.AddScoped<IReservationReadRepository, ReservationReadRepository>();
+        services.AddScoped<IReservationWriteRepository, ReservationWriteRepository>();
+
+        services.AddScoped<IUserReadRepository, UserReadRepository>();
     }
 }
