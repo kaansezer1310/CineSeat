@@ -50,6 +50,15 @@ public class ExceptionHandlingMiddleware
                 detail = ex.Message
             });
         }
+        catch (ConflictException ex)
+        {
+            await WriteAsync(context, StatusCodes.Status409Conflict, new
+            {
+                title = "Kaynak çakışması",
+                status = StatusCodes.Status409Conflict,
+                detail = ex.Message
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Beklenmeyen hata");
