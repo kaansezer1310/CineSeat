@@ -6,7 +6,6 @@ public class GetMyReservationsQueryValidator : AbstractValidator<GetMyReservatio
 {
     public GetMyReservationsQueryValidator()
     {
-        RuleFor(x => x.UserId).GreaterThan(0);
         RuleFor(x => x.PageNumber).GreaterThan(0);
         RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
     }

@@ -1,9 +1,11 @@
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Features.Districts.Commands.CreateDistrict;
 using CineSeat.Application.Features.Districts.Commands.DeleteDistrict;
 using CineSeat.Application.Features.Districts.Commands.UpdateDistrict;
 using CineSeat.Application.Features.Districts.Queries.GetDistrictById;
 using CineSeat.Application.Features.Districts.Queries.GetDistrictsByCity;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CineSeat.WebAPI.Controllers;
@@ -27,10 +29,12 @@ public class DistrictsController : ControllerBase
     public async Task<IActionResult> GetById(long id)
         => Ok(await _mediator.Send(new GetDistrictByIdQuery { Id = id }));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDistrictCommand command)
         => Ok(await _mediator.Send(command));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateDistrictCommand command)
     {
@@ -39,6 +43,7 @@ public class DistrictsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

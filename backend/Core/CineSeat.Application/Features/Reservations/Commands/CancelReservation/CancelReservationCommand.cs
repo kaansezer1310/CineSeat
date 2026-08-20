@@ -2,9 +2,10 @@ using MediatR;
 
 namespace CineSeat.Application.Features.Reservations.Commands.CancelReservation;
 
-// NOT: Auth henüz yok — UserId istekle geliyor (sahiplik kontrolü için).
+// UserId BİLİNÇLİ OLARAK YOK — sahiplik kontrolü ICurrentUserService üzerinden
+// yapılır. İstekle gelseydi doğru userId'yi tahmin eden herkes başkasının
+// rezervasyonunu iptal edebilirdi.
 public class CancelReservationCommand : IRequest<Unit>
 {
     public long Id { get; set; }
-    public long UserId { get; set; }
 }

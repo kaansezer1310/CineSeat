@@ -1,9 +1,11 @@
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Features.Technologies.Commands.CreateTechnology;
 using CineSeat.Application.Features.Technologies.Commands.DeleteTechnology;
 using CineSeat.Application.Features.Technologies.Commands.UpdateTechnology;
 using CineSeat.Application.Features.Technologies.Queries.GetAllTechnologies;
 using CineSeat.Application.Features.Technologies.Queries.GetTechnologyById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CineSeat.WebAPI.Controllers;
@@ -27,10 +29,12 @@ public class TechnologiesController : ControllerBase
     public async Task<IActionResult> GetById(long id)
         => Ok(await _mediator.Send(new GetTechnologyByIdQuery { Id = id }));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTechnologyCommand command)
         => Ok(await _mediator.Send(command));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateTechnologyCommand command)
     {
@@ -39,6 +43,7 @@ public class TechnologiesController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

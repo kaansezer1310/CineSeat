@@ -1,4 +1,5 @@
 using CineSeat.Application.Common.Exceptions;
+using CineSeat.Application.Common.Interfaces;
 using CineSeat.Application.Repositories;
 using CineSeat.Domain.Entities;
 using CineSeat.Domain.Enums;
@@ -20,6 +21,7 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
     private readonly ISeatReadRepository _seatRead;
     private readonly ITicketReadRepository _ticketRead;
     private readonly IUserReadRepository _userRead;
+    private readonly ICurrentUserService _currentUser;
 
     public LockSeatCommandHandler(
         ISeatLockReadRepository lockRead,
@@ -27,7 +29,8 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
         IShowtimeReadRepository showtimeRead,
         ISeatReadRepository seatRead,
         ITicketReadRepository ticketRead,
-        IUserReadRepository userRead)
+        IUserReadRepository userRead,
+        ICurrentUserService currentUser)
     {
         _lockRead = lockRead;
         _lockWrite = lockWrite;
@@ -35,13 +38,17 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
         _seatRead = seatRead;
         _ticketRead = ticketRead;
         _userRead = userRead;
+        _currentUser = currentUser;
     }
 
     public async Task<long> Handle(LockSeatCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRead.GetByIdAsync(request.UserId, tracking: false, cancellationToken);
+        var userId = _currentUser.GetRequiredUserId();
+
+        // Token geçerli ama kullanıcı silinmiş olabilir — FK ihlaline düşmeden 404 dön.
+        var user = await _userRead.GetByIdAsync(userId, tracking: false, cancellationToken);
         if (user is null)
-            throw new NotFoundException("Kullanıcı", request.UserId);
+            throw new NotFoundException("Kullanıcı", userId);
 
         var showtime = await _showtimeRead.GetByIdAsync(request.ShowtimeId, tracking: false, cancellationToken);
         if (showtime is null)
@@ -79,7 +86,7 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
             {
                 ShowtimeId = request.ShowtimeId,
                 SeatId = request.SeatId,
-                UserId = request.UserId,
+                UserId = userId,
                 LockExpiresAt = now.AddMinutes(request.LockMinutes)
             };
             await _lockWrite.AddAsync(newLock, cancellationToken);
@@ -88,13 +95,13 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
         }
 
         var isExpired = existingLock.LockExpiresAt < now;
-        var isSameUser = existingLock.UserId == request.UserId;
+        var isSameUser = existingLock.UserId == userId;
 
         if (!isExpired && !isSameUser)
             throw new ConflictException("Bu koltuk şu anda başka bir kullanıcı tarafından kilitli.");
 
         // Süresi dolmuş ya da aynı kullanıcı → satırı devral / yenile (unique constraint korunur).
-        existingLock.UserId = request.UserId;
+        existingLock.UserId = userId;
         existingLock.LockExpiresAt = now.AddMinutes(request.LockMinutes);
 
         _lockWrite.Update(existingLock);

@@ -1,4 +1,3 @@
-using CineSeat.Application.Common.Models;
 using MediatR;
 
 namespace CineSeat.Application.Features.Movies.Commands.CreateMovie;
@@ -7,7 +6,7 @@ namespace CineSeat.Application.Features.Movies.Commands.CreateMovie;
 /// YAZMA tarafı (Command). Sadece "ne yapılmak isteniyor" bilgisini taşır,
 /// nasıl yapılacağını bilmez. Yeni bir film oluşturur ve id'sini döndürür.
 /// </summary>
-public class CreateMovieCommand : IRequest<Result<long>>
+public class CreateMovieCommand : IRequest<long>
 {
     public string Title { get; set; } = string.Empty;
     public short Duration { get; set; }

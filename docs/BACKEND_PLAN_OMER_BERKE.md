@@ -180,61 +180,61 @@ Her kişiye bir "zor" alan + dengeli CRUD verildi. Ayarlanabilir.
 ### Faz 1 — Auth Altyapısı (Ömer) + Konum & Sinema (Berke)  *(paralel)*
 
 **Ömer — Auth (kritik yol):**
-- [ ] Arayüzler `Application`'da: `ITokenService`, `IPasswordHasher`, `ICurrentUserService`
-- [ ] Implementasyonlar **`CineSeat.Infrastructure`** (şu an boş proje bunun için): JWT üretimi (JwtBearer), PBKDF2/BCrypt hash → `Infrastructure/ServiceRegistration.cs` + Program.cs'e `AddInfrastructureServices`
-- [ ] `Features/Auth/Commands/Register` + `Login` (Command + Handler + Validator), dönüş `AuthResult` (token + kullanıcı)
-- [ ] Program.cs: `AddAuthentication(JwtBearer)` + `AddAuthorization` + `UseAuthentication`
-- [ ] Rol/izin **seed** (Admin, User) — Persistence'ta `DbInitializer` (Program.cs başlangıcında)
-- [ ] `ICurrentUserService` (WebAPI, `IHttpContextAccessor`)
+- [x] Arayüzler `Application`'da: `ITokenService`, `IPasswordHasher`, `ICurrentUserService`
+- [x] Implementasyonlar **`CineSeat.Infrastructure`** (şu an boş proje bunun için): JWT üretimi (JwtBearer), PBKDF2/BCrypt hash → `Infrastructure/ServiceRegistration.cs` + Program.cs'e `AddInfrastructureServices`
+- [x] `Features/Auth/Commands/Register` + `Login` (Command + Handler + Validator), dönüş `AuthResult` (token + kullanıcı)
+- [x] Program.cs: `AddAuthentication(JwtBearer)` + `AddAuthorization` + `UseAuthentication`
+- [x] Rol/izin **seed** (Admin, User) — Persistence'ta `DbInitializer` (Program.cs başlangıcında)
+- [x] `ICurrentUserService` (WebAPI, `IHttpContextAccessor`)
 
 **Berke — Konum & Sinema:**
-- [ ] `City` tamamla: UpdateCity, DeleteCity, GetCityById
-- [ ] `District`: CreateDistrict, UpdateDistrict, DeleteDistrict, GetDistrictsByCity (+ read/write repo + register)
-- [ ] `Cinema`: Create/Update/Delete/GetById/GetByCity (+ repo)
-- [ ] Her feature'ı Bölüm 1 reçetesiyle; en az bir command'a validator yaz (pratik)
+- [x] `City` tamamla: UpdateCity, DeleteCity, GetCityById
+- [x] `District`: CreateDistrict, UpdateDistrict, DeleteDistrict, GetDistrictsByCity (+ read/write repo + register)
+- [x] `Cinema`: Create/Update/Delete/GetById/GetByCity (+ repo)
+- [x] Her feature'ı Bölüm 1 reçetesiyle; en az bir command'a validator yaz (pratik)
 
 **Hedef:** Login token üretiyor; Berke pattern'e hakim; konum+sinema tam.
 
 ### Faz 2 — Katalog (Ömer) + Salon/Koltuk/Seans (Berke)
 
 **Ömer — Katalog:**
-- [ ] `Movie` tamamla: UpdateMovie, DeleteMovie, GetMovieById, GetMovies'e **filtre + pagination** (`PagedResult<MovieDto>`)
-- [ ] `Genre`: CRUD
-- [ ] `MovieGenre`: AssignGenreToMovie, RemoveGenreFromMovie, GetGenresOfMovie
-- [ ] `Campaign`: CRUD + GetActiveCampaigns
+- [x] `Movie` tamamla: UpdateMovie, DeleteMovie, GetMovieById, GetMovies'e **filtre + pagination** (`PagedResult<MovieDto>`)
+- [x] `Genre`: CRUD
+- [x] `MovieGenre`: AssignGenreToMovie, RemoveGenreFromMovie, GetGenresOfMovie
+- [x] `Campaign`: CRUD + GetActiveCampaigns
 
 **Berke — Mekan & Seans:**
-- [ ] `Hall`: CRUD (Cinema'ya bağlı)
-- [ ] `Technology`: CRUD · `HallTech`: AssignTechToHall / RemoveTech / GetTechsOfHall
-- [ ] `Seat`: CreateSeats (toplu üretim), GetSeatMap (salona göre)
-- [ ] `Showtime`: Create/Update/Delete/GetById/GetByMovie/GetByCinema (Movie[Ömer] + Hall[kendi] FK)
+- [x] `Hall`: CRUD (Cinema'ya bağlı)
+- [x] `Technology`: CRUD · `HallTech`: AssignTechToHall / RemoveTech / GetTechsOfHall
+- [x] `Seat`: CreateSeats (toplu üretim), GetSeatMap (salona göre)
+- [x] `Showtime`: Create/Update/Delete/GetById/GetByMovie/GetByCinema (Movie[Ömer] + Hall[kendi] FK)
 
 **Hedef:** katalog + mekan + seanslar tam sorgulanabilir.
 
 ### Faz 3 — Rezervasyon Akışı (Berke, EN ZOR) + Sosyal & Profil (Ömer)
 
 **Berke — Rezervasyon:**
-- [ ] `SeatLock`: LockSeat, ReleaseSeat — `ShowtimeId+SeatId` **unique index** çift kilidi DB'de engeller; çakışmada `ConflictException`
-- [ ] `Reservation`: CreateReservation — koltuk müsaitlik doğrulama, fiyat = seans `BasePrice` × koltuklar − kampanya indirimi, **tek transaction** (`AddRangeAsync` + tek `SaveAsync`)
-- [ ] GetMyReservations (current user), CancelReservation
-- [ ] `Ticket`: IssueTicket (rezervasyon onayında), GetTicketById
+- [x] `SeatLock`: LockSeat, ReleaseSeat — `ShowtimeId+SeatId` **unique index** çift kilidi DB'de engeller; çakışmada `ConflictException`
+- [x] `Reservation`: CreateReservation — koltuk müsaitlik doğrulama, fiyat = seans `BasePrice` × koltuklar − kampanya indirimi, **tek transaction** (`AddRangeAsync` + tek `SaveAsync`)
+- [x] GetMyReservations (current user), CancelReservation
+- [x] `Ticket`: IssueTicket (rezervasyon onayında), GetTicketById
 
 **Ömer — Sosyal & Profil:**
-- [ ] `UserFavorite`: AddFavorite, RemoveFavorite, GetMyFavorites (current user)
-- [ ] `Comment`: AddComment, DeleteComment, GetCommentsByMovie (+ `Movie.AvgScore` güncelle)
-- [ ] `User`: GetProfile, UpdateProfile
-- [ ] RBAC: `[Authorize(Roles = "Admin")]` yazma/silme endpoint'lerine; gerekirse permission tabanlı policy
+- [x] `UserFavorite`: AddFavorite, RemoveFavorite, GetMyFavorites (current user)
+- [x] `Comment`: AddComment, DeleteComment, GetCommentsByMovie (+ `Movie.AvgScore` güncelle)
+- [x] `User`: GetProfile, UpdateProfile
+- [x] RBAC: `[Authorize(Roles = "Admin")]` yazma/silme endpoint'lerine; gerekirse permission tabanlı policy
 
 **Hedef:** uçtan uca rezervasyon + sosyal özellikler.
 
 ### Faz 4 — Kalite, Güvenlik, Bitiş  *(birlikte)*
 
-- [ ] Tüm command'lara validator; tüm liste endpoint'lerine **pagination** (`PagedResult<T>`)
-- [ ] `[Authorize]` rolleri her endpoint'e doğru uygulanmış mı gözden geçir
+- [~] Tüm command'lara validator; tüm liste endpoint'lerine **pagination** (`PagedResult<T>`) — kritik olanlar tamam
+- [x] `[Authorize]` rolleri her endpoint'e doğru uygulanmış mı gözden geçir — yazma uçları Admin, kullanıcıya özel uçlar `[Authorize]`; sahiplik kontrolleri handler'larda
 - [ ] **Soft-delete kararı uygula** (Bölüm 5) — Remove'lar `IsDeleted=true` mı olacak
-- [ ] Seed genişletme: admin kullanıcı, türler, şehir/ilçe örnekleri
-- [ ] **Swagger'a JWT** (Authorize butonu) + tüm endpoint'leri elle test
-- [ ] Uçtan uca smoke test + kısa README
+- [x] Seed genişletme: admin kullanıcı, roller/izinler, şehir/ilçe örnekleri
+- [x] **Swagger'a JWT** (Authorize butonu) + tüm endpoint'leri elle test
+- [~] Uçtan uca smoke test + kısa README — smoke test yapıldı, README yazılmadı
 - Bölüşüm: **Ömer** güvenlik/auth/Swagger-JWT · **Berke** pagination/seed/liste standardı · ikisi cross-review
 
 ---
@@ -250,11 +250,12 @@ Her kişiye bir "zor" alan + dengeli CRUD verildi. Ayarlanabilir.
 
 ## 5. Karara Bağlanacak Açık Noktalar
 
-1. **Soft-delete vs hard-delete:** `WriteRepository.Remove/RemoveAsync` şu an **hard delete** yapıyor, ama global filter + `IsDeleted` **soft-delete** ima ediyor. Karar gerek. *Öneri: soft-delete* (Remove yerine `IsDeleted=true` + `Update`) — filter zaten hazır.
+1. ~~**Soft-delete vs hard-delete:**~~ **KARAR: hard delete korundu** (mevcut kodun davranışı). Aşağıdaki gerekçe hâlâ geçerli, Faz 4'te yeniden değerlendirilebilir.
+    `WriteRepository.Remove/RemoveAsync` şu an **hard delete** yapıyor, ama global filter + `IsDeleted` **soft-delete** ima ediyor. Karar gerek. *Öneri: soft-delete* (Remove yerine `IsDeleted=true` + `Update`) — filter zaten hazır.
 2. **Dış servislerin yeri:** JWT/hashing → `CineSeat.Infrastructure` (boş proje bunun için). Arayüz Application'da, impl Infrastructure'da, DI Infrastructure'da.
 3. **`ICurrentUserService`:** arayüz Application, impl WebAPI (`IHttpContextAccessor`).
 4. **Pagination standardı:** liste endpoint'leri `List<Dto>` mı `PagedResult<Dto>` mı? *Öneri: büyük listeler `PagedResult`.*
-5. **Result<T> vs exception:** Beklenen iş-kuralı hataları `Result.Failure(...)` mı, exception mı? Şu an karışık (query'ler ham değer, hatalar exception). *Öneri: beklenen hatalar `Result`, gerçek istisnalar exception.*
+5. ~~**Result<T> vs exception:**~~ **KARAR: exception** — command'lar `long`/`Unit`, query'ler `Dto`/`List<Dto>`/`PagedResult<Dto>` döner; hatalar `NotFoundException`/`ConflictException`/`UnauthorizedException` ile middleware'e gider. Movies feature'ı da bu konvansiyona çevrildi, kod tabanı artık tek stil. *Öneri: beklenen hatalar `Result`, gerçek istisnalar exception.*
 
 ---
 

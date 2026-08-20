@@ -1,3 +1,4 @@
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Features.Showtimes.Commands.CreateShowtime;
 using CineSeat.Application.Features.Showtimes.Commands.DeleteShowtime;
 using CineSeat.Application.Features.Showtimes.Commands.UpdateShowtime;
@@ -5,6 +6,7 @@ using CineSeat.Application.Features.Showtimes.Queries.GetShowtimeById;
 using CineSeat.Application.Features.Showtimes.Queries.GetShowtimesByCinema;
 using CineSeat.Application.Features.Showtimes.Queries.GetShowtimesByMovie;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CineSeat.WebAPI.Controllers;
@@ -36,10 +38,12 @@ public class ShowtimesController : ControllerBase
     public async Task<IActionResult> GetById(long id)
         => Ok(await _mediator.Send(new GetShowtimeByIdQuery { Id = id }));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateShowtimeCommand command)
         => Ok(await _mediator.Send(command));
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateShowtimeCommand command)
     {
@@ -48,6 +52,7 @@ public class ShowtimesController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = RoleNames.Admin)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

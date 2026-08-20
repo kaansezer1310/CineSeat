@@ -6,7 +6,6 @@ public class CreateReservationCommandValidator : AbstractValidator<CreateReserva
 {
     public CreateReservationCommandValidator()
     {
-        RuleFor(x => x.UserId).GreaterThan(0).WithMessage("Geçerli bir kullanıcı olmalıdır.");
         RuleFor(x => x.ShowtimeId).GreaterThan(0).WithMessage("Geçerli bir seans seçilmelidir.");
 
         RuleFor(x => x.BuyerFname).NotEmpty().WithMessage("Alıcı adı boş olamaz.");

@@ -60,5 +60,30 @@ public static class ServiceRegistration
         services.AddScoped<IReservationWriteRepository, ReservationWriteRepository>();
 
         services.AddScoped<IUserReadRepository, UserReadRepository>();
+        services.AddScoped<IUserWriteRepository, UserWriteRepository>();
+
+        services.AddScoped<IRoleReadRepository, RoleReadRepository>();
+        services.AddScoped<IRoleWriteRepository, RoleWriteRepository>();
+
+        services.AddScoped<IPermissionReadRepository, PermissionReadRepository>();
+        services.AddScoped<IPermissionWriteRepository, PermissionWriteRepository>();
+
+        services.AddScoped<IRolePermissionReadRepository, RolePermissionReadRepository>();
+        services.AddScoped<IRolePermissionWriteRepository, RolePermissionWriteRepository>();
+
+        services.AddScoped<IGenreReadRepository, GenreReadRepository>();
+        services.AddScoped<IGenreWriteRepository, GenreWriteRepository>();
+
+        services.AddScoped<IMovieGenreReadRepository, MovieGenreReadRepository>();
+        services.AddScoped<IMovieGenreWriteRepository, MovieGenreWriteRepository>();
+
+        services.AddScoped<ICampaignReadRepository, CampaignReadRepository>();
+        services.AddScoped<ICampaignWriteRepository, CampaignWriteRepository>();
+
+        services.AddScoped<ICommentReadRepository, CommentReadRepository>();
+        services.AddScoped<ICommentWriteRepository, CommentWriteRepository>();
+
+        services.AddScoped<IUserFavoriteReadRepository, UserFavoriteReadRepository>();
+        services.AddScoped<IUserFavoriteWriteRepository, UserFavoriteWriteRepository>();
     }
 }

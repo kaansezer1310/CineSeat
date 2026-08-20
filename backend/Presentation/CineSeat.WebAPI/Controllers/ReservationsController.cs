@@ -3,12 +3,18 @@ using CineSeat.Application.Features.Reservations.Commands.CreateReservation;
 using CineSeat.Application.Features.Reservations.Queries.GetMyReservations;
 using CineSeat.Application.Features.Reservations.Queries.GetReservationById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CineSeat.WebAPI.Controllers;
 
+/// <summary>
+/// Tamamı giriş gerektirir. Hangi kullanıcı olduğu token'dan okunur — hiçbir
+/// endpoint istekten userId kabul etmez.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ReservationsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -19,10 +25,9 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet("my")]
-    public async Task<IActionResult> GetMy(
-        [FromQuery] long userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetMy([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
         => Ok(await _mediator.Send(
-            new GetMyReservationsQuery { UserId = userId, PageNumber = pageNumber, PageSize = pageSize }));
+            new GetMyReservationsQuery { PageNumber = pageNumber, PageSize = pageSize }));
 
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(long id)
@@ -33,9 +38,9 @@ public class ReservationsController : ControllerBase
         => Ok(await _mediator.Send(command));
 
     [HttpPost("{id:long}/cancel")]
-    public async Task<IActionResult> Cancel(long id, [FromQuery] long userId)
+    public async Task<IActionResult> Cancel(long id)
     {
-        await _mediator.Send(new CancelReservationCommand { Id = id, UserId = userId });
+        await _mediator.Send(new CancelReservationCommand { Id = id });
         return NoContent();
     }
 }

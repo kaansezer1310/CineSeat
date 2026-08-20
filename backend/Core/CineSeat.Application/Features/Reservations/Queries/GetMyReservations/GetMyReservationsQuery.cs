@@ -4,10 +4,11 @@ using MediatR;
 
 namespace CineSeat.Application.Features.Reservations.Queries.GetMyReservations;
 
-// NOT: Auth henüz yok — UserId istekle geliyor, auth eklenince current user'dan alınmalı.
+// UserId BİLİNÇLİ OLARAK YOK — "benim rezervasyonlarım" sorgusu kullanıcıyı
+// ICurrentUserService'ten (JWT'den) okur. İstekle gelseydi ?userId=5 yazan
+// herkes başkasının rezervasyonlarını görüntüleyebilirdi.
 public class GetMyReservationsQuery : IRequest<PagedResult<ReservationSummaryDto>>
 {
-    public long UserId { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 20;
 }

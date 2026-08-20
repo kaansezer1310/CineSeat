@@ -1,12 +1,14 @@
 using CineSeat.Application.Features.Tickets.Queries.GetTicketById;
 using CineSeat.Application.Features.Tickets.Queries.GetTicketsByReservation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CineSeat.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TicketsController : ControllerBase
 {
     private readonly IMediator _mediator;
