@@ -4,4 +4,5 @@ namespace CineSeat.Application.Repositories;
 
 public interface ICampaignReadRepository : IReadRepository<Campaign>
 {
+    
 }

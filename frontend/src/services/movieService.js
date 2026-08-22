@@ -1,58 +1,159 @@
-import movies from "../data/movies.js";
+import apiClient from "./apiClient.js";
 import { NotFoundError } from "./errors.js";
 
-let mutableMovies = [...movies];
+// ---------------------------------------------------------------------------
+// Backend <-> frontend uyarlaması
+// ---------------------------------------------------------------------------
+// Backend'in MovieDto'su (Id, Title, Duration, Description, AgeLimit,
+// Language, Poster, StartDate, EndDate, AvgScore) ile frontend'in beklediği
+// film şekli (genre, ageRating, releaseYear, releaseDate, rating.average...)
+// birebir aynı değil. Bu fonksiyonlar aradaki dönüşümü tek yerde yapar —
+// HomePage/MovieDetailsPage/AdminMovieForm hiç değişmeden çalışmaya devam eder.
 
-function wait(milliseconds) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
+const AGE_RATING_TO_LIMIT = {
+  "Genel İzleyici": 0,
+  "7+": 7,
+  "13+": 13,
+  "16+": 16,
+  "18+": 18,
+};
+
+function ageRatingToAgeLimit(ageRating) {
+  return AGE_RATING_TO_LIMIT[ageRating] ?? 0;
 }
 
+function ageLimitToAgeRating(ageLimit) {
+  if (ageLimit >= 18) return "18+";
+  if (ageLimit >= 16) return "16+";
+  if (ageLimit >= 13) return "13+";
+  if (ageLimit >= 7) return "7+";
+  return "Genel İzleyici";
+}
+
+function toDateOnlyString(isoDateTime) {
+  return typeof isoDateTime === "string" ? isoDateTime.slice(0, 10) : "";
+}
+
+// NOT (bilinçli sınırlama): Backend'in MovieDto'sunda tür (genre) bilgisi
+// YOK — bir filmin türleri ayrı bir uç noktadan (`GET /movies/{id}/genres`)
+// geliyor ve tekil bir string değil, LİSTE (bir film birden fazla türe sahip
+// olabilir). Film listesinde (getMovies) her film için ayrı bir tür isteği
+// atmak (N+1) performans açısından mantıksız olacağından, listede `genre`
+// boş bırakılıyor — bu yüzden ana sayfadaki tür filtresi şu an gerçek veriyle
+// çalışmıyor. Film detayında (getMovieById) tek bir ek istekle gerçek
+// türler çekiliyor. Kalıcı çözüm: backend'in MovieDto'suna türleri de
+// eklemesi (ayrı bir görev/karar).
+function mapMovieDto(dto, { genres = [] } = {}) {
+  const releaseDate = toDateOnlyString(dto.startDate);
+
+  return {
+    id: dto.id,
+    title: dto.title,
+    genre: genres.length > 0 ? genres.join(", ") : "",
+    duration: dto.duration,
+    ageRating: ageLimitToAgeRating(dto.ageLimit),
+    releaseYear: releaseDate ? Number(releaseDate.slice(0, 4)) : null,
+    releaseDate,
+    screeningEndDate: toDateOnlyString(dto.endDate) || null,
+    poster: dto.poster,
+    description: dto.description,
+    rating: { average: Number(dto.avgScore) || 0, count: 0 },
+    fragmanYoutubeId: null,
+    language: dto.language,
+  };
+}
+
+function toIsoStartOfDay(dateOnlyString) {
+  return `${dateOnlyString}T00:00:00.000Z`;
+}
+
+function buildMovieCommandBody(movieData) {
+  // Form yalnızca vizyon (başlangıç) tarihini topluyor; backend başlangıç VE
+  // bitiş tarihi ister (bitiş > başlangıç). Form'da ayrı bir alan yoksa
+  // makul bir varsayılan (başlangıçtan 90 gün sonra) uygulanır.
+  const startDate = movieData.releaseDate;
+  const endDate =
+    movieData.screeningEndDate ||
+    (startDate
+      ? new Date(
+          new Date(startDate).getTime() + 90 * 24 * 60 * 60 * 1000
+        )
+          .toISOString()
+          .slice(0, 10)
+      : startDate);
+
+  return {
+    title: movieData.title,
+    duration: Number(movieData.duration),
+    description: movieData.description,
+    ageLimit: ageRatingToAgeLimit(movieData.ageRating),
+    language: movieData.language || "TR",
+    poster: movieData.poster,
+    startDate: toIsoStartOfDay(startDate),
+    endDate: toIsoStartOfDay(endDate),
+  };
+}
+
+// Tür adını (form'daki serbest metin) var olan bir Genre'ye eşlemeye çalışır.
+// NOT (bilinçli sınırlama): eşleşme bulunamazsa yeni bir tür OTOMATİK
+// OLUŞTURULMAZ — bu, kullanıcının fark etmeden veri modeline yeni kayıt
+// eklemesi anlamına gelirdi. Bulunamazsa atama sessizce atlanır; film yine
+// de kaydedilir, sadece türsüz kalır.
+async function tryAssignGenreByName(movieId, genreName) {
+  const trimmed = (genreName || "").trim();
+  if (!trimmed) return;
+
+  const genres = await apiClient.get("/genres");
+  const match = genres.find(
+    (g) => g.name.localeCompare(trimmed, "tr-TR", { sensitivity: "base" }) === 0
+  );
+
+  if (match) {
+    await apiClient.post(`/movies/${movieId}/genres`, { genreId: match.id });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Servis
+// ---------------------------------------------------------------------------
+
 async function getMovies() {
-  await wait(600);
-  return mutableMovies;
+  const result = await apiClient.get("/movies?page=1&pageSize=100");
+  return result.items.map((dto) => mapMovieDto(dto));
 }
 
 async function getMovieById(movieId) {
-  await wait(400);
+  const [dto, genres] = await Promise.all([
+    apiClient.get(`/movies/${movieId}`).catch((err) => {
+      if (err.status === 404) throw new NotFoundError("Film bulunamadı.");
+      throw err;
+    }),
+    apiClient
+      .get(`/movies/${movieId}/genres`)
+      .then((list) => list.map((g) => g.name))
+      .catch(() => []),
+  ]);
 
-  const movie = mutableMovies.find((movieItem) => {
-    return movieItem.id === Number(movieId);
-  });
-
-  if (!movie) {
-    throw new NotFoundError("Film bulunamadı.");
-  }
-
-  return movie;
+  return mapMovieDto(dto, { genres });
 }
 
 async function addMovie(movieData) {
-  await wait(500);
-  const newMovie = {
-    ...movieData,
-    id: Date.now(),
-  };
-  mutableMovies.push(newMovie);
-  return newMovie;
+  const id = await apiClient.post("/movies", buildMovieCommandBody(movieData));
+  await tryAssignGenreByName(id, movieData.genre);
+  return getMovieById(id);
 }
 
 async function updateMovie(movieId, movieData) {
-  await wait(500);
-  const index = mutableMovies.findIndex((m) => m.id === Number(movieId));
-  if (index === -1) throw new NotFoundError ("Film bulunamadı.");
-
-  mutableMovies[index] = { ...mutableMovies[index], ...movieData };
-  return mutableMovies[index];
+  await apiClient.put(`/movies/${movieId}`, {
+    id: Number(movieId),
+    ...buildMovieCommandBody(movieData),
+  });
+  await tryAssignGenreByName(movieId, movieData.genre);
+  return getMovieById(movieId);
 }
 
 async function deleteMovie(movieId) {
-  await wait(500);
-  const index = mutableMovies.findIndex((m) => m.id === Number(movieId));
-  if (index === -1) throw new NotFoundError ("Film bulunamadı.");
-
-  mutableMovies = mutableMovies.filter((m) => m.id !== Number(movieId));
+  await apiClient.del(`/movies/${movieId}`);
   return true;
 }
 
@@ -157,7 +258,7 @@ function filterMovies(movieList, { genre = "all", ageRating = "all" } = {}) {
 
 function getAvailableGenres(movieList) {
   return Array.from(
-    new Set(movieList.map((movie) => movie.genre))
+    new Set(movieList.map((movie) => movie.genre).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b, "tr-TR"));
 }
 

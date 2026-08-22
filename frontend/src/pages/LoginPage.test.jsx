@@ -104,6 +104,24 @@ describe("LoginPage — giriş akışı", () => {
   });
 
   it("yanlış bilgiyle REQ-21'e uygun genel hata mesajı gösterir", async () => {
+    // authService artık backend'e (fetch) gidiyor — bu test backend'in
+    // gerçekte döndürdüğü 401 şeklini taklit eder, ağa çıkmaz.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 401,
+          json: () =>
+            Promise.resolve({
+              title: "Yetkisiz erişim",
+              status: 401,
+              detail: "E-posta veya şifre hatalı.",
+            }),
+        })
+      )
+    );
+
     renderLoginPage();
 
     fireEvent.change(
@@ -123,9 +141,34 @@ describe("LoginPage — giriş akışı", () => {
         "E-posta veya şifre hatalı."
       )
     ).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
   });
 
   it("doğru bilgiyle giriş yapınca ana sayfaya yönlendirir ve oturumu kaydeder", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              token: "fake-jwt-token",
+              expiresAt: "2026-12-31T00:00:00Z",
+              user: {
+                id: 4,
+                name: "Berke",
+                surname: "Kuş",
+                username: "berke",
+                email: "berke@cineseat.com",
+                role: "User",
+              },
+            }),
+        })
+      )
+    );
+
     renderLoginPage();
 
     fireEvent.change(
@@ -150,5 +193,7 @@ describe("LoginPage — giriş akışı", () => {
 
     expect(storedUser.email).toBe("berke@cineseat.com");
     expect(storedUser.password).toBeUndefined();
+
+    vi.unstubAllGlobals();
   });
 });

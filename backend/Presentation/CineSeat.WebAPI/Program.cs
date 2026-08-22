@@ -59,6 +59,21 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// ---- CORS: frontend (Vite, farklı port) tarayıcıdan istek atabilsin ----
+// Farklı origin (host+port) demek, tarayıcının bu isteği varsayılan olarak
+// engellediği anlamına gelir. Backend açıkça izin vermezse frontend hiçbir
+// API çağrısı yapamaz — token/kod doğru olsa bile.
+const string FrontendCorsPolicy = "FrontendCorsPolicy";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
@@ -90,7 +105,19 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Geliştirmede HTTPS'e zorlamıyoruz: frontend (Vite) http://localhost:5207'ye
+// istek atıyor; bu yönlendirme devrede olsaydı tarayıcı 307 ile https'e
+// (güvenilmeyen dev sertifikalı 7085 portuna) yönlendirilir ve fetch, CORS
+// hatasına benzeyen ama aslında "sertifikaya güvenilmedi" kaynaklı bir ağ
+// hatasıyla sessizce başarısız olurdu.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+// CORS, kimlik doğrulamadan ÖNCE gelmeli — tarayıcı asıl isteği göndermeden
+// önce bir "preflight" (OPTIONS) isteği atar, bu istek hiç token taşımaz.
+app.UseCors(FrontendCorsPolicy);
 
 // SIRA ÖNEMLİ: önce kimlik doğrulama (sen kimsin), sonra yetkilendirme (yetkin var mı).
 app.UseAuthentication();

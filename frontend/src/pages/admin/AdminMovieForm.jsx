@@ -16,6 +16,7 @@ export default function AdminMovieForm() {
     ageRating: "Genel İzleyici",
     releaseYear: new Date().getFullYear(),
     releaseDate: "",
+    screeningEndDate: "",
     poster: "",
     description: ""
   });
@@ -38,6 +39,7 @@ export default function AdminMovieForm() {
           ageRating: data.ageRating,
           releaseYear: data.releaseYear,
           releaseDate: data.releaseDate ?? "",
+          screeningEndDate: data.screeningEndDate ?? "",
           poster: data.poster,
           description: data.description
         });
@@ -154,6 +156,18 @@ export default function AdminMovieForm() {
             required
           />
           <small>Bugün veya geçmiş bir tarih girilirse film "Vizyonda" sekmesinde, ileri bir tarih girilirse "Yakında" sekmesinde görünür.</small>
+        </div>
+
+        <div className="form-group">
+          <label>Vizyon Bitiş Tarihi *</label>
+          <input
+            type="date"
+            name="screeningEndDate"
+            value={formData.screeningEndDate}
+            onChange={handleChange}
+            required
+          />
+          <small>Bu tarihten sonra film arşive düşer, ana sayfada gösterilmez.</small>
         </div>
 
         <div className="form-group">

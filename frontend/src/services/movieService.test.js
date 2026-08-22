@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import movieService from "./movieService.js";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("movieService.isMovieReleased", () => {
   it("vizyon tarihi bugünden önceyse vizyonda kabul eder", () => {
@@ -115,12 +119,44 @@ describe("movieService.isMovieArchived", () => {
 });
 
 describe("REQ-05 — arşivlenen film verisi silinmez", () => {
-  it("vizyon süresi dolmuş 'Son Tren' filmi getMovieById ile hâlâ erişilebilir", async () => {
+  it("vizyon süresi dolmuş film getMovieById ile hâlâ erişilebilir (backend'den 404 dönmüyor)", async () => {
+    // movieService.getMovieById artık backend'e (fetch) gidiyor — bu test
+    // gerçek ağa çıkmadan, backend'in DÖNDÜRDÜĞÜ ŞEKLİ taklit eder.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url) => {
+        if (url.endsWith("/genres")) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve([]),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              id: 7,
+              title: "Son Tren",
+              duration: 110,
+              description: "Arşivlenmiş film",
+              ageLimit: 13,
+              language: "TR",
+              poster: "son-tren.jpg",
+              startDate: "2026-01-01T00:00:00Z",
+              endDate: "2026-02-01T00:00:00Z", // geçmişte kalmış -> arşivlenmiş
+              avgScore: 3.5,
+            }),
+        });
+      })
+    );
+
     const movie = await movieService.getMovieById(7);
 
     expect(movie.title).toBe("Son Tren");
     expect(
-      movieService.isMovieArchived(movie)
+      movieService.isMovieArchived(movie, new Date(2026, 6, 16))
     ).toBe(true);
   });
 });
