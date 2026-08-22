@@ -23,6 +23,7 @@ bunlar netleşmeden başlayamaz.
 | **T7** | Silme işlemi kalıcı mı, işaretleme mi? | Backend | Faz 3'ten önce |
 | **T8** | Rota dili: Türkçe mi İngilizce mi? | Frontend (ekip onayı) | Faz 1'de |
 | **T9** | Sinemalar: sekme mi, ayrı sayfa mı? | Ürün | Faz 1'de |
+| **T10** | Puan vermek yorum yazmak mı demek? | Backend + Ürün | Faz 4'ten önce |
 
 ---
 
@@ -331,12 +332,58 @@ sorunu kendiliğinden çözülür.
 
 ---
 
+## T10 · Puan vermek yorum yazmak mı demek?
+
+### Durum
+Frontend ile backend, puanlama konusunda **farklı iki modele göre kurulmuş.**
+
+**Backend:** Ayrı bir puan (rating) kavramı **yok.** Puan, yorumun bir alanı:
+
+```csharp
+// Comment.cs
+public short Rating { get; set; }
+```
+
+`AddCommentCommandHandler` bir kullanıcının bir filme **yalnızca bir kez**
+yorum yazmasına izin veriyor (aksi hâlde ortalama manipüle edilebilirdi) ve
+yorum kaydedildikten sonra `Movie.AvgScore`'u yeniden hesaplıyor. Yani
+backend'e göre: **puan vermek = yorum yazmak.**
+
+**Frontend:** Ayrı bir `ratingService` var, localStorage'da film başına puan
+tutuyor ve yorumdan bağımsız çalışıyor. Yani frontend'e göre: **yorum yazmadan
+yıldız verilebilir.**
+
+Bu ikisi uzlaşmıyor. Faz 4'te `ratingService`'i gerçek API'ye bağlamak,
+bağlanacak bir uç nokta olmadığı için bugün mümkün değil.
+
+### Seçenekler
+
+| Seçenek | Anlamı | Maliyet |
+|---|---|---|
+| **A.** Frontend backend'e uyar | Yıldız kontrolü yorum formunun içine taşınır. "Puan ver" ayrı bir eylem olmaktan çıkar. | Frontend'de orta — `RatingStars` yeniden konumlanır, `ratingService` silinir |
+| **B.** Backend ayrı puan yolu açar | `Rating` yorumdan ayrılır, ayrı tablo + uç nokta gelir. Yorumsuz puanlama mümkün olur. | Backend'de yüksek — yeni entity, migration, `AvgScore` hesabı değişir |
+| **C.** Yorum içeriği isteğe bağlı olur | Tek entity kalır ama `Content` boş bırakılabilir; kullanıcı isterse sadece yıldız verir. | Backend'de düşük — validator gevşetilir |
+
+### Tavsiyem
+**C.** İki modeli de büyük ölçüde koruyor: veritabanı tarafında tek kayıt
+(ortalama hesabı bozulmaz, "bir kullanıcı bir puan" kuralı korunur), kullanıcı
+tarafında ise yorum yazma zorunluluğu kalkar. Değişiklik `AddCommentCommandValidator`
+içinde `Content` kuralını isteğe bağlı yapmaktan ibaret.
+
+Frontend'de yıldızlar yine yorum formunun parçası olur ama "yorum yazmadan
+gönder" mümkün hâle gelir.
+
+### Karar
+> _(toplantıda doldurulacak)_
+
+---
+
 ## Toplantı için önerilen sıra
 
 1. **T4** (admin kapsamı) — diğer her şeyin süresini etkiliyor, önce bu
 2. **T2** (seans/koltuk modeli) — Faz 4'ün en büyük kalemi
 3. **T6** (ödeme) — kapsamı netleştirir
-4. **T1, T3, T7** — backend'de somut görevler doğuruyor
+4. **T1, T3, T7, T10** — backend'de somut görevler doğuruyor
 5. **T5, T8, T9** — hızlı geçilebilir, küçük maddeler
 
 **Not:** T8 ve T9 dışındakiler backend tarafında iş doğuruyor. Bu maddeler

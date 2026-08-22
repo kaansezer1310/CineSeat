@@ -68,19 +68,33 @@ gibi dışarı veriyor.
 AdminDashboard.jsx:36 → reservationService.getAllReservations()
 ```
 
-#### K5 · Üç servis hâlâ sahte veride
-Yalnızca kimlik doğrulama ve film servisleri gerçek API'ye bağlandı.
+#### K5 · Frontend'in çoğu hâlâ sahte veride
+Yalnızca kimlik doğrulama ve film servisleri gerçek API'ye bağlandı. Geri kalan
+her şey — servisler ve bazı servis olmayan bileşenler — mock veride çalışıyor.
 
-| Servis | Durum |
-|---|---|
-| `authService.js` | ✅ Gerçek API |
-| `movieService.js` | ✅ Gerçek API |
-| `sessionService.js` | ❌ `src/data/` |
-| `commentService.js` | ❌ `src/data/` |
-| `ratingService.js` | ❌ `src/data/` |
-| `seatService.js` | ❌ Dosya içi mock |
-| `reservationService.js` | ❌ localStorage |
-| `campaignService.js` | ❌ Dosya içi mock |
+| Alan | Frontend | Backend'de karşılığı |
+|---|---|---|
+| Kimlik doğrulama | ✅ `authService.js` — gerçek API | Auth |
+| Filmler | ✅ `movieService.js` — gerçek API | Movies |
+| Seanslar | ❌ `sessionService.js` → `src/data/` | Showtimes |
+| Yorumlar | ❌ `commentService.js` → `src/data/` | Comments |
+| Puanlar | ❌ `ratingService.js` → localStorage | ⚠️ Ayrı modül **yok** — `Comment.Rating` |
+| Koltuklar | ❌ `seatService.js` → dosya içi mock | Seats + SeatLocks |
+| Rezervasyon | ❌ `reservationService.js` → localStorage | Reservations |
+| Kampanyalar | ❌ `campaignService.js` → dosya içi mock | Campaigns |
+| **Favoriler** | ❌ `WatchlistProvider.jsx` → localStorage | UserFavorites |
+| **Sinemalar** | ❌ `CinemasPage.jsx` → dosya içi `const CINEMAS` | Cinemas + Cities + Districts |
+| **Profil düzenleme** | ❌ Frontend'de **hiç yok** | `PUT /api/profile` |
+
+Son üç satır servis dosyası değil, o yüzden ilk taramada gözden kaçmıştı —
+ama aynı sorunu taşıyorlar. Pratik sonuçları:
+
+- **Favoriler** yalnızca o tarayıcıda duruyor; kullanıcı telefondan girince listesi boş.
+- **Sinemalar** ekranı veritabanındaki gerçek sinema kayıtlarını göstermiyor.
+- **Profil** bilgileri görüntülenebiliyor ama güncellenemiyor.
+
+> ⚠️ Puan satırı bir model uyuşmazlığı — karar gerektiriyor
+> → [`FRONTEND_TARTISILACAKLAR.md` · T10](./FRONTEND_TARTISILACAKLAR.md)
 
 ---
 
@@ -301,19 +315,30 @@ Ekranları yeniden çizmeden önce, ekranların kullanacağı parçalar.
 
 ---
 
-### Faz 4 — Entegrasyonu tamamla · ~3–5 gün + backend koordinasyonu
+### Faz 4 — Entegrasyonu tamamla · ~6–9 gün + backend koordinasyonu
 
-En pahalı faz ve tek başına frontend işi değil.
+En pahalı faz ve tek başına frontend işi değil. Bu faz bittiğinde frontend'de
+mock veri kalmamalı.
 
+**Rezervasyon zinciri** *(en büyük kalem — T2 kararına bağlı)*
 - [ ] **Seanslar**: `sessionService` → `GET /api/showtimes`
-- [ ] **Koltuklar**: `seatService` → gerçek koltuk + kilit uç noktaları
+- [ ] **Koltuklar**: `seatService` → gerçek koltuk + `SeatLock` uç noktaları
 - [ ] **Rezervasyon**: ödeme akışı → `POST /api/reservations`
-- [ ] **Yorum ve puan**: `commentService`, `ratingService` → gerçek uç noktalar
-- [ ] **Dashboard**: gerçek rezervasyon verisine bağlan
+- [ ] **Kampanyalar**: `campaignService` → `GET /api/campaigns`, indirim backend'de hesaplansın
+
+**İçerik ve kullanıcı**
+- [ ] **Yorumlar**: `commentService` → `GET/POST /api/movies/{id}/comments`
+- [ ] **Puanlar**: `ratingService` → T10 kararına göre *(yorumla birleşecek mi?)*
+- [ ] **Favoriler**: `WatchlistProvider` → `UserFavorites` uç noktaları *(localStorage kalkacak)*
+- [ ] **Profil**: görüntüleme `GET /api/profile`, düzenleme `PUT /api/profile` *(bugün hiç yok)*
+
+**Katalog ve yönetim**
+- [ ] **Sinemalar**: `CinemasPage` içindeki sabit dizi → `GET /api/cinemas` + şehir filtresi
+- [ ] **Dashboard**: gerçek rezervasyon verisine bağlan *(T3'teki yeni uç gerekiyor)*
 
 > ⚠️ Bu fazın önünde **çözülmemiş bağımlılıklar** var. Başlamadan önce
 > [`FRONTEND_TARTISILACAKLAR.md`](./FRONTEND_TARTISILACAKLAR.md) maddelerinin
-> karara bağlanması gerekiyor — özellikle T1, T2 ve T3.
+> karara bağlanması gerekiyor — özellikle **T1, T2, T3 ve T10**.
 
 **Kapattığı bulgular:** K1 · K4 · K5 · Y6
 
@@ -352,9 +377,17 @@ Faz 4 bittiğinde ölçüt tek cümle:
 | 1 — Navigasyon | ~0,5 gün | Yok |
 | 2 — Bileşenler | ~1–2 gün | Yok |
 | 3 — Admin tasarımı | ~2–3 gün | Yok |
-| 4 — Entegrasyon | ~3–5 gün | **Var — önce karar gerekiyor** |
+| 4 — Entegrasyon | ~6–9 gün | **Var — önce karar gerekiyor** |
 | 5 — Cila | ~1 gün | Yok |
-| **Toplam** | **~8–12 gün** | |
+| **Toplam** | **~11–16 gün** | |
 
-Faz 1–3 (yaklaşık 4–6 gün) backend'e hiç dokunmadan tamamlanabilir ve
+**Faz 1–3 (yaklaşık 4–6 gün) backend'e hiç dokunmadan tamamlanabilir** ve
 şikâyet edilen iki sorunun (navigasyon, admin tasarımı) ikisini de kapatır.
+Faz 4 ise karar bekliyor — bu yüzden ikisi paralel yürütülebilir: kararlar
+konuşulurken tasarım işi ilerler.
+
+> **Not:** Faz 4 tahmini, planın ilk sürümünde 3–5 gündü. Kapsam gözden
+> geçirildiğinde kampanya, favori, sinema ve profil entegrasyonlarının
+> atlandığı görüldü; tahmin buna göre düzeltildi. Bu dört madde ile T4'te
+> karara bağlanacak admin kapsamı (özellikle seans yönetimi) süreyi
+> etkileyen iki ana belirsizlik.
