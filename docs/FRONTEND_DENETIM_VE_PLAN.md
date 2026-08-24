@@ -3,8 +3,8 @@
 > **Tarih:** Ağustos 2026
 > **Kapsam:** `frontend/` dizininin tamamı (88 kaynak dosya)
 > **Yöntem:** Test/lint/build çalıştırıldı, kod tabanı tarandı; her bulgu dosya ve satır kanıtına dayanıyor.
-> **Durum:** Plan onaya hazır, uygulama başlamadı.
-> **İlgili belge:** Karar bekleyen maddeler için → [`FRONTEND_TARTISILACAKLAR.md`](./FRONTEND_TARTISILACAKLAR.md)
+> **Durum:** T1–T10 kararları netleşti; iki kişilik uygulama planı hazır, uygulama başlamadı.
+> **İlgili belge:** Kararların arka planı için → [`FRONTEND_TARTISILACAKLAR.md`](./FRONTEND_TARTISILACAKLAR.md)
 
 ---
 
@@ -26,6 +26,27 @@ gezilebilirlik ve yönetim panelinin kullanılabilirliği.
 **En kritik tek cümle:** Bir kullanıcı bugün koltuk seçip ödeme akışını
 tamamlayabiliyor ve o rezervasyon veritabanına hiç ulaşmıyor — tarayıcının
 `localStorage`'ında kalıyor.
+
+### 1.1 Karara bağlanan maddeler
+
+24 Ağustos 2026 itibarıyla T1–T10 için aşağıdaki kararlar geçerlidir. Bu tablo,
+`FRONTEND_TARTISILACAKLAR.md` içindeki “karar bekleniyor” notlarının yerine geçer.
+
+| # | Karar | Plana etkisi |
+|---|---|---|
+| **T1** | **A — `MovieDto` tür listesini taşıyacak.** | Film listesi tek istekte türleri alacak; tür filtresi korunacak ve gerçek veriyle çalışacak. |
+| **T2** | **A — Frontend backend modeline uyarlanacak.** | Mock string koltuk kodu anahtar olmaktan çıkacak; `SeatId`, `HallId` ve `SeatLock` kullanılacak. |
+| **T3** | **İzni kullanan uç yazılacak.** | `GET /api/reservations` sayfalama ve filtrelerle eklenecek; rol sabiti yerine `reservation.read` policy'siyle korunacak. |
+| **T4** | **C — Tam admin kapsamı.** | Film ve seanslara ek olarak sinema/salon/koltuk, kampanya, yorum moderasyonu ve kullanıcı yönetimi teslim kapsamına girdi. |
+| **T5** | **İzin sistemi devreye alınacak.** | Backend policy'leri, oturumdaki izin bilgisi, frontend menü/rota/eylem kontrolleri birlikte uygulanacak. |
+| **T6** | **Şimdilik simülasyon; ileride gerçek servis.** | Ödeme katmanı değiştirilebilir bir adaptör olacak. Form gerçekçi kart doğrulamaları yapacak; ham kart verisi saklanmayacak veya loglanmayacak. |
+| **T7** | **Tavsiye edilen soft-delete uygulanacak.** | Silme yerine arşivleme kullanılacak; metinler ve onay diyaloğu buna göre değişecek. |
+| **T8** | **İngilizce rotalar.** | Kanonik yollar `/payment` ve `/payment-error` olacak; eski Türkçe adresler yönlendirilecek. |
+| **T9** | **B — Sinemalar ayrı sayfa.** | Ana sayfadaki sinema sekmesi kalkacak; menüden `/cinemas` sayfasına gidilecek. |
+| **T10** | **C — Yorum içeriği isteğe bağlı.** | Puan aynı `Comment` kaydında kalacak; yıldız zorunlu, metin isteğe bağlı ve kullanıcı/film başına tek kayıt olacak. |
+
+Kararlar tamamlandığı için geliştirme artık toplantı beklemiyor. Backend sözleşmesi
+gerektiren işler, arayüz işleriyle iki ayrı hatta paralel yürütülecek.
 
 ---
 
@@ -93,8 +114,8 @@ ama aynı sorunu taşıyorlar. Pratik sonuçları:
 - **Sinemalar** ekranı veritabanındaki gerçek sinema kayıtlarını göstermiyor.
 - **Profil** bilgileri görüntülenebiliyor ama güncellenemiyor.
 
-> ⚠️ Puan satırı bir model uyuşmazlığı — karar gerektiriyor
-> → [`FRONTEND_TARTISILACAKLAR.md` · T10](./FRONTEND_TARTISILACAKLAR.md)
+> ✅ **T10 kararı:** Puan `Comment.Rating` alanında kalacak; yorum metni isteğe
+> bağlı olacak. Ayrı `ratingService` kaldırılacak.
 
 ---
 
@@ -151,7 +172,7 @@ Liste ekranında her film için ayrı istek atmamak adına tür alanı boş bır
 movieService.js:52 → genre: genres.length > 0 ? … : ""
 ```
 
-> ⚠️ Bu bulgunun kalıcı çözümü backend kararına bağlı → [`FRONTEND_TARTISILACAKLAR.md` · T1](./FRONTEND_TARTISILACAKLAR.md)
+> ✅ **T1 kararı:** Tür listesi `MovieDto`'ya eklenecek; filtre kaldırılmayacak.
 
 ---
 
@@ -265,93 +286,149 @@ uydurması. Şu altı bileşen bir kez yazılıp her yerde kullanılmalı:
 
 ---
 
-## 4. Uygulama planı
+## 4. Uygulama planı — iki kişilik ekip
 
-Fazlar bağımlılık sırasına göre: navigasyon onarımı en ucuz ve en görünür
-kazanç, o yüzden önce. Backend entegrasyonu en pahalısı ve başkalarının
-kararına bağlı, o yüzden sonra — ama tasarım işi onu beklemeden ilerleyebilir.
+Plan iki paralel sahiplik hattına ayrıldı. İsimler netleşene kadar görevlerde
+`Kişi 1` ve `Kişi 2` kullanılacak; uzmanlık başlıkları işin tek kişide kilitlenmesi
+anlamına gelmez. Her işin sahibi kodu yazar, diğer kişi inceleme ve kabul testini yapar.
 
-### Faz 1 — Navigasyonu onar · ~yarım gün
+| Kişi | Ana sahiplik | İkincil sorumluluk |
+|---|---|---|
+| **Kişi 1 — Arayüz ve deneyim** | Navigasyon, ortak bileşenler, responsive admin kabuğu, formlar, erişilebilirlik | API tüketimi ve bileşen testleri |
+| **Kişi 2 — Veri ve yetkilendirme** | Backend sözleşmeleri, izin policy'leri, servis entegrasyonları, rezervasyon/koltuk veri akışı | Admin veri ekranları ve entegrasyon testleri |
 
-Küçük dokunuşlar, en yüksek etki. Hiçbiri backend'e bağlı değil.
+> **Tahmin yöntemi:** “Efor” toplam kişi-gününü, “takvim” iki kişinin bağımlı
+> işleri paralel yürüttüğü çalışma süresini gösterir. API sözleşmesi tamamlanan
+> her modül bekletilmeden arayüz hattına devredilir.
 
-- [ ] Ana menüye **admin rolü için Yönetim bağlantısı** ekle
-- [ ] Admin kabuğuna **üst çubuk** koy: kullanıcı adı, siteye dön, çıkış
-- [ ] Tüm menülerde `Link` yerine **`NavLink`**, aktif duruma stil ver
-- [ ] Giriş sonrası **hedef sayfaya dön** (`location.state.from`), yönlendirme sebebini göster
-- [ ] Sinemalar sekmesini **URL'ye bağla** ya da tek bir rotaya indir
-- [ ] Admin ağacına **kendi 404 sayfasını** ekle
-- [ ] Rota adlarını tek dile çek, eskisinden yönlendirme bırak
+### Faz 1 — Navigasyon ve yetkilendirme temeli · 1 kişi-gün / ~0,5–1 takvim günü
+
+**Kişi 1 — Arayüz ve rota sahipliği**
+
+- [ ] Ana menüde gerekli izne sahip kullanıcıya **Yönetim** bağlantısını göster
+- [ ] Admin kabuğuna kullanıcı adı, siteye dönüş ve çıkış içeren **üst çubuk** ekle
+- [ ] Menüleri `NavLink`'e geçir; aktif durumu görünür yap
+- [ ] Korumalı sayfadan girişe gelen kullanıcıyı `location.state.from` ile hedefe döndür
+- [ ] T9 uyarınca ana sayfadaki sinema sekmesini kaldır; menüye ayrı **`/cinemas`** bağlantısı ekle
+- [ ] T8 uyarınca kanonik ödeme rotalarını **`/payment`** ve **`/payment-error`** yap; eski Türkçe rotalardan yönlendir
+- [ ] Admin ağacına kendi 404 ekranını ekle
+
+**Kişi 2 — İzin sözleşmesi**
+
+- [ ] T5 için backend authorization policy'lerini seed edilen izin adlarıyla kaydet
+- [ ] Oturum/JWT veya profil cevabında kullanıcının izinlerini frontend'e güvenli biçimde aktar
+- [ ] Frontend için ortak `hasPermission` ve izinli rota/eylem koruyucularının sözleşmesini hazırla
 
 **Kapattığı bulgular:** K2 · K3 · Y2 · Y4 · O1 · O4 · O5
 
 ---
 
-### Faz 2 — Bileşen setini kur · ~1–2 gün
+### Faz 2 — Ortak bileşen seti · 2–3 kişi-günü / ~1–1,5 takvim günü
 
-Ekranları yeniden çizmeden önce, ekranların kullanacağı parçalar.
+**Kişi 1**
 
-- [ ] Bölüm 3.5'teki **altı bileşeni** yaz, her birine test ekle
-- [ ] `alert()` / `confirm()` çağrılarını **Toast ve ConfirmDialog** ile değiştir
-- [ ] Tanımsız dört CSS sınıfını **gerçek stillerle** karşıla
-- [ ] 15 satır içi stili **tokenlara** taşı
+- [ ] `PageHeader`, `DataTable` ve `EmptyState` bileşenlerini; mobil kart görünümü ve testleriyle yaz
+- [ ] Tanımsız admin CSS sınıflarını gerçek stillerle karşıla
+- [ ] Satır içi stilleri tema tokenlarına taşı
+
+**Kişi 2**
+
+- [ ] `ConfirmDialog`, `Toast` ve `StatCard` bileşenlerini; klavye/odak testleriyle yaz
+- [ ] `alert()` ve `confirm()` çağrılarını yeni bileşenlerle değiştir
+- [ ] Ortak yükleniyor, hata ve yetkisiz durumlarını standardize et
+
+**Ortak kabul:** İki kişi birbirinin bileşenlerini klavye, 360 px görünüm ve test
+senaryolarıyla inceleyecek.
 
 **Kapattığı bulgular:** Y3 · Y5 · O3
 
 ---
 
-### Faz 3 — Admin ekranlarını yeniden tasarla · ~2–3 gün
+### Faz 3 — Tam admin paneli (T4=C) · 9–11 kişi-günü / ~5–6 takvim günü
 
-"Makine dairesi" yönünü uygula. Bileşenler hazır olduğu için bu faz büyük
-ölçüde birleştirme işi.
+**Kişi 1 — Admin kabuğu, raporlar ve içerik**
 
-- [ ] Kenar çubuğunu **bölümlere ayır** (Raporlar / Katalog / Salonlar), aktif durumu göster
-- [ ] Dashboard'a **doluluk ızgarasını** ekle, çubuk grafiği ikinci sıraya al
-- [ ] Film tablosunu **`DataTable`**'a geçir: arama, sıralama, sayfalama, boş durum
-- [ ] Film formunu **iki sütuna** böl, alan bazlı hata mesajları ekle
-- [ ] **Duyarlı kurallar yaz**: kenar çubuğu dar ekranda açılır menüye, tablo karta dönsün
+- [ ] Kenar çubuğunu **Raporlar / Katalog / Salonlar / Kullanıcılar** olarak böl; görünürlüğü izinlere bağla
+- [ ] Dashboard'u gerçek veri sözleşmesine hazırla; doluluk ızgarasını ekle, çubuk grafiği ikinci sıraya al
+- [ ] Film listesi ve formunu `DataTable` + iki sütunlu, alan bazlı doğrulanan form düzenine geçir
+- [ ] Yorum moderasyonu ekranını ve izinli moderasyon eylemlerini ekle
+- [ ] Kullanıcı listeleme/yönetim ekranlarını ve izinli eylemleri ekle
+- [ ] Tüm bu ekranların dar ekranda tablo yerine karta dönüşmesini sağla
 
-**Kapattığı bulgular:** Y1 ve tasarım şikâyetinin tamamı
+**Kişi 2 — Operasyon ekranları ve veri adaptörleri**
+
+- [ ] Sinema, şehir ve ilçe yönetimi ekranlarını ekle
+- [ ] Salon, koltuk, teknoloji ve salon-teknoloji yönetimi ekranlarını ekle
+- [ ] Seans yönetimi ekranını çakışma ve tarih/saat doğrulamalarıyla ekle
+- [ ] Kampanya yönetimi ekranını tarih, oran ve uygunluk doğrulamalarıyla ekle
+- [ ] T3 ucunu kullanan rezervasyon/bilet liste ve detay görünümünü ekle
+- [ ] Her modülün API adaptörünü, izin eşlemesini, boş/yükleniyor/hata durumunu ve testini yaz
+
+**Ortak kabul:** Kişi 1 görsel/erişilebilirlik tutarlılığını, Kişi 2 veri ve izin
+tutarlılığını tüm admin modüllerinde çapraz kontrol edecek.
+
+**Kapattığı bulgular:** Y1 ve admin tasarım/kapsam eksiklerinin tamamı
 
 ---
 
-### Faz 4 — Entegrasyonu tamamla · ~6–9 gün + backend koordinasyonu
+### Faz 4 — Gerçek veri entegrasyonu ve ödeme simülasyonu · 9–13 kişi-günü / ~5–7 takvim günü
 
-En pahalı faz ve tek başına frontend işi değil. Bu faz bittiğinde frontend'de
-mock veri kalmamalı.
+Bu fazda ödeme sağlayıcısı dışında ürün mock veriden çıkar. İki kişi endpoint
+bazlı boru hattı kurar: Kişi 2 sözleşmeyi ve yetkiyi tamamladıkça Kişi 1 aynı
+modülün arayüz entegrasyonunu bitirir.
 
-**Rezervasyon zinciri** *(en büyük kalem — T2 kararına bağlı)*
-- [ ] **Seanslar**: `sessionService` → `GET /api/showtimes`
-- [ ] **Koltuklar**: `seatService` → gerçek koltuk + `SeatLock` uç noktaları
-- [ ] **Rezervasyon**: ödeme akışı → `POST /api/reservations`
-- [ ] **Kampanyalar**: `campaignService` → `GET /api/campaigns`, indirim backend'de hesaplansın
+**Kişi 2 — Backend, veri modeli ve güvenlik**
 
-**İçerik ve kullanıcı**
-- [ ] **Yorumlar**: `commentService` → `GET/POST /api/movies/{id}/comments`
-- [ ] **Puanlar**: `ratingService` → T10 kararına göre *(yorumla birleşecek mi?)*
-- [ ] **Favoriler**: `WatchlistProvider` → `UserFavorites` uç noktaları *(localStorage kalkacak)*
-- [ ] **Profil**: görüntüleme `GET /api/profile`, düzenleme `PUT /api/profile` *(bugün hiç yok)*
+- [ ] **T1:** `MovieDto`'ya tür listesini ekle; liste sorgusunu ve testlerini güncelle
+- [ ] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et
+- [ ] **T3:** Sayfalama ile tarih/film/durum filtresi sunan `GET /api/reservations` ucunu ekle ve **`reservation.read` policy'siyle** koru
+- [ ] **T5:** Tüm admin controller eylemlerini ilgili izin policy'lerine geçir; yalnızca UI gizlemeye güvenme
+- [ ] **T7:** Kalıcı silme yerine `IsDeleted = true` kullanan arşivleme akışını tamamla; gereken kayıtlar için geri alma ucunu ekle
+- [ ] **T10:** `Comment.Content` doğrulamasını isteğe bağlı yap; puanı zorunlu ve kullanıcı/film başına tek kayıt tut
+- [ ] Rezervasyon tutarı ve kampanya indirimini backend'de hesapla; istemciden gelen toplamı güvenilir kabul etme
 
-**Katalog ve yönetim**
-- [ ] **Sinemalar**: `CinemasPage` içindeki sabit dizi → `GET /api/cinemas` + şehir filtresi
-- [ ] **Dashboard**: gerçek rezervasyon verisine bağlan *(T3'teki yeni uç gerekiyor)*
+**Kişi 1 — Frontend servisleri ve uçtan uca akış**
 
-> ⚠️ Bu fazın önünde **çözülmemiş bağımlılıklar** var. Başlamadan önce
-> [`FRONTEND_TARTISILACAKLAR.md`](./FRONTEND_TARTISILACAKLAR.md) maddelerinin
-> karara bağlanması gerekiyor — özellikle **T1, T2, T3 ve T10**.
+- [ ] Seans ve koltuk servislerini gerçek API'ye bağla; seçimi `SeatId` ile, eşzamanlılığı `SeatLock` ile yönet
+- [ ] Sepet/rezervasyon akışını `POST /api/reservations` ile tamamla; localStorage rezervasyonlarını kaldır
+- [ ] Kampanya, yorum, favori, profil ve sinema verilerini gerçek uçlara bağla
+- [ ] Ayrı `ratingService`'i kaldır; yıldız alanını isteğe bağlı metin içeren yorum formuna taşı
+- [ ] Tür filtresini T1 ile gelen `MovieDto.genres` verisine bağla
+- [ ] Dashboard ve rezervasyon ekranlarını T3 ucuna bağla
+- [ ] Arşivleme dilini ve `ConfirmDialog` metinlerini T7'ye göre güncelle; izin yoksa eylemi gösterme
+
+**T6 — Gerçekçi fakat değiştirilebilir ödeme simülasyonu (Kişi 1 sahibi, Kişi 2 inceleyen)**
+
+- [ ] Simüle ve gelecekteki gerçek sağlayıcıların aynı arayüzü kullanacağı bir **payment adapter** sınırı oluştur
+- [ ] Ekranda bunun bir **demo ödeme** olduğunu açıkça belirt
+- [ ] Kart numarasını boşluklardan arındırıp marka/uzunluk ve **Luhn** kontrolü yap
+- [ ] Son kullanma tarihinin biçimini ve gelecekte olmasını; CVV'nin karta göre 3/4 hane olmasını doğrula
+- [ ] Kart sahibi adı ve tüm zorunlu alanlar için alan bazlı, erişilebilir hata mesajları göster
+- [ ] Başarı, reddedilme, tekrar deneme ve çift gönderim engeli senaryolarını test et
+- [ ] Ham kart numarası/CVV'yi localStorage, uygulama logu, analytics veya rezervasyon payload'ına yazma
 
 **Kapattığı bulgular:** K1 · K4 · K5 · Y6
 
 ---
 
-### Faz 5 — Cila · ~1 gün
+### Faz 5 — Cila, çapraz test ve teslim · 2 kişi-günü / ~1 takvim günü
 
-- [ ] Admin rotalarını **tembel yükle** (`React.lazy`) — grafik kütüphaneleri ana paketten çıksın
-- [ ] Klavye ile gezinme ve **görünür odak halkası** kontrolü
-- [ ] Yükleniyor iskeletleri ve **hata sınırları**
-- [ ] Kalan `console` çağrılarını temizle
+**Kişi 1**
 
-**Kapattığı bulgular:** O2
+- [ ] Admin rotalarını `React.lazy` ile tembel yükle; grafik kütüphanelerini ana paketten çıkar
+- [ ] Klavye gezintisi, görünür odak, hata metinleri ve 360 px görünümleri uçtan uca denetle
+
+**Kişi 2**
+
+- [ ] İzin matrisi, arşivleme, rezervasyon sahipliği, `reservation.read` ve eşzamanlı koltuk kilidi için entegrasyon testlerini çalıştır
+- [ ] Kalan mock veri ve `console` çağrılarını tarayıp temizle; ödeme simülasyonu istisnasını belgeyle doğrula
+
+**Ortak**
+
+- [ ] Birbirinin işini kod incelemesinden geçir; test, lint ve production build'i temiz kapat
+- [ ] Misafir, kullanıcı, kısıtlı yetkili ve tam admin rolleriyle kabul testi yap
+
+**Kapattığı bulgular:** O2 ve sürüm öncesi kalite riskleri
 
 ---
 
@@ -359,35 +436,45 @@ mock veri kalmamalı.
 
 Her fazın sonunda:
 
-- Testler yeşil, lint temiz, build başarılı *(bunlar zaten sağlanıyor — bozulmamalı)*
-- Yeni her bileşenin testi yazılmış
-- Yeni her ekran **360 piksel** genişlikte kontrol edilmiş
-- Yeni her ekran **klavyeyle** baştan sona gezilebiliyor
+- Testler yeşil, lint temiz, production build başarılı
+- Yeni her bileşen ve veri akışı için en az bir başarı ve bir hata testi var
+- Yeni her ekran **360 piksel** genişlikte ve klavyeyle baştan sona kontrol edildi
+- Yetki hem backend policy'sinde uygulanıyor hem frontend'de doğru görünürlük sağlıyor
+- İş sahibi dışında diğer kişi kod incelemesi ve kabul kontrolü yaptı
 
-Faz 4 bittiğinde ölçüt tek cümle:
+Planın tamamı için:
 
-> **Tarayıcı verisi silindiğinde hiçbir rezervasyon kaybolmuyor.**
+- Tarayıcı verisi silindiğinde hiçbir rezervasyon veya favori kaybolmuyor
+- İki kullanıcı aynı koltuğu eşzamanlı olarak satın alamıyor
+- `reservation.read` izni olmayan kullanıcı tüm rezervasyonları okuyamıyor
+- Arşivlenen kayıtlar fiziksel olarak silinmiyor ve normal listelerde görünmüyor
+- Puan, metinsiz gönderilebiliyor; aynı kullanıcı aynı filme ikinci kayıt açamıyor
+- Kanonik rotalar İngilizce, eski ödeme rotaları yönlendirme olarak çalışıyor
+- Ödeme simülasyonu gerçekçi doğrulama yapıyor ancak ham kart verisini hiçbir yerde saklamıyor
+- Frontend'de ödeme adaptörü dışındaki işlevsel mock veri kaldırılmış
 
 ---
 
-## 6. Tahmini toplam
+## 6. Tahmini toplam ve paralel takvim
 
-| Faz | Süre | Backend bağımlılığı |
-|---|---|---|
-| 1 — Navigasyon | ~0,5 gün | Yok |
-| 2 — Bileşenler | ~1–2 gün | Yok |
-| 3 — Admin tasarımı | ~2–3 gün | Yok |
-| 4 — Entegrasyon | ~6–9 gün | **Var — önce karar gerekiyor** |
-| 5 — Cila | ~1 gün | Yok |
-| **Toplam** | **~11–16 gün** | |
+| Faz | Toplam efor | İki kişiyle takvim | Ana bağımlılık |
+|---|---:|---:|---|
+| 1 — Navigasyon + yetki temeli | ~1 kişi-günü | ~0,5–1 gün | İzinlerin oturuma aktarım biçimi |
+| 2 — Ortak bileşenler | ~2–3 kişi-günü | ~1–1,5 gün | Faz 1 rota/guard sözleşmesi |
+| 3 — Tam admin paneli | ~9–11 kişi-günü | ~5–6 gün | Admin API sözleşmeleri |
+| 4 — Entegrasyon + ödeme simülasyonu | ~9–13 kişi-günü | ~5–7 gün | T1–T3/T5/T7/T10 backend işleri |
+| 5 — Cila ve teslim | ~2 kişi-günü | ~1 gün | Önceki fazların birleşmesi |
+| **Toplam** | **~23–30 kişi-günü** | **~13–17 iş günü** | |
 
-**Faz 1–3 (yaklaşık 4–6 gün) backend'e hiç dokunmadan tamamlanabilir** ve
-şikâyet edilen iki sorunun (navigasyon, admin tasarımı) ikisini de kapatır.
-Faz 4 ise karar bekliyor — bu yüzden ikisi paralel yürütülebilir: kararlar
-konuşulurken tasarım işi ilerler.
+Takvim tahmini, iki kişinin tam zamanlı çalıştığını ve endpointlerin modül modül
+teslim edildiğini varsayar. En verimli sıra şöyledir:
 
-> **Not:** Faz 4 tahmini, planın ilk sürümünde 3–5 gündü. Kapsam gözden
-> geçirildiğinde kampanya, favori, sinema ve profil entegrasyonlarının
-> atlandığı görüldü; tahmin buna göre düzeltildi. Bu dört madde ile T4'te
-> karara bağlanacak admin kapsamı (özellikle seans yönetimi) süreyi
-> etkileyen iki ana belirsizlik.
+1. **Gün 1–2:** Kişi 1 navigasyon/rota işlerini, Kişi 2 izin temelini kapatır; ortak bileşenler başlar.
+2. **Gün 3–8:** Kişi 1 admin kabuğu/içerik ekranlarını, Kişi 2 operasyon ekranları ve backend sözleşmelerini paralel yürütür.
+3. **Gün 9–15:** Endpoint bazlı devirle rezervasyon, koltuk, içerik ve ödeme akışları gerçek veriye bağlanır.
+4. **Gün 16–17:** Çapraz inceleme, erişilebilirlik, güvenlik, regresyon ve build kontrolleri tamamlanır.
+
+> **Kapsam notu:** Önceki ~11–16 günlük tahmin, T4 admin kapsamı kararı ve T5
+> izin sisteminin devreye alınması netleşmeden hazırlanmıştı. T4=C ile tam admin
+> paneli, izin policy'leri, soft-delete ve gerçekçi ödeme doğrulamaları kapsama
+> girdiği için yeni tahmin **~23–30 kişi-günü / iki kişiyle ~13–17 iş günü** oldu.
