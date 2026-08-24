@@ -35,3 +35,26 @@ export function normalizeTicketType(value) {
     ? value
     : null;
 }
+
+// Backend enum'u PascalCase ad olarak taşıyor (JsonStringEnumConverter):
+// TicketType { Adult, Student, Child }. Arayüz kendi büyük harfli
+// sabitlerini kullanmaya devam eder; çeviri tek yerde, burada yapılır.
+const API_TICKET_TYPES = Object.freeze({
+  [TICKET_TYPE.ADULT]: "Adult",
+  [TICKET_TYPE.STUDENT]: "Student",
+  [TICKET_TYPE.CHILD]: "Child",
+});
+
+export function toApiTicketType(value) {
+  return (
+    API_TICKET_TYPES[value] ?? API_TICKET_TYPES[DEFAULT_TICKET_TYPE]
+  );
+}
+
+export function fromApiTicketType(value) {
+  const match = Object.entries(API_TICKET_TYPES).find(
+    ([, apiValue]) => apiValue === value
+  );
+
+  return match ? match[0] : DEFAULT_TICKET_TYPE;
+}

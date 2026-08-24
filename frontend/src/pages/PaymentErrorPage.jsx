@@ -1,24 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
-import useCart from "../hooks/useCart.js";
-import seatService from "../services/seatService.js";
+import { clearStoredLocks } from "../services/seatLockStorage.js";
 
 function PaymentErrorPage() {
   const navigate = useNavigate();
-  const { state } = useCart();
 
+  // Ödeme başarısız oldu: koltuk kilitleri hemen bırakılır ki başkası
+  // bekletilmesin. Kilit kimlikleri PaymentPage tarafından sessionStorage'a
+  // yazılmıştı — bu sayfa ayrı bir rota olduğu için tek referans o.
   function handleReturnToCart() {
-    const lockToken = sessionStorage.getItem("cineseat_lock_token");
-    if (lockToken) {
-      state.items.forEach((item) => {
-        seatService.releaseLockedSeats({
-          sessionId: item.sessionId,
-          seats: item.seats.map((seat) => seat.seatId),
-          lockToken,
-        });
-      });
-      sessionStorage.removeItem("cineseat_lock_token");
-      sessionStorage.removeItem("cineseat_lock_expires");
-    }
+    clearStoredLocks();
     navigate("/cart");
   }
 

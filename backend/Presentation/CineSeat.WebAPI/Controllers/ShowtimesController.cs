@@ -3,6 +3,7 @@ using CineSeat.Application.Features.Showtimes.Commands.CreateShowtime;
 using CineSeat.Application.Features.Showtimes.Commands.DeleteShowtime;
 using CineSeat.Application.Features.Showtimes.Commands.UpdateShowtime;
 using CineSeat.Application.Features.Showtimes.Queries.GetShowtimeById;
+using CineSeat.Application.Features.Showtimes.Queries.GetShowtimeSeatMap;
 using CineSeat.Application.Features.Showtimes.Queries.GetShowtimesByCinema;
 using CineSeat.Application.Features.Showtimes.Queries.GetShowtimesByMovie;
 using MediatR;
@@ -33,6 +34,17 @@ public class ShowtimesController : ControllerBase
         long cinemaId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
         => Ok(await _mediator.Send(
             new GetShowtimesByCinemaQuery { CinemaId = cinemaId, PageNumber = pageNumber, PageSize = pageSize }));
+
+    /// <summary>
+    /// Seansın koltuk haritası: salonun koltukları + her koltuğun bu seanstaki
+    /// durumu (boş / kilitli / rezerve). Koltuk planını çizmek için gerekli,
+    /// bu yüzden anonim erişime açık — kilidin kime ait olduğu bilgisi ise
+    /// yalnızca token varsa doldurulur.
+    /// </summary>
+    [HttpGet("{id:long}/seats")]
+    public async Task<IActionResult> GetSeatMap(long id, CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(
+            new GetShowtimeSeatMapQuery { ShowtimeId = id }, cancellationToken));
 
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(long id)

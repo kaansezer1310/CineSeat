@@ -1,310 +1,186 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SEAT_STATUS } from "../domain/seatStatus.js";
-import seatService from "./seatService.js";
+import { ConflictError } from "./errors.js";
 
-describe("seatService", () => {
+vi.mock("./apiClient.js", () => {
+  const client = {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    del: vi.fn(),
+  };
+
+  return { default: client, apiClient: client };
+});
+
+const { default: apiClient } = await import("./apiClient.js");
+const { default: seatService } = await import("./seatService.js");
+
+function seatDto(overrides = {}) {
+  return {
+    seatId: 1,
+    seatRow: 1,
+    seatColumn: 1,
+    type: "Regular",
+    isActive: true,
+    status: "Available",
+    lockedByCurrentUser: false,
+    ...overrides,
+  };
+}
+
+describe("seatService.getShowtimeSeatMap", () => {
   beforeEach(() => {
-    localStorage.clear();
-    vi.useFakeTimers();
+    vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
+  it("koltukları etiketleyip durum haritasını kurar", async () => {
+    apiClient.get.mockResolvedValue([
+      seatDto({ seatId: 11, seatRow: 1, seatColumn: 1 }),
+      seatDto({ seatId: 12, seatRow: 1, seatColumn: 2, status: "Reserved" }),
+      seatDto({ seatId: 21, seatRow: 2, seatColumn: 1, status: "Locked" }),
+    ]);
 
-  async function flushWait(promise) {
-    const settleInterest = promise.then(
-      (value) => {
-        return { status: "fulfilled", value };
-      },
-      (error) => {
-        return { status: "rejected", error };
-      }
-    );
+    const { seats, statuses } = await seatService.getShowtimeSeatMap(7);
 
-    await vi.runAllTimersAsync();
+    expect(apiClient.get).toHaveBeenCalledWith("/showtimes/7/seats");
 
-    return settleInterest;
-  }
-
-  describe("geriye dönük uyumluluk (getReservedSeatsBySessionId)", () => {
-    it("hiç kayıt yoksa mock başlangıç verisine düşer", async () => {
-      const result = await flushWait(
-        seatService.getReservedSeatsBySessionId(101)
-      );
-
-      expect(result.status).toBe("fulfilled");
-      expect(result.value).toEqual([
-        "A2",
-        "A3",
-        "B5",
-        "C1",
-        "D7",
-      ]);
-    });
-
-    it("mevcut (eski format) düz koltuk dizisini okuyabilir", async () => {
-      localStorage.setItem(
-        "reserved-seats-999",
-        JSON.stringify(["A1", "A2"])
-      );
-
-      const result = await flushWait(
-        seatService.getReservedSeatsBySessionId(999)
-      );
-
-      expect(result.value).toEqual(["A1", "A2"]);
+    expect(seats.map((seat) => seat.label)).toEqual(["A1", "A2", "B1"]);
+    expect(statuses).toEqual({
+      11: SEAT_STATUS.BOS,
+      12: SEAT_STATUS.DOLU,
+      21: SEAT_STATUS.GECICI_KILITLI,
     });
   });
 
-  describe("bozuk / beklenmeyen storage verisi", () => {
-    it("bozuk JSON durumunda çökmez, boş listeye düşer", async () => {
-      localStorage.setItem(
-        "reserved-seats-555",
-        "{ bozuk-json"
-      );
+  it("kullanıcının kendi kilidini seçilebilir (BOS) sayar", async () => {
+    // Kendi tuttuğu koltuk "başkası aldı" gibi görünmemeli; sayfayı
+    // yenilediğinde seçimini sürdürebilmeli.
+    apiClient.get.mockResolvedValue([
+      seatDto({
+        seatId: 5,
+        status: "Locked",
+        lockedByCurrentUser: true,
+      }),
+    ]);
 
-      const result = await flushWait(
-        seatService.getReservedSeatsBySessionId(555)
-      );
+    const { statuses } = await seatService.getShowtimeSeatMap(7);
 
-      expect(result.status).toBe("fulfilled");
-      expect(result.value).toEqual([]);
+    expect(statuses[5]).toBe(SEAT_STATUS.BOS);
+  });
+
+  it("devre dışı koltukları listeye ve haritaya koymaz", async () => {
+    apiClient.get.mockResolvedValue([
+      seatDto({ seatId: 1, isActive: true }),
+      seatDto({ seatId: 2, seatColumn: 2, isActive: false }),
+    ]);
+
+    const { seats, statuses } = await seatService.getShowtimeSeatMap(7);
+
+    expect(seats).toHaveLength(1);
+    expect(statuses[2]).toBeUndefined();
+  });
+
+  it("boş cevapta çökmez", async () => {
+    apiClient.get.mockResolvedValue(null);
+
+    await expect(seatService.getShowtimeSeatMap(7)).resolves.toEqual({
+      seats: [],
+      statuses: {},
+    });
+  });
+});
+
+describe("seatService.lockSeats", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("her koltuk için kilit isteği atar", async () => {
+    apiClient.post
+      .mockResolvedValueOnce({ id: 100, seatId: 11 })
+      .mockResolvedValueOnce({ id: 101, seatId: 12 });
+
+    const locks = await seatService.lockSeats({
+      showtimeId: 7,
+      seatIds: [11, 12],
     });
 
-    it("geçerli JSON ama beklenmeyen şema (dizi değil) durumunda boş listeye düşer", async () => {
-      localStorage.setItem(
-        "reserved-seats-556",
-        JSON.stringify({ A1: true })
-      );
+    expect(locks).toEqual([
+      { id: 100, seatId: 11 },
+      { id: 101, seatId: 12 },
+    ]);
 
-      const result = await flushWait(
-        seatService.getReservedSeatsBySessionId(556)
-      );
-
-      expect(result.value).toEqual([]);
-    });
-
-    it("dizi içindeki geçersiz (string olmayan) öğeleri süzer", async () => {
-      localStorage.setItem(
-        "reserved-seats-557",
-        JSON.stringify(["A1", 42, null, "", "B2"])
-      );
-
-      const result = await flushWait(
-        seatService.getReservedSeatsBySessionId(557)
-      );
-
-      expect(result.value).toEqual(["A1", "B2"]);
-    });
-
-    it("bozuk kilit verisi de booking sayfasını çökertmeden boş listeye düşer", async () => {
-      localStorage.setItem(
-        "locked-seats-558",
-        "yanlis-json-{{"
-      );
-
-      const result = await flushWait(
-        seatService.getSeatStatusesBySessionId(558)
-      );
-
-      expect(result.status).toBe("fulfilled");
-      expect(result.value).toEqual({});
+    expect(apiClient.post).toHaveBeenNthCalledWith(1, "/seatlocks", {
+      showtimeId: 7,
+      seatId: 11,
+      lockMinutes: seatService.DEFAULT_LOCK_MINUTES,
     });
   });
 
-  describe("getSeatStatusesBySessionId — dört durumlu harita", () => {
-    it("DOLU ve GECICI_KILITLI koltukları ayrı ayrı işaretler, BOS koltukları haritaya koymaz", async () => {
-      const result = await flushWait(
-        seatService.getSeatStatusesBySessionId(101)
-      );
+  it("araya giren çakışmada o ana kadar alınan kilitleri bırakır", async () => {
+    // Aksi hâlde kullanıcı hiç kullanmayacağı koltukları dakikalarca tutardı.
+    apiClient.post
+      .mockResolvedValueOnce({ id: 100, seatId: 11 })
+      .mockRejectedValueOnce(new ConflictError("Koltuk kilitli."));
+    apiClient.del.mockResolvedValue(null);
 
-      expect(result.value.A2).toBe(SEAT_STATUS.DOLU);
-      expect(result.value.A5).toBe(
-        SEAT_STATUS.GECICI_KILITLI
-      );
-      expect(result.value.Z9).toBeUndefined();
-    });
+    await expect(
+      seatService.lockSeats({ showtimeId: 7, seatIds: [11, 12] })
+    ).rejects.toBeInstanceOf(ConflictError);
+
+    expect(apiClient.del).toHaveBeenCalledWith("/seatlocks/100");
+  });
+});
+
+describe("seatService.renewLocks", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe("reserveSeats — GECICI_KILITLI/BOS -> DOLU", () => {
-    it("koltukları DOLU'ya taşır ve mevcut kilit kaydını temizler", async () => {
-      localStorage.setItem(
-        "locked-seats-777",
-        JSON.stringify({ A1: "mock-token" })
-      );
+  it("seçimin tamamını tek istekte yeniler", async () => {
+    apiClient.post.mockResolvedValue([]);
 
-      const result = await flushWait(
-        seatService.reserveSeats({
-          sessionId: 777,
-          seats: ["A1"],
-        })
-      );
-
-      expect(result.status).toBe("fulfilled");
-      expect(result.value).toEqual(["A1"]);
-
-      const storedDolu = JSON.parse(
-        localStorage.getItem("reserved-seats-777")
-      );
-      const storedLocked = JSON.parse(
-        localStorage.getItem("locked-seats-777")
-      );
-
-      expect(storedDolu).toEqual(["A1"]);
-      expect(storedLocked).toEqual({});
+    await seatService.renewLocks({
+      showtimeId: 7,
+      seatIds: [11, 12],
+      lockMinutes: 5,
     });
 
-    it("zaten DOLU olan bir koltuğu asla tekrar rezerve etmez (servis tarafı koruma)", async () => {
-      localStorage.setItem(
-        "reserved-seats-778",
-        JSON.stringify(["A1"])
-      );
-
-      const resultPromise = seatService.reserveSeats({
-        sessionId: 778,
-        seats: ["A1"],
-      });
-
-      const result = await flushWait(resultPromise);
-
-      expect(result.status).toBe("rejected");
-      expect(result.error.name).toBe("ConflictError");
+    expect(apiClient.post).toHaveBeenCalledTimes(1);
+    expect(apiClient.post).toHaveBeenCalledWith("/seatlocks/renew", {
+      showtimeId: 7,
+      seatIds: [11, 12],
+      lockMinutes: 5,
     });
   });
+});
 
-  describe("lockSeats / releaseLockedSeats — GECICI_KILITLI geçişleri", () => {
-    it("BOS koltukları kilitler (GECICI_KILITLI yapar)", async () => {
-      const result = await flushWait(
-        seatService.lockSeats({
-          sessionId: 888,
-          seats: ["C1"],
-          lockToken: "mock-token",
-        })
-      );
-
-      expect(result.status).toBe("fulfilled");
-      expect(result.value).toEqual(["C1"]);
-
-      const statusesResult = await flushWait(
-        seatService.getSeatStatusesBySessionId(888)
-      );
-
-      expect(statusesResult.value.C1).toBe(
-        SEAT_STATUS.GECICI_KILITLI
-      );
-    });
-
-    it("zaten DOLU olan bir koltuğu kilitlemeyi reddeder", async () => {
-      localStorage.setItem(
-        "reserved-seats-889",
-        JSON.stringify(["C1"])
-      );
-
-      const result = await flushWait(
-        seatService.lockSeats({
-          sessionId: 889,
-          seats: ["C1"],
-          lockToken: "mock-token",
-        })
-      );
-
-      expect(result.status).toBe("rejected");
-      expect(result.error.name).toBe("ConflictError");
-    });
-
-    it("kilitli bir koltuğu REQ-19/REQ-12/REQ-13 senaryosu için BOS'a döndürür", async () => {
-      await flushWait(
-        seatService.lockSeats({
-          sessionId: 890,
-          seats: ["D1"],
-          lockToken: "mock-token",
-        })
-      );
-
-      const releaseResult = await flushWait(
-        seatService.releaseLockedSeats({
-          sessionId: 890,
-          seats: ["D1"],
-          lockToken: "mock-token",
-        })
-      );
-
-      expect(releaseResult.status).toBe("fulfilled");
-      expect(releaseResult.value).toEqual([]);
-
-      const statusesResult = await flushWait(
-        seatService.getSeatStatusesBySessionId(890)
-      );
-
-      expect(statusesResult.value.D1).toBeUndefined();
-    });
+describe("seatService.releaseLocks", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  describe("cancelReservedSeats — DOLU -> BOS (rezervasyon iptali)", () => {
-    it("DOLU bir koltuğu BOS'a döndürür", async () => {
-      localStorage.setItem(
-        "reserved-seats-950",
-        JSON.stringify(["E1", "E2"])
-      );
+  it("her kilidi ayrı ayrı bırakır", async () => {
+    apiClient.del.mockResolvedValue(null);
 
-      const result = await flushWait(
-        seatService.cancelReservedSeats({
-          sessionId: 950,
-          seats: ["E1"],
-        })
-      );
+    await seatService.releaseLocks([100, 101]);
 
-      expect(result.status).toBe("fulfilled");
-      expect(result.value).toEqual(["E2"]);
-
-      const statusesResult = await flushWait(
-        seatService.getSeatStatusesBySessionId(950)
-      );
-
-      expect(statusesResult.value.E1).toBeUndefined();
-      expect(statusesResult.value.E2).toBe(SEAT_STATUS.DOLU);
-    });
+    expect(apiClient.del).toHaveBeenCalledWith("/seatlocks/100");
+    expect(apiClient.del).toHaveBeenCalledWith("/seatlocks/101");
   });
 
-  describe("girdi doğrulama", () => {
-    it("geçersiz seans numarasını reddeder", async () => {
-      const result = await flushWait(
-        seatService.getReservedSeatsBySessionId("abc")
-      );
+  it("temizlik işi olduğu için tek tek hataları yutar", async () => {
+    // Kilit zaten düşmüşse kullanıcıya gösterilecek bir şey yok.
+    apiClient.del.mockRejectedValue(new Error("404"));
 
-      expect(result.status).toBe("rejected");
-    });
+    await expect(seatService.releaseLocks([100])).resolves.toBeUndefined();
+  });
 
-    it("dizi olmayan koltuk listesini reddeder", async () => {
-      const result = await flushWait(
-        seatService.reserveSeats({
-          sessionId: 900,
-          seats: "A1",
-        })
-      );
+  it("boş listede istek atmaz", async () => {
+    await seatService.releaseLocks();
 
-      expect(result.status).toBe("rejected");
-    });
-
-    it("boş koltuk listesini reddeder", async () => {
-      const result = await flushWait(
-        seatService.lockSeats({
-          sessionId: 901,
-          seats: [],
-          lockToken: "mock-token",
-        })
-      );
-
-      expect(result.status).toBe("rejected");
-    });
+    expect(apiClient.del).not.toHaveBeenCalled();
   });
 });

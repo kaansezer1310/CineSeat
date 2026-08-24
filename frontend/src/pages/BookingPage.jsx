@@ -20,7 +20,7 @@ import seatService from "../services/seatService.js";
 import sessionService from "../services/sessionService.js";
 import useCart from "../hooks/useCart.js";
 
-const emptySeatStatuses = {};
+const EMPTY_SEAT_MAP = { seats: [], statuses: {} };
 
 function removeTicketTypesForSeats(
     ticketTypesBySeatId,
@@ -87,13 +87,13 @@ function BookingPage() {
         staleTime: 5 * 60 * 1000,
     });
 
-    // Koltukların yalnızca DOLU/GECICI_KILITLI (BOS dışındaki) durumları
-    // servisten gelir; SECILI, aşağıda yerel `selectedSeats` seçimiyle
-    // türetilir (bkz. `SeatMap`/`resolveDisplaySeatStatus`). Query key
-    // önceki sürümle aynı tutulur çünkü `CartPage`, rezervasyon başarılı
-    // olduğunda bu anahtarı geçersizleştirir (invalidate).
+    // Koltuk planı ve durumları tek uçtan gelir (GET /showtimes/{id}/seats).
+    // SECILI durumu servisten gelmez; aşağıda yerel `selectedSeats` seçimiyle
+    // türetilir (bkz. `SeatMap`/`resolveDisplaySeatStatus`). Query key önceki
+    // sürümle aynı tutulur çünkü ödeme akışı rezervasyon başarılı olduğunda
+    // bu anahtarı geçersizleştirir (invalidate).
     const {
-        data: seatStatusesData,
+        data: seatMapData,
         isLoading: areSeatsLoading,
         isFetching: areSeatsFetching,
         error: seatsError,
@@ -101,15 +101,23 @@ function BookingPage() {
     } = useQuery({
         queryKey: ["reservedSeats", numericSessionId],
         queryFn: () => {
-            return seatService.getSeatStatusesBySessionId(
-                numericSessionId
-            );
+            return seatService.getShowtimeSeatMap(numericSessionId);
         },
         staleTime: 10 * 1000,
     });
 
-    const seatStatuses =
-        seatStatusesData ?? emptySeatStatuses;
+    const seatMap = seatMapData ?? EMPTY_SEAT_MAP;
+    const seatStatuses = seatMap.statuses;
+
+    // Koltuk kimliği artık backend'in `SeatId`'si (sayı); "A5" yalnızca
+    // görüntüleme etiketi. Mesajlarda ve özet listesinde etiket gösterilir.
+    const labelBySeatId = Object.fromEntries(
+        seatMap.seats.map((seat) => [seat.id, seat.label])
+    );
+
+    function seatLabel(seatId) {
+        return labelBySeatId[seatId] ?? String(seatId);
+    }
 
     const [
         previousSeatStatuses,
@@ -147,10 +155,13 @@ function BookingPage() {
                 );
             });
 
+            const unavailableLabels =
+                newlyUnavailableSeats.map(seatLabel);
+
             const seatDescription =
-                newlyUnavailableSeats.length === 1
-                    ? `${newlyUnavailableSeats[0]} numaralı koltuk`
-                    : `${newlyUnavailableSeats.join(", ")} numaralı koltuklar`;
+                unavailableLabels.length === 1
+                    ? `${unavailableLabels[0]} numaralı koltuk`
+                    : `${unavailableLabels.join(", ")} numaralı koltuklar`;
 
             setAvailabilityMessage(
                 `${seatDescription} artık müsait olmadığı için seçiminden çıkarıldı.`
@@ -256,6 +267,9 @@ function BookingPage() {
 
                 return {
                     seatId,
+                    // Etiket sepete de taşınır: sepet/başarı ekranı koltuk
+                    // planını yeniden yüklemeden "A5" yazabilsin.
+                    seatLabel: seatLabel(seatId),
                     ticketType,
                 };
             })
@@ -273,6 +287,8 @@ function BookingPage() {
             date: session.date,
             time: session.time,
             hallName: session.hallName,
+            cinemaName: session.cinemaName,
+            startDatetime: session.startDatetime,
             seats: seatsWithTicketTypes,
             unitPrice: session.price,
         };
@@ -389,7 +405,7 @@ function BookingPage() {
 
             <div className="booking-layout">
                 <SeatMap
-                    totalSeats={session.totalSeats}
+                    seats={seatMap.seats}
                     seatStatuses={seatStatuses}
                     selectedSeats={selectedSeats}
                     onSeatSelect={handleSeatSelect}
@@ -420,7 +436,7 @@ function BookingPage() {
 
                         <strong>
                             {hasSelectedSeats
-                                ? selectedSeats.join(", ")
+                                ? selectedSeats.map(seatLabel).join(", ")
                                 : "Henüz seçilmedi"}
                         </strong>
                     </div>
@@ -446,7 +462,7 @@ function BookingPage() {
                                             key={seatId}
                                         >
                                             <label htmlFor={selectId}>
-                                                {seatId} koltuğu
+                                                {seatLabel(seatId)} koltuğu
                                                 <span className="visually-hidden">
                                                     {" "}
                                                     bilet tipi

@@ -1,5 +1,6 @@
 using CineSeat.Application.Features.SeatLocks.Commands.LockSeat;
 using CineSeat.Application.Features.SeatLocks.Commands.ReleaseSeat;
+using CineSeat.Application.Features.SeatLocks.Commands.RenewSeatLocks;
 using CineSeat.Application.Features.SeatLocks.DTOs;
 using CineSeat.Application.Features.SeatLocks.Queries.GetLockedSeatsByShowtime;
 using MediatR;
@@ -36,6 +37,18 @@ public class SeatLocksController : ControllerBase
     [ProducesResponseType(typeof(SeatLockDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Lock(
         [FromBody] LockSeatCommand command,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(command, cancellationToken));
+
+    /// <summary>
+    /// Seçimin tamamının kilit süresini tek istekte uzatır. Ödeme ekranındaki
+    /// geri sayım bitmeden çağrılır; koltuk başına ayrı istek gerekmez.
+    /// </summary>
+    [HttpPost("renew")]
+    [Authorize]
+    [ProducesResponseType(typeof(IReadOnlyList<SeatLockDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Renew(
+        [FromBody] RenewSeatLocksCommand command,
         CancellationToken cancellationToken)
         => Ok(await _mediator.Send(command, cancellationToken));
 

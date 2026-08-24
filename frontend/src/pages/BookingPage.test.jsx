@@ -40,9 +40,38 @@ vi.mock("../services/movieService.js", () => ({
 
 vi.mock("../services/seatService.js", () => ({
   default: {
-    getSeatStatusesBySessionId: vi.fn(),
+    getShowtimeSeatMap: vi.fn(),
   },
 }));
+
+// Koltuk kimliği artık backend'in `SeatId`'si; "A1" yalnızca etiket.
+// 6 sıra × 8 sütun = 48 koltuk, id'ler 1..48.
+function buildSeats(rowCount = 6, columnCount = 8) {
+  const seats = [];
+
+  for (let row = 1; row <= rowCount; row += 1) {
+    for (let column = 1; column <= columnCount; column += 1) {
+      seats.push({
+        id: (row - 1) * columnCount + column,
+        label: `${String.fromCharCode(64 + row)}${column}`,
+        row,
+        column,
+      });
+    }
+  }
+
+  return seats;
+}
+
+const SEATS = buildSeats();
+
+// Etiket → kimlik: A1=1, A2=2 … B1=9
+const A1 = 1;
+const A2 = 2;
+
+function seatMap(statuses = {}) {
+  return { seats: SEATS, statuses };
+}
 
 vi.mock("../services/sessionService.js", () => ({
   default: {
@@ -97,9 +126,12 @@ describe("BookingPage", () => {
     sessionService.getSessionById.mockResolvedValue({
       id: 101,
       movieId: 1,
+      hallId: 5,
+      startDatetime: "2026-07-13T13:30:00+03:00",
       date: "13 Temmuz",
       time: "13:30",
       hallName: "Salon 1",
+      cinemaName: "CineSeat Kadıköy",
       price: 220,
       totalSeats: 48,
     });
@@ -107,9 +139,7 @@ describe("BookingPage", () => {
       id: 1,
       title: "Neon Yağmuru",
     });
-    seatService.getSeatStatusesBySessionId.mockResolvedValue(
-      {}
-    );
+    seatService.getShowtimeSeatMap.mockResolvedValue(seatMap());
   });
 
   it("BOS bir koltuğa tıklayınca SECILI olur ve toplam fiyata yansır", async () => {
@@ -171,10 +201,12 @@ describe("BookingPage", () => {
   });
 
   it("GECICI_KILITLI ve DOLU koltukları ayrı ayrı gösterir ve tıklamayı engeller", async () => {
-    seatService.getSeatStatusesBySessionId.mockResolvedValue({
-      A1: SEAT_STATUS.DOLU,
-      A2: SEAT_STATUS.GECICI_KILITLI,
-    });
+    seatService.getShowtimeSeatMap.mockResolvedValue(
+      seatMap({
+        [A1]: SEAT_STATUS.DOLU,
+        [A2]: SEAT_STATUS.GECICI_KILITLI,
+      })
+    );
 
     renderBookingPage();
 
@@ -225,9 +257,10 @@ describe("BookingPage", () => {
       .toBeInTheDocument();
 
     act(() => {
-      queryClient.setQueryData(["reservedSeats", 101], {
-        A1: SEAT_STATUS.DOLU,
-      });
+      queryClient.setQueryData(
+        ["reservedSeats", 101],
+        seatMap({ [A1]: SEAT_STATUS.DOLU })
+      );
     });
 
     await waitFor(() => {
@@ -383,13 +416,17 @@ describe("BookingPage", () => {
       screen.getByTestId("cart-probe").textContent
     );
 
+    // Sepete backend koltuk kimliği gider; etiket yalnızca gösterim için
+    // yanında taşınır.
     expect(cartItems[0].seats).toEqual([
       {
-        seatId: "A1",
+        seatId: A1,
+        seatLabel: "A1",
         ticketType: TICKET_TYPE.ADULT,
       },
       {
-        seatId: "A2",
+        seatId: A2,
+        seatLabel: "A2",
         ticketType: TICKET_TYPE.STUDENT,
       },
     ]);
@@ -434,10 +471,12 @@ describe("BookingPage", () => {
   });
 
   it("kilitli veya dolu koltuğu sepete eklemez", async () => {
-    seatService.getSeatStatusesBySessionId.mockResolvedValue({
-      A1: SEAT_STATUS.DOLU,
-      A2: SEAT_STATUS.GECICI_KILITLI,
-    });
+    seatService.getShowtimeSeatMap.mockResolvedValue(
+      seatMap({
+        [A1]: SEAT_STATUS.DOLU,
+        [A2]: SEAT_STATUS.GECICI_KILITLI,
+      })
+    );
 
     renderBookingPage();
 

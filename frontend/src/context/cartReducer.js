@@ -7,26 +7,47 @@ export const initialCartState = {
   items: [],
 };
 
-function normalizeCartSeat(seat) {
-  if (
-    seat !== null &&
-    typeof seat === "object" &&
-    typeof seat.seatId === "string" &&
-    seat.seatId.trim().length > 0
-  ) {
-    const ticketType = normalizeTicketType(seat.ticketType);
+// Koltuk kimliği artık backend'in `SeatId`'si (sayı). Eski sepet içeriği
+// (bir önceki sürümden kalan "A1" gibi metin kimlikler) sessionStorage'da
+// duruyor olabileceği için metin biçimi de kabul edilmeye devam ediyor;
+// yoksa kullanıcının sepeti sessizce boşalırdı.
+function normalizeSeatId(value) {
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) {
+    return value;
+  }
 
-    if (!ticketType) {
-      return null;
-    }
-
-    return {
-      seatId: seat.seatId.trim(),
-      ticketType,
-    };
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value.trim();
   }
 
   return null;
+}
+
+function normalizeCartSeat(seat) {
+  if (seat === null || typeof seat !== "object") {
+    return null;
+  }
+
+  const seatId = normalizeSeatId(seat.seatId);
+
+  if (seatId === null) {
+    return null;
+  }
+
+  const ticketType = normalizeTicketType(seat.ticketType);
+
+  if (!ticketType) {
+    return null;
+  }
+
+  const normalized = { seatId, ticketType };
+
+  // Etiket ("A5") yalnızca görüntüleme için taşınır; varsa korunur.
+  if (typeof seat.seatLabel === "string" && seat.seatLabel.length > 0) {
+    normalized.seatLabel = seat.seatLabel;
+  }
+
+  return normalized;
 }
 
 function normalizeCartSeats(seats) {

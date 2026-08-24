@@ -14,6 +14,19 @@ const API_BASE_URL =
 
 const USER_STORAGE_KEY = "cineseat_user";
 
+// 401 geldiğinde oturumu düşürecek geri çağrım. AuthProvider mount olurken
+// kendini buraya kaydeder; apiClient React'i (hook, context, router) hiç
+// tanımadan oturumun sonlandığını haber verebilir.
+//
+// Önceden 401 yalnızca bir ApiError'a çevriliyordu: token'ın süresi dolunca
+// kullanıcı giriş yapmış görünmeye devam ediyor, her istek anlaşılmaz bir
+// hatayla düşüyordu.
+let onUnauthorized = null;
+
+export function setUnauthorizedHandler(handler) {
+  onUnauthorized = handler;
+}
+
 // authService.login/register, backend token'ını user nesnesinin içine
 // (`token` alanı) gömerek sessionStorage'a yazıyor — bu fonksiyon onu
 // AuthProvider'a hiç dokunmadan geri okur.
@@ -90,6 +103,12 @@ async function apiRequest(path, { method = "GET", body, headers } = {}) {
   });
 
   if (!response.ok) {
+    // Oturum yokken (misafir) gelen 401 normaldir — yalnızca elimizde bir
+    // token varken gelen 401 "süresi doldu / geçersiz" anlamına gelir.
+    if (response.status === 401 && token && onUnauthorized) {
+      onUnauthorized();
+    }
+
     throw await toApiError(response);
   }
 

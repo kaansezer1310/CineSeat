@@ -144,9 +144,24 @@ async function updateMovie(movieId, movieData) {
   return getMovieById(movieId);
 }
 
-async function deleteMovie(movieId) {
+// T7: DELETE kalıcı silme değil, arşivleme (backend `IsDeleted = true`
+// yapar). Arayüzde de "sil" değil "arşivle" denir; kayıt geri alınabilir.
+async function archiveMovie(movieId) {
   await apiClient.del(`/movies/${movieId}`);
   return true;
+}
+
+async function restoreMovie(movieId) {
+  await apiClient.post(`/movies/${movieId}/restore`);
+  return true;
+}
+
+async function getArchivedMovies({ pageSize = 100 } = {}) {
+  const result = await apiClient.get(
+    `/movies/archived?pageNumber=1&pageSize=${pageSize}`
+  );
+
+  return (result?.items ?? []).map((dto) => mapMovieDto(dto));
 }
 
 function parseIsoDateOnly(isoDateString) {
@@ -272,7 +287,9 @@ const movieService = {
   getMovieById,
   addMovie,
   updateMovie,
-  deleteMovie,
+  archiveMovie,
+  restoreMovie,
+  getArchivedMovies,
   isMovieReleased,
   getDaysUntilRelease,
   isMovieArchived,

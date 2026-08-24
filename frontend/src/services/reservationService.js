@@ -1,151 +1,151 @@
-import seatService from "./seatService.js";
-import { calcSubtotal } from "./pricing.js";
-import campaignService from "./campaignService.js";
+import apiClient from "./apiClient.js";
+import {
+  fromApiTicketType,
+  toApiTicketType,
+} from "../domain/ticketType.js";
 
-const RESERVATIONS_STORAGE_KEY = "cineseat-reservations";
+// Rezervasyonlar artık veritabanında. (Önceden `localStorage` anahtarında
+// tutuluyorlardı: kullanıcı bilet aldığını sanıyor, farklı bir tarayıcıdan
+// girince rezervasyon kayboluyor, iki kişi aynı koltuğu alabiliyordu.)
+//
+// Backend rezervasyon başına TEK seans kabul ediyor. Sepet birden fazla
+// seans içerebildiği için her sepet öğesi ayrı bir rezervasyona dönüşür.
 
-function wait(milliseconds) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
+function mapTicketDto(dto) {
+  return {
+    id: dto.id,
+    seatId: dto.seatId,
+    ticketType: fromApiTicketType(dto.ticketType),
+    price: Number(dto.price) || 0,
+  };
 }
 
-function createReservationId() {
-  const randomNum = Math.floor(10000 + Math.random() * 90000);
-  return `RES-${randomNum}`;
+function mapReservationDto(dto) {
+  return {
+    id: dto.id,
+    resNo: dto.resNo,
+    showtimeId: dto.showtimeId,
+    campaignId: dto.campaignId ?? null,
+    buyer: {
+      firstName: dto.buyerFname,
+      lastName: dto.buyerLname,
+      email: dto.buyerEmail,
+    },
+    subtotal: Number(dto.subtotal) || 0,
+    discount: Number(dto.discount) || 0,
+    total: Number(dto.total) || 0,
+    status: dto.status,
+    tickets: (dto.tickets ?? []).map(mapTicketDto),
+  };
 }
 
-function getStoredReservations() {
-  const savedReservations = localStorage.getItem(
-    RESERVATIONS_STORAGE_KEY
-  );
+function mapSummaryDto(dto) {
+  return {
+    id: dto.id,
+    resNo: dto.resNo,
+    showtimeId: dto.showtimeId,
+    startDatetime: dto.showtimeStart,
+    movieTitle: dto.movieTitle,
+    ticketCount: dto.ticketCount,
+    total: Number(dto.total) || 0,
+    status: dto.status,
+  };
+}
 
-  if (!savedReservations) {
-    return [];
-  }
+function toCommand(item, buyer, campaignId) {
+  return {
+    showtimeId: item.sessionId,
+    campaignId: campaignId ?? null,
+    buyerFname: buyer.firstName,
+    buyerLname: buyer.lastName,
+    buyerEmail: buyer.email,
+    seats: item.seats.map((seat) => ({
+      seatId: seat.seatId,
+      ticketType: toApiTicketType(seat.ticketType),
+    })),
+  };
+}
+
+/**
+ * Sepetteki her seans için bir rezervasyon oluşturur.
+ *
+ * Tutar ve indirim İSTEMCİDEN GÖNDERİLMEZ — yalnızca `campaignId` gider,
+ * hesabı backend yapar. Araya giren bir hatada, o ana kadar oluşturulmuş
+ * rezervasyonlar iptal edilir; aksi hâlde kullanıcı ödemediği bir bileti
+ * üzerinde bulurdu.
+ */
+async function createReservation({ cartItems, buyer, campaignId = null }) {
+  const created = [];
 
   try {
-    const parsedReservations = JSON.parse(
-      savedReservations
+    for (const item of cartItems) {
+      const dto = await apiClient.post(
+        "/reservations",
+        toCommand(item, buyer, campaignId)
+      );
+
+      created.push(mapReservationDto(dto));
+    }
+  } catch (error) {
+    await Promise.all(
+      created.map((reservation) =>
+        apiClient
+          .post(`/reservations/${reservation.id}/cancel`)
+          .catch(() => null)
+      )
     );
 
-    return Array.isArray(parsedReservations)
-      ? parsedReservations
-      : [];
-  } catch {
-    return [];
+    throw error;
   }
+
+  return created;
 }
 
-// seatService düz koltuk kimliği listesi bekler; sepet ise
-// { seatId, ticketType } nesneleri taşır. Sınırda dönüştürülür.
-function getSeatIdsFromCartSeats(seats) {
-  if (!Array.isArray(seats)) {
-    return [];
-  }
-
-  return seats
-    .map((seat) => {
-      if (
-        seat !== null &&
-        typeof seat === "object" &&
-        typeof seat.seatId === "string"
-      ) {
-        return seat.seatId;
-      }
-
-      return null;
-    })
-    .filter((seatId) => {
-      return typeof seatId === "string" && seatId.length > 0;
-    });
-}
-
-function cloneCartSeats(seats) {
-  if (!Array.isArray(seats)) {
-    return [];
-  }
-
-  return seats.map((seat) => {
-    return {
-      seatId: seat.seatId,
-      ticketType: seat.ticketType,
-    };
-  });
-}
-
-async function createReservation(payload) {
-  await wait(600);
-
-  // Eskiden cartItems doğrudan geliyordu, simdi payload obje olarak geliyor
-  const cartItems = payload.cartItems ? payload.cartItems : payload;
-  const visitorInfo = payload.visitorInfo || null;
-  const lockToken = payload.lockToken || null;
-
-  if (!Array.isArray(cartItems) || cartItems.length === 0) {
-    throw new Error(
-      "Rezervasyon oluşturmak için sepette bilet bulunmalıdır."
-    );
-  }
-
-  // Atomik kontrol ve yazım işlemi için tüm oturum/koltuk çiftlerini hazırla
-  const sessionSeatPairs = cartItems.map((item) => ({
-    sessionId: item.sessionId,
-    seats: getSeatIdsFromCartSeats(item.seats),
-  }));
-
-  // Bu işlem artık atomiktir
-  await seatService.reserveAllSeats(sessionSeatPairs, lockToken);
-
-  const ticketCount = cartItems.reduce(
-    (total, item) => {
-      return total + item.seats.length;
-    },
-    0
+/** Giriş yapmış kullanıcının kendi rezervasyonları. */
+async function getMyReservations({ pageNumber = 1, pageSize = 50 } = {}) {
+  const result = await apiClient.get(
+    `/reservations/my?pageNumber=${pageNumber}&pageSize=${pageSize}`
   );
 
-  const subtotal = calcSubtotal(cartItems);
-  const { discountAmount } = campaignService.getCampaignDiscount(subtotal, !visitorInfo ? { role: 'member' } : null);
-  const totalPrice = subtotal - discountAmount;
-
-  const reservation = {
-    id: createReservationId(),
-    createdAt: new Date().toISOString(),
-    ticketCount,
-    totalPrice,
-    visitorInfo,
-
-    items: cartItems.map((item) => {
-      return {
-        ...item,
-        seats: cloneCartSeats(item.seats),
-      };
-    }),
+  return {
+    items: (result?.items ?? []).map(mapSummaryDto),
+    totalCount: result?.totalCount ?? 0,
   };
-
-  const storedReservations = getStoredReservations();
-
-  const updatedReservations = [
-    ...storedReservations,
-    reservation,
-  ];
-
-  localStorage.setItem(
-    RESERVATIONS_STORAGE_KEY,
-    JSON.stringify(updatedReservations)
-  );
-
-  return reservation;
 }
 
-async function getAllReservations() {
-  await wait(300);
+/**
+ * Tüm rezervasyonlar — `reservation.read` izni gerektirir.
+ * Yönetim raporları bu ucu kullanır.
+ */
+async function getAllReservations({
+  pageNumber = 1,
+  pageSize = 100,
+  from,
+  to,
+  movieId,
+  status,
+} = {}) {
+  const params = new URLSearchParams({
+    pageNumber: String(pageNumber),
+    pageSize: String(pageSize),
+  });
 
-  return getStoredReservations();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  if (movieId) params.set("movieId", String(movieId));
+  if (status) params.set("status", status);
+
+  const result = await apiClient.get(`/reservations?${params.toString()}`);
+
+  return {
+    items: (result?.items ?? []).map(mapSummaryDto),
+    totalCount: result?.totalCount ?? 0,
+  };
 }
 
 const reservationService = {
   createReservation,
+  getMyReservations,
   getAllReservations,
 };
 

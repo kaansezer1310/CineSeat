@@ -1,18 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 
 import PageHeader from '../components/ui/PageHeader.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import cinemaService from '../services/cinemaService.js';
 import './cinemas.css';
 
-// Mock Data: Sinema Şubeleri
-const CINEMAS = [
-  { id: 1, name: "CineSeat İstanbul Merkez", city: "İstanbul", lat: 41.0082, lng: 28.9784 },
-  { id: 2, name: "CineSeat Kadıköy", city: "İstanbul", lat: 40.9819, lng: 29.0233 },
-  { id: 3, name: "CineSeat Ankara Kızılay", city: "Ankara", lat: 39.9208, lng: 32.8541 },
-  { id: 4, name: "CineSeat İzmir Alsancak", city: "İzmir", lat: 38.4237, lng: 27.1428 },
-  { id: 5, name: "CineSeat Antalya Muratpaşa", city: "Antalya", lat: 36.8969, lng: 30.7133 },
-];
+const ALL_CITIES = "Tümü";
 
 // Haversine Formülü (İki koordinat arası mesafe hesaplar - km cinsinden)
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -29,7 +24,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 export default function CinemasPage() {
   const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = useState("Tümü");
+  const [selectedCity, setSelectedCity] = useState(ALL_CITIES);
   const [userLocation, setUserLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState(() => {
     return "geolocation" in navigator
@@ -37,8 +32,22 @@ export default function CinemasPage() {
       : "Tarayıcınız konum özelliğini desteklemiyor. Şehir seçerek sinemaları görebilirsiniz.";
   });
 
-  // Benzersiz şehirleri al
-  const cities = ["Tümü", ...new Set(CINEMAS.map(c => c.city))];
+  // Sinemalar ve şehirler artık veritabanından geliyor (önceden dosya içinde
+  // sabit bir diziydi; gerçek sinema kayıtlarını hiç göstermiyordu).
+  const {
+    data: cinemas = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["cinemas"],
+    queryFn: cinemaService.getCinemas,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const cities = [
+    ALL_CITIES,
+    ...new Set(cinemas.map((cinema) => cinema.city).filter(Boolean)),
+  ];
 
   useEffect(() => {
     // Sayfa açıldığında konum iste
@@ -74,9 +83,9 @@ export default function CinemasPage() {
   }
 
   // Sinemaları filtrele ve mesafe hesapla
-  let filteredCinemas = CINEMAS;
+  let filteredCinemas = cinemas;
 
-  if (selectedCity !== "Tümü") {
+  if (selectedCity !== ALL_CITIES) {
     filteredCinemas = filteredCinemas.filter(c => c.city === selectedCity);
   }
 
@@ -98,6 +107,12 @@ export default function CinemasPage() {
 
       <p className="cinemas-location-status">{locationStatus}</p>
 
+      {error && (
+        <div className="temporary-panel" role="alert">
+          Sinemalar alınamadı: {error.message}
+        </div>
+      )}
+
       <div className="cinemas-filter">
         <label htmlFor="cinemas-city-select">Şehir Seçin: </label>
         <select
@@ -113,6 +128,10 @@ export default function CinemasPage() {
       </div>
 
       <div className="cinemas-grid">
+        {isLoading && (
+          <p className="cinemas-location-status">Sinemalar yükleniyor…</p>
+        )}
+
         {filteredCinemas.map(cinema => (
           <div key={cinema.id} className="cinema-card">
             <h3>{cinema.name}</h3>
@@ -131,7 +150,7 @@ export default function CinemasPage() {
             </button>
           </div>
         ))}
-        {filteredCinemas.length === 0 && (
+        {!isLoading && !error && filteredCinemas.length === 0 && (
           <EmptyState
             icon="🎦"
             title="Bu şehirde henüz sinemamız bulunmuyor."

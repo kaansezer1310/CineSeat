@@ -15,9 +15,31 @@ import ProfilePage from "./ProfilePage.jsx";
 
 vi.mock("../services/reservationService.js", () => ({
   default: {
-    getAllReservations: vi.fn(),
+    getMyReservations: vi.fn(),
   },
 }));
+
+// Backend özeti: rezervasyon başına TEK seans; seans başlangıcı ISO tarih.
+function reservationSummary(overrides = {}) {
+  return {
+    id: 1,
+    resNo: "RES-11111",
+    showtimeId: 999,
+    startDatetime: "2099-12-31T23:59:00+03:00",
+    movieTitle: "Gelecek Film",
+    ticketCount: 2,
+    total: 440,
+    status: "Completed",
+    ...overrides,
+  };
+}
+
+function mockReservations(items) {
+  reservationService.getMyReservations.mockResolvedValue({
+    items,
+    totalCount: items.length,
+  });
+}
 
 vi.mock("../services/movieService.js", async () => {
   const actual = await vi.importActual(
@@ -82,25 +104,7 @@ describe("ProfilePage — Bilet sekmeleri (1.2.6, REQ-18)", () => {
   });
 
   it("gösterim saati henüz geçmemiş bir rezervasyonu 'Güncel Biletler' altında gösterir", async () => {
-    reservationService.getAllReservations.mockResolvedValue([
-      {
-        id: "RES-11111",
-        createdAt: "2020-01-01T10:00:00.000Z",
-        ticketCount: 2,
-        totalPrice: 440,
-        visitorInfo: null,
-        items: [
-          {
-            sessionId: 999,
-            movieTitle: "Gelecek Film",
-            date: "31 Aralık",
-            time: "23:59",
-            hallName: "Salon 1",
-            seats: [],
-          },
-        ],
-      },
-    ]);
+    mockReservations([reservationSummary()]);
 
     renderProfilePage();
 
@@ -120,29 +124,17 @@ describe("ProfilePage — Bilet sekmeleri (1.2.6, REQ-18)", () => {
     ).toBeInTheDocument();
   });
 
-  it("gösterim saati geçmiş bir rezervasyonu, satın alma zamanına bakılmaksızın 'Geçmiş Biletler' altında gösterir", async () => {
-    // createdAt (satın alma zamanı) BUGÜNE çok yakın (birkaç saniye önce) —
-    // eski (hatalı) kod bunu "Güncel" sayardı çünkü sadece createdAt'e
-    // bakıyordu. Doğru davranış: gösterim tarihi (date/time) geçmişte
-    // olduğu için "Geçmiş" olmalı.
-    reservationService.getAllReservations.mockResolvedValue([
-      {
-        id: "RES-22222",
-        createdAt: new Date().toISOString(),
+  it("gösterim saati geçmiş bir rezervasyonu 'Geçmiş Biletler' altında gösterir", async () => {
+    // REQ-18: ayrım GÖSTERİM saatine göre yapılır, satın alma zamanına değil.
+    mockReservations([
+      reservationSummary({
+        id: 2,
+        resNo: "RES-22222",
+        startDatetime: "2020-01-01T10:00:00+03:00",
+        movieTitle: "Geçmiş Film",
         ticketCount: 1,
-        totalPrice: 220,
-        visitorInfo: null,
-        items: [
-          {
-            sessionId: 101,
-            movieTitle: "Geçmiş Film",
-            date: "1 Ocak",
-            time: "10:00",
-            hallName: "Salon 1",
-            seats: [],
-          },
-        ],
-      },
+        total: 220,
+      }),
     ]);
 
     renderProfilePage();
@@ -163,33 +155,14 @@ describe("ProfilePage — Bilet sekmeleri (1.2.6, REQ-18)", () => {
     ).toBeInTheDocument();
   });
 
-  it("birden fazla seans içeren bir rezervasyonda en az bir seans gelecekteyse 'Güncel' sayılır", async () => {
-    reservationService.getAllReservations.mockResolvedValue([
-      {
-        id: "RES-33333",
-        createdAt: "2020-01-01T10:00:00.000Z",
-        ticketCount: 2,
-        totalPrice: 440,
-        visitorInfo: null,
-        items: [
-          {
-            sessionId: 1,
-            movieTitle: "Geçmiş Seans",
-            date: "1 Ocak",
-            time: "10:00",
-            hallName: "Salon 1",
-            seats: [],
-          },
-          {
-            sessionId: 2,
-            movieTitle: "Gelecek Seans",
-            date: "31 Aralık",
-            time: "23:59",
-            hallName: "Salon 2",
-            seats: [],
-          },
-        ],
-      },
+  it("güncel ve geçmiş rezervasyonları ayrı bölümlere yerleştirir", async () => {
+    mockReservations([
+      reservationSummary({ id: 1, resNo: "RES-GELECEK" }),
+      reservationSummary({
+        id: 2,
+        resNo: "RES-GECMIS",
+        startDatetime: "2020-01-01T10:00:00+03:00",
+      }),
     ]);
 
     renderProfilePage();
@@ -201,14 +174,36 @@ describe("ProfilePage — Bilet sekmeleri (1.2.6, REQ-18)", () => {
     const currentSection = screen
       .getByText("Güncel Biletler")
       .closest("div");
+    const pastSection = screen
+      .getByText("Geçmiş Biletler")
+      .closest("div");
 
     expect(
-      within(currentSection).getByText("RES-33333")
+      within(currentSection).getByText("RES-GELECEK")
+    ).toBeInTheDocument();
+    expect(
+      within(pastSection).getByText("RES-GECMIS")
     ).toBeInTheDocument();
   });
 
+  it("bilet kartında film adını ve tutarı gösterir", async () => {
+    mockReservations([reservationSummary()]);
+
+    renderProfilePage();
+
+    fireEvent.click(
+      await screen.findByRole("tab", { name: "Biletlerim" })
+    );
+
+    expect(
+      await screen.findByText("Gelecek Film")
+    ).toBeInTheDocument();
+    expect(screen.getByText("2 bilet")).toBeInTheDocument();
+    expect(screen.getByText("440.00 ₺")).toBeInTheDocument();
+  });
+
   it("hiç rezervasyon yoksa her iki sekmede de boş durum mesajı gösterir", async () => {
-    reservationService.getAllReservations.mockResolvedValue([]);
+    mockReservations([]);
 
     renderProfilePage();
 
@@ -230,7 +225,7 @@ describe("ProfilePage — İzleme Listem sekmesi (1.2.8, REQ-25)", () => {
     vi.clearAllMocks();
     sessionStorage.clear();
     loginAsMember();
-    reservationService.getAllReservations.mockResolvedValue([]);
+    mockReservations([]);
   });
 
   it("izleme listesi boşsa boş durum mesajı gösterir", async () => {

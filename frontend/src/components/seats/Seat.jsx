@@ -11,9 +11,13 @@ const SEAT_STATUS_CLASS_NAMES = {
   [SEAT_STATUS.DOLU]: "seat-status-dolu",
 };
 
-function Seat({ seatId, status, onSelect }) {
+// `seatId` backend'in gerçek koltuk kimliği (sayı); `label` ise ekranda
+// gösterilen "A5" biçimi. Seçim, kilit ve rezervasyon her zaman id ile
+// yapılır — etiket yalnızca görüntülemedir.
+function Seat({ seatId, label, row, column, status, onSelect }) {
   const isSelectable = isSeatSelectable(status);
   const statusLabel = getSeatStatusLabel(status);
+  const displayLabel = label ?? String(seatId);
 
   function handleClick() {
     if (!isSelectable) {
@@ -40,10 +44,15 @@ function Seat({ seatId, status, onSelect }) {
           ? status === SEAT_STATUS.SECILI
           : undefined
       }
-      aria-label={`${seatId} numaralı koltuk, ${statusLabel}`}
-      title={`${seatId} — ${statusLabel}`}
+      aria-label={`${displayLabel} numaralı koltuk, ${statusLabel}`}
+      title={`${displayLabel} — ${statusLabel}`}
+      style={
+        row && column
+          ? { "--seat-row": row, "--seat-column": column }
+          : undefined
+      }
     >
-      {seatId}
+      {displayLabel}
     </button>
   );
 }

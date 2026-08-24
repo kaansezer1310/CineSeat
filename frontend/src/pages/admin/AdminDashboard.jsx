@@ -1,49 +1,74 @@
 import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { CSVLink } from "react-csv";
-import reservationService from "../../services/reservationService.js";
 
+import reservationService from "../../services/reservationService.js";
+import PageHeader from "../../components/ui/PageHeader.jsx";
+
+// Rapor artık gerçek rezervasyon verisinden üretiliyor
+// (GET /api/reservations, reservation.read izniyle korunuyor). Önceden bu
+// sayılar o tarayıcının localStorage'ındaki sahte kayıtlardan hesaplanıyor,
+// CSV dışa aktarımı da aynı veriyi gerçekmiş gibi dışarı veriyordu.
 function buildStatsByMovie(reservations) {
   const statsByMovie = new Map();
 
   reservations.forEach((reservation) => {
-    reservation.items.forEach((item) => {
-      const existing = statsByMovie.get(item.movieTitle) ?? {
-        name: item.movieTitle,
-        bilet: 0,
-        gelir: 0,
-      };
+    const existing = statsByMovie.get(reservation.movieTitle) ?? {
+      name: reservation.movieTitle,
+      bilet: 0,
+      gelir: 0,
+    };
 
-      existing.bilet += item.seats.length;
-      existing.gelir += item.seats.length * item.unitPrice;
+    existing.bilet += reservation.ticketCount;
+    existing.gelir += reservation.total;
 
-      statsByMovie.set(item.movieTitle, existing);
-    });
+    statsByMovie.set(reservation.movieTitle, existing);
   });
 
-  return Array.from(statsByMovie.values());
+  return Array.from(statsByMovie.values()).sort(
+    (a, b) => b.gelir - a.gelir
+  );
 }
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let isCancelled = false;
+
     const loadStats = async () => {
       setIsLoading(true);
+      setError("");
 
       try {
-        const reservations = await reservationService.getAllReservations();
+        // İptal edilenler ciroya girmemeli.
+        const { items } = await reservationService.getAllReservations({
+          status: "Completed",
+        });
 
-        setStats(buildStatsByMovie(reservations));
-      } catch (error) {
-        console.error("İstatistikler yüklenirken hata oluştu:", error);
+        if (!isCancelled) {
+          setStats(buildStatsByMovie(items));
+        }
+      } catch (loadError) {
+        if (!isCancelled) {
+          setError(
+            loadError.message || "İstatistikler yüklenemedi."
+          );
+        }
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadStats();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   const totalTickets = stats.reduce((acc, curr) => acc + curr.bilet, 0);
@@ -57,17 +82,26 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
-      <div className="admin-header">
-        <h1>📊 İstatistikler & Raporlar</h1>
-        <CSVLink
-          data={stats}
-          headers={csvHeaders}
-          filename="cineseat-satis-raporu.csv"
-          className="admin-btn admin-btn-export"
-        >
-          📥 CSV Olarak İndir
-        </CSVLink>
-      </div>
+      <PageHeader
+        title="📊 İstatistikler & Raporlar"
+        description="Tamamlanmış rezervasyonlardan üretilen film bazlı satış raporu."
+        actions={
+          <CSVLink
+            data={stats}
+            headers={csvHeaders}
+            filename="cineseat-satis-raporu.csv"
+            className="admin-btn admin-btn-export"
+          >
+            📥 CSV Olarak İndir
+          </CSVLink>
+        }
+      />
+
+      {error && (
+        <p className="admin-empty-text" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="admin-stats-cards">
         <div className="admin-stat-card">
@@ -76,7 +110,7 @@ export default function AdminDashboard() {
         </div>
         <div className="admin-stat-card">
           <h3>Toplam Gelir</h3>
-          <p>{totalRevenue.toLocaleString()} TL</p>
+          <p>{totalRevenue.toLocaleString("tr-TR")} TL</p>
         </div>
       </div>
 

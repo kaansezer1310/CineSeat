@@ -60,8 +60,14 @@ function App() {
         {/* T8: kanonik ödeme rotaları İngilizce. Eski Türkçe adresler
             paylaşılmış/yer imlenmiş olabilir, o yüzden silinmiyor —
             kalıcı yönlendirme olarak korunuyor. */}
-        <Route path="/payment" element={<PaymentPage />} />
-        <Route path="/payment-error" element={<PaymentErrorPage />} />
+        {/* Rezervasyon uçları kimlik doğrulaması istiyor (backend
+            ReservationsController → [Authorize]); misafir ödeme akışına
+            girerse formu doldurup 401 alırdı. Bu yüzden ödeme rotaları
+            korumalı: giriş sonrası kullanıcı buraya geri döner. */}
+        <Route element={<ProtectedRoute allowedRoles={["member", "admin"]} />}>
+          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/payment-error" element={<PaymentErrorPage />} />
+        </Route>
         <Route
           path="/odeme"
           element={<Navigate to="/payment" replace />}

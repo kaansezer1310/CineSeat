@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useCart from "../hooks/useCart.js";
 import useAuth from "../hooks/useAuth.js";
 import useCountdown from "../hooks/useCountdown.js";
@@ -8,6 +8,19 @@ import seatService from "../services/seatService.js";
 import reservationService from "../services/reservationService.js";
 import { calcSubtotal, formatPrice } from "../services/pricing.js";
 import campaignService from "../services/campaignService.js";
+import {
+  forgetStoredLocks,
+  storeLockIds,
+} from "../services/seatLockStorage.js";
+
+function secondsUntil(isoDate) {
+  const expiresAt = new Date(isoDate).getTime();
+  if (Number.isNaN(expiresAt)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+}
 
 function PaymentPage() {
   const { state, dispatch } = useCart();
@@ -22,114 +35,149 @@ function PaymentPage() {
     cvv: "",
   });
 
-  const [visitorForm, setVisitorForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-  });
+  // Backend alıcı bilgisini zorunlu tutuyor (BuyerFname/Lname/Email).
+  // Oturumdaki kullanıcıdan ön doldurulur, kullanıcı değiştirebilir.
+  const [buyerForm, setBuyerForm] = useState(() => ({
+    firstName: user?.firstName ?? "",
+    lastName: user?.lastName ?? "",
+    email: user?.email ?? "",
+  }));
 
   const isNavigatingToNextStep = useRef(false);
+  const lockIdsRef = useRef([]);
 
-  // Token ve Timer Başlangıcı
-  const [lockToken] = useState(() => {
-    let token = sessionStorage.getItem("cineseat_lock_token");
-    if (!token) {
-      token = Math.random().toString(36).substring(2);
-      sessionStorage.setItem("cineseat_lock_token", token);
-    }
-    return token;
-  });
+  const [lockError, setLockError] = useState("");
+  const [lockExpiresAt, setLockExpiresAt] = useState(null);
 
-  const [initialTimeRemaining] = useState(() => {
-    let expiresAt = sessionStorage.getItem("cineseat_lock_expires");
-    if (!expiresAt) {
-      expiresAt = Date.now() + 180000;
-      sessionStorage.setItem("cineseat_lock_expires", expiresAt.toString());
-    }
-    const remaining = Math.max(0, Math.floor((parseInt(expiresAt) - Date.now()) / 1000));
-    return remaining;
-  });
-
-  function handleTimeout() {
-    sessionStorage.removeItem("cineseat_lock_token");
-    sessionStorage.removeItem("cineseat_lock_expires");
-    dispatch({ type: "CLEAR_CART" });
-    navigate("/cart");
-  }
-
-  const { formatTime } = useCountdown(initialTimeRemaining, () => {
-    handleTimeout();
-  });
-
-  // Kilitleme/kilit-açma yalnızca sayfaya girişte/çıkışta bir kez çalışmalı;
-  // sepet ödeme sırasında zaten değişmez (payload gönderilene kadar), bu
-  // yüzden `state.items` kasıtlı olarak dep listesine alınmadı. `navigate`
-  // react-router'da referans olarak sabittir.
+  // Koltukları kilitle. Sepet ödeme sırasında değişmediği için bu etki
+  // yalnızca girişte bir kez çalışır.
   useEffect(() => {
     if (state.items.length === 0) {
       navigate("/cart");
       return;
     }
 
-    // Koltukları kilitle
-    const lockPromises = state.items.map((item) =>
-      seatService.lockSeats({
-        sessionId: item.sessionId,
-        seats: item.seats.map((seat) => seat.seatId),
-        lockToken,
-      }).catch(() => {
-        // Zaten doluysa sepete geri dön
-        navigate("/cart");
-      })
-    );
+    let isCancelled = false;
 
-    Promise.all(lockPromises);
+    async function acquireLocks() {
+      const acquired = [];
+
+      try {
+        for (const item of state.items) {
+          const locks = await seatService.lockSeats({
+            showtimeId: item.sessionId,
+            seatIds: item.seats.map((seat) => seat.seatId),
+          });
+
+          acquired.push(...locks);
+        }
+      } catch (error) {
+        await seatService.releaseLocks(acquired.map((lock) => lock.id));
+
+        if (!isCancelled) {
+          setLockError(
+            error.message ||
+              "Seçtiğiniz koltuklardan biri artık müsait değil."
+          );
+        }
+        return;
+      }
+
+      if (isCancelled) {
+        await seatService.releaseLocks(acquired.map((lock) => lock.id));
+        return;
+      }
+
+      lockIdsRef.current = acquired.map((lock) => lock.id);
+      storeLockIds(lockIdsRef.current);
+
+      // Sayaç en ERKEN biten kilide göre kurulur; ilk kilit düştüğü an
+      // seçim zaten bütünlüğünü kaybeder.
+      const earliest = acquired.reduce(
+        (min, lock) =>
+          min === null || lock.lockExpiresAt < min ? lock.lockExpiresAt : min,
+        null
+      );
+
+      setLockExpiresAt(earliest);
+    }
+
+    acquireLocks();
 
     return () => {
-      // Unmount olduğunda, eğer başarı veya hata sayfasına gitmiyorsak kilitleri aç
+      isCancelled = true;
+
+      // Başarı/hata sayfasına gidiyorsak kilitleri orası devralır.
       if (!isNavigatingToNextStep.current) {
-        state.items.forEach((item) => {
-          seatService.releaseLockedSeats({
-            sessionId: item.sessionId,
-            seats: item.seats.map((seat) => seat.seatId),
-            lockToken,
-          });
-        });
-        sessionStorage.removeItem("cineseat_lock_token");
-        sessionStorage.removeItem("cineseat_lock_expires");
+        seatService.releaseLocks(lockIdsRef.current);
+        forgetStoredLocks();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function handleTimeout() {
+    seatService.releaseLocks(lockIdsRef.current);
+    forgetStoredLocks();
+    dispatch({ type: "CLEAR_CART" });
+    navigate("/cart");
+  }
+
+  const { formatTime } = useCountdown(
+    lockExpiresAt ? secondsUntil(lockExpiresAt) : 0,
+    lockExpiresAt ? handleTimeout : undefined
+  );
+
   const subtotal = calcSubtotal(state.items);
-  const { discountAmount } = campaignService.getCampaignDiscount(subtotal, user);
+
+  // Kampanyalar backend'den geliyor. Buradaki hesap yalnızca ÖN İZLEME —
+  // bağlayıcı tutarı rezervasyon oluşurken backend hesaplar; istemci
+  // yalnızca kampanyanın id'sini gönderir.
+  const { data: campaigns = [] } = useQuery({
+    queryKey: ["activeCampaigns"],
+    queryFn: campaignService.getActiveCampaigns,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const bestCampaign = campaignService.pickBestCampaign(
+    campaigns,
+    subtotal,
+    user
+  );
+  const discountAmount = campaignService.calculateDiscount(
+    bestCampaign,
+    subtotal
+  );
   const cartTotal = subtotal - discountAmount;
 
   const reservationMutation = useMutation({
     mutationFn: reservationService.createReservation,
-    onSuccess: async (reservation, submittedCartItems) => {
+    onSuccess: async (reservations) => {
       await Promise.all(
-        submittedCartItems.map((item) =>
-          queryClient.invalidateQueries({ queryKey: ["reservedSeats", item.sessionId] })
+        state.items.map((item) =>
+          queryClient.invalidateQueries({
+            queryKey: ["reservedSeats", item.sessionId],
+          })
         )
       );
-      sessionStorage.removeItem("cineseat_lock_token");
-      sessionStorage.removeItem("cineseat_lock_expires");
+
+      // Koltuklar artık rezerve; kilit satırları kendiliğinden düşecek.
+      forgetStoredLocks();
       dispatch({ type: "CLEAR_CART" });
-      
+
       isNavigatingToNextStep.current = true;
-      navigate("/success", { state: { reservation } });
+      navigate("/success", { state: { reservations } });
     },
     onError: () => {
       isNavigatingToNextStep.current = true;
       navigate("/payment-error");
-    }
+    },
   });
 
   function handleSubmit(e) {
     e.preventDefault();
 
+    // Demo ödeme: 0000 ile başlayan kart reddedilmiş sayılır.
     if (paymentForm.cardNumber.startsWith("0000")) {
       isNavigatingToNextStep.current = true;
       navigate("/payment-error");
@@ -141,73 +189,117 @@ function PaymentPage() {
       seats: item.seats.map((seat) => ({ ...seat })),
     }));
 
-    const payload = {
+    reservationMutation.mutate({
       cartItems: cartSnapshot,
-      visitorInfo: (!user || user.role === "guest") ? visitorForm : null,
-      lockToken,
-    };
-
-    reservationMutation.mutate(payload);
+      buyer: {
+        firstName: buyerForm.firstName.trim(),
+        lastName: buyerForm.lastName.trim(),
+        email: buyerForm.email.trim(),
+      },
+      campaignId: bestCampaign?.id ?? null,
+    });
   }
 
   if (state.items.length === 0) {
-    return null; // or redirecting
+    return null;
   }
+
+  // Kilit alınamadıysa ödeme formunu göstermenin anlamı yok — koltuklar
+  // zaten elde değil.
+  if (lockError) {
+    return (
+      <section>
+        <div className="page-heading">
+          <h1>Koltuklar ayrılamadı</h1>
+          <p>{lockError}</p>
+        </div>
+
+        <div className="page-actions">
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => navigate("/cart")}
+          >
+            Sepete Dön
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const isLocking = lockExpiresAt === null;
 
   return (
     <section>
       <div className="page-heading">
         <h1>Ödeme</h1>
+
         <p>
-          Koltuklarınız <strong>{formatTime()}</strong> boyunca geçici olarak kilitlendi.
+          {isLocking ? (
+            "Koltuklarınız ayrılıyor…"
+          ) : (
+            <>
+              Koltuklarınız <strong>{formatTime()}</strong> boyunca geçici
+              olarak kilitlendi.
+            </>
+          )}
+        </p>
+
+        <p className="payment-demo-notice" role="note">
+          Bu bir <strong>demo ödemedir</strong>. Gerçek bir tahsilat yapılmaz
+          ve kart bilgileriniz hiçbir yere kaydedilmez.
         </p>
       </div>
 
       <div className="payment-layout">
         <form className="auth-form payment-form" onSubmit={handleSubmit}>
 
-          {(!user || user.role === "guest") && (
-            <div className="form-group-section">
-              <h2>Ziyaretçi Bilgileri</h2>
+          <div className="form-group-section">
+            <h2>Alıcı Bilgileri</h2>
 
-              <div className="auth-field">
-                <label htmlFor="payment-visitor-first-name">Ad</label>
-                <input
-                  id="payment-visitor-first-name"
-                  type="text"
-                  required
-                  minLength={2}
-                  maxLength={50}
-                  value={visitorForm.firstName}
-                  onChange={(e) => setVisitorForm({ ...visitorForm, firstName: e.target.value })}
-                />
-              </div>
-
-              <div className="auth-field">
-                <label htmlFor="payment-visitor-last-name">Soyad</label>
-                <input
-                  id="payment-visitor-last-name"
-                  type="text"
-                  required
-                  minLength={2}
-                  maxLength={50}
-                  value={visitorForm.lastName}
-                  onChange={(e) => setVisitorForm({ ...visitorForm, lastName: e.target.value })}
-                />
-              </div>
-
-              <div className="auth-field">
-                <label htmlFor="payment-visitor-email">E-posta</label>
-                <input
-                  id="payment-visitor-email"
-                  type="email"
-                  required
-                  value={visitorForm.email}
-                  onChange={(e) => setVisitorForm({ ...visitorForm, email: e.target.value })}
-                />
-              </div>
+            <div className="auth-field">
+              <label htmlFor="payment-buyer-first-name">Ad</label>
+              <input
+                id="payment-buyer-first-name"
+                type="text"
+                required
+                minLength={2}
+                maxLength={50}
+                value={buyerForm.firstName}
+                onChange={(e) =>
+                  setBuyerForm({ ...buyerForm, firstName: e.target.value })
+                }
+              />
             </div>
-          )}
+
+            <div className="auth-field">
+              <label htmlFor="payment-buyer-last-name">Soyad</label>
+              <input
+                id="payment-buyer-last-name"
+                type="text"
+                required
+                minLength={2}
+                maxLength={50}
+                value={buyerForm.lastName}
+                onChange={(e) =>
+                  setBuyerForm({ ...buyerForm, lastName: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="payment-buyer-email">E-posta</label>
+              <input
+                id="payment-buyer-email"
+                type="email"
+                required
+                value={buyerForm.email}
+                onChange={(e) =>
+                  setBuyerForm({ ...buyerForm, email: e.target.value })
+                }
+              />
+            </div>
+          </div>
 
           <div className="form-group-section">
             <h2>Kart Bilgileri</h2>
@@ -262,19 +354,40 @@ function PaymentPage() {
           <button
             className="primary-button auth-submit"
             type="submit"
-            disabled={reservationMutation.isPending}
+            disabled={reservationMutation.isPending || isLocking}
           >
-            {reservationMutation.isPending ? "İşleniyor..." : `${formatPrice(cartTotal)} TL Öde`}
+            {reservationMutation.isPending
+              ? "İşleniyor..."
+              : isLocking
+                ? "Koltuklar ayrılıyor…"
+                : `${formatPrice(cartTotal)} TL Öde`}
           </button>
         </form>
 
         <aside className="payment-summary">
           <div className="cart-summary">
             <h2>Sipariş Özeti</h2>
+
+            <div className="cart-summary-row">
+              <span>Ara toplam</span>
+              <strong>{formatPrice(subtotal)} TL</strong>
+            </div>
+
+            {bestCampaign && (
+              <div className="cart-summary-row cart-summary-row--discount">
+                <span>{bestCampaign.name}</span>
+                <strong>-{formatPrice(discountAmount)} TL</strong>
+              </div>
+            )}
+
             <div className="cart-summary-total">
               <span>Toplam Ödenecek</span>
               <strong>{formatPrice(cartTotal)} TL</strong>
             </div>
+
+            <p className="payment-summary-note">
+              Kesin tutar ödeme onaylandığında sunucuda hesaplanır.
+            </p>
           </div>
         </aside>
       </div>

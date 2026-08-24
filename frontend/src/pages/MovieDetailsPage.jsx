@@ -7,7 +7,6 @@ import {
 
 import MoviePoster from "../components/movies/MoviePoster.jsx";
 import TrailerModal from "../components/movies/TrailerModal.jsx";
-import RatingStars from "../components/movies/RatingStars.jsx";
 import CommentForm from "../components/movies/CommentForm.jsx";
 import CommentList from "../components/movies/CommentList.jsx";
 import SessionList from "../components/sessions/SessionList.jsx";
@@ -153,18 +152,21 @@ function MovieDetailsPage() {
         onSessionSelect={handleSessionSelect}
       />
 
-      {/* REQ-11: puanlama sadece vizyondaki (yayınlanmış) filmlerde
-          anlamlıdır — henüz vizyona girmemiş bir filme puan verilemez. */}
-      {movieService.isMovieReleased(movie) && (
-        <section className="movie-details-social">
-          <h2>Puanla</h2>
-          <RatingStars movieId={movie.id} />
-        </section>
-      )}
-
+      {/* T10: puan ve yorum tek kayıt — ayrı bir puanlama bölümü yok,
+          yıldız yorum formunun içinde. REQ-11 gereği yalnızca vizyondaki
+          filmlerde değerlendirme yapılabilir; vizyona girmemiş bir filme
+          puan verilemez. */}
       <section className="movie-details-social">
-        <h2>Yorumlar</h2>
-        <CommentForm movieId={movie.id} />
+        <h2>Değerlendirmeler</h2>
+
+        {movieService.isMovieReleased(movie) ? (
+          <CommentForm movieId={movie.id} />
+        ) : (
+          <p className="comment-guest-hint">
+            Film vizyona girdiğinde puan verebilir ve yorum yazabilirsin.
+          </p>
+        )}
+
         <CommentList movieId={movie.id} />
       </section>
     </section>

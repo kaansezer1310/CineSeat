@@ -36,7 +36,10 @@ public class GetShowtimesByMovieQueryHandler
                 HallId = s.HallId,
                 StartDatetime = s.StartDatetime,
                 BasePrice = s.BasePrice,
-                Format = s.Format
+                Format = s.Format,
+                HallName = s.Hall.Name,
+                CinemaName = s.Hall.Cinema.Name,
+                TotalSeats = s.Hall.Seats.Count(seat => seat.IsActive)
             });
 
         var items = await _executor.ToListAsync(pageQuery, cancellationToken);
