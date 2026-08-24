@@ -165,7 +165,7 @@ public class CreateReservationCommandHandler : IRequestHandler<CreateReservation
                 tracking: true),
             cancellationToken);
         if (locksToClear.Count > 0)
-            _seatLockWrite.RemoveRange(locksToClear);
+            _seatLockWrite.HardDeleteRange(locksToClear);
 
         // Tek SaveChanges — reservation + tickets + kilit temizliği aynı transaction'da.
         await _reservationWrite.SaveAsync(cancellationToken);

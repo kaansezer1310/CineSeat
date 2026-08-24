@@ -40,10 +40,11 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand,
         if (comment is null)
             throw new NotFoundException("Yorum", request.Id);
 
-        // Kendi yorumunu herkes silebilir; başkasınınkini yalnızca Admin (moderasyon).
+        // Kendi yorumunu herkes silebilir; başkasınınkini yalnızca moderasyon
+        // izni olan kullanıcı silebilir.
         var isOwner = comment.UserId == userId;
-        var isAdmin = _currentUser.Role == RoleNames.Admin;
-        if (!isOwner && !isAdmin)
+        var canModerate = _currentUser.HasPermission(PermissionNames.CommentModerate);
+        if (!isOwner && !canModerate)
             throw new UnauthorizedException("Yalnızca kendi yorumunuzu silebilirsiniz.");
 
         var movieId = comment.MovieId;

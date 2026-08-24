@@ -31,14 +31,14 @@ public class GetTicketsByReservationQueryHandler
         GetTicketsByReservationQuery request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetRequiredUserId();
-        var isAdmin = _currentUser.Role == RoleNames.Admin;
+        var canReadAll = _currentUser.HasPermission(PermissionNames.ReservationRead);
 
         // Biletleri döndürmeden önce rezervasyonun sahibi olduğumuzu doğrula —
         // aksi halde id deneyerek başkasının biletleri okunabilirdi.
         var reservation = await _reservationRead.GetByIdAsync(
             request.ReservationId, tracking: false, cancellationToken);
 
-        if (reservation is null || (reservation.UserId != userId && !isAdmin))
+        if (reservation is null || (reservation.UserId != userId && !canReadAll))
             throw new NotFoundException("Rezervasyon", request.ReservationId);
 
         var query = _read.GetWhere(t => t.ReservationId == request.ReservationId, tracking: false)

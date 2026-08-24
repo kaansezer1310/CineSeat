@@ -30,43 +30,116 @@ public static class DbInitializer
     private static async Task SeedRolesAndPermissionsAsync(
         ApplicationDbContext context, IPasswordHasher passwordHasher)
     {
-        if (await context.Roles.AnyAsync())
-            return;
-
-        var permissions = new List<Permission>
+        var permissionDefinitions = new (string Name, string Description)[]
         {
-            new() { Name = "movie.manage",       Description = "Film ekleme/güncelleme/silme" },
-            new() { Name = "genre.manage",       Description = "Tür ekleme/güncelleme/silme" },
-            new() { Name = "campaign.manage",    Description = "Kampanya ekleme/güncelleme/silme" },
-            new() { Name = "cinema.manage",      Description = "Sinema/salon/koltuk yönetimi" },
-            new() { Name = "showtime.manage",    Description = "Seans ekleme/güncelleme/silme" },
-            new() { Name = "reservation.read",   Description = "Tüm rezervasyonları görüntüleme" },
-            new() { Name = "comment.moderate",   Description = "Yorum silme/moderasyon" }
+            (PermissionNames.MovieManage, "Film ekleme/güncelleme/silme"),
+            (PermissionNames.GenreManage, "Tür ekleme/güncelleme/silme"),
+            (PermissionNames.CampaignManage, "Kampanya ekleme/güncelleme/silme"),
+            (PermissionNames.CinemaManage, "Sinema/salon/koltuk yönetimi"),
+            (PermissionNames.ShowtimeManage, "Seans ekleme/güncelleme/silme"),
+            (PermissionNames.ReservationRead, "Tüm rezervasyonları görüntüleme"),
+            (PermissionNames.ReservationManage, "Tüm rezervasyonları iptal etme/yönetme"),
+            (PermissionNames.CommentModerate, "Yorum silme/moderasyon"),
+            (PermissionNames.UserManage, "Kullanıcı ve rol yönetimi")
         };
-        context.Permissions.AddRange(permissions);
 
-        var adminRole = new Role { Name = RoleNames.Admin };
-        var userRole = new Role { Name = RoleNames.User };
-        context.Roles.AddRange(adminRole, userRole);
+        var permissions = await context.Permissions
+            .IgnoreQueryFilters()
+            .ToListAsync();
 
-        // Id'lerin oluşması için önce kaydet — RolePermission FK'ları buna bağlı.
+        foreach (var definition in permissionDefinitions)
+        {
+            var permission = permissions.FirstOrDefault(item => item.Name == definition.Name);
+            if (permission is null)
+            {
+                permission = new Permission
+                {
+                    Name = definition.Name,
+                    Description = definition.Description
+                };
+                permissions.Add(permission);
+                context.Permissions.Add(permission);
+            }
+            else
+            {
+                permission.Description = definition.Description;
+                permission.IsDeleted = false;
+            }
+        }
+
+        var roles = await context.Roles.IgnoreQueryFilters().ToListAsync();
+        var adminRole = roles.FirstOrDefault(role => role.Name == RoleNames.Admin);
+        if (adminRole is null)
+        {
+            adminRole = new Role { Name = RoleNames.Admin };
+            context.Roles.Add(adminRole);
+        }
+        else
+        {
+            adminRole.IsDeleted = false;
+        }
+
+        var userRole = roles.FirstOrDefault(role => role.Name == RoleNames.User);
+        if (userRole is null)
+        {
+            userRole = new Role { Name = RoleNames.User };
+            context.Roles.Add(userRole);
+        }
+        else
+        {
+            userRole.IsDeleted = false;
+        }
+
+        // Yeni rol/izinlerin Id'leri RolePermission kayıtlarından önce oluşmalı.
         await context.SaveChangesAsync();
 
-        // Admin her izne sahip; normal kullanıcının izin kaydı yok (sadece rol bazlı erişim).
-        context.RolePermissions.AddRange(
-            permissions.Select(p => new RolePermission { RoleId = adminRole.Id, PermissionId = p.Id }));
+        var adminRolePermissions = await context.RolePermissions
+            .IgnoreQueryFilters()
+            .Where(rolePermission => rolePermission.RoleId == adminRole.Id)
+            .ToListAsync();
 
-        var (hash, salt) = passwordHasher.Hash("Admin123!");
-        context.Users.Add(new User
+        foreach (var permission in permissions.Where(item => !item.IsDeleted))
         {
-            Name = "Sistem",
-            Surname = "Yöneticisi",
-            Username = "admin",
-            Email = AdminEmail,
-            PasswordHash = hash,
-            PasswordSalt = salt,
-            RoleId = adminRole.Id
-        });
+            var rolePermission = adminRolePermissions.FirstOrDefault(
+                item => item.PermissionId == permission.Id);
+
+            if (rolePermission is null)
+            {
+                context.RolePermissions.Add(new RolePermission
+                {
+                    RoleId = adminRole.Id,
+                    PermissionId = permission.Id
+                });
+            }
+            else
+            {
+                rolePermission.IsDeleted = false;
+            }
+        }
+
+        var adminUser = await context.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(user => user.Email == AdminEmail);
+
+        if (adminUser is null)
+        {
+            var (hash, salt) = passwordHasher.Hash("Admin123!");
+            context.Users.Add(new User
+            {
+                Name = "Sistem",
+                Surname = "Yöneticisi",
+                Username = "admin",
+                Email = AdminEmail,
+                PasswordHash = hash,
+                PasswordSalt = salt,
+                RoleId = adminRole.Id
+            });
+        }
+        else
+        {
+            adminUser.RoleId = adminRole.Id;
+            adminUser.IsDeleted = false;
+        }
 
         await context.SaveChangesAsync();
     }

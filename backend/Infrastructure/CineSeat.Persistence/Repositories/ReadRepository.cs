@@ -28,6 +28,14 @@ public class ReadRepository<T> : IReadRepository<T> where T : BaseEntity
         return query;
     }
 
+    public IQueryable<T> GetAllIncludingDeleted(bool tracking = true)
+    {
+        var query = Table.IgnoreQueryFilters();
+        if (!tracking)
+            query = query.AsNoTracking();
+        return query;
+    }
+
     public IQueryable<T> GetWhere(Expression<Func<T, bool>> method, bool tracking = true)
     {
         var query = Table.Where(method);

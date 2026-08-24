@@ -16,7 +16,7 @@ import CinemasPage from "./pages/CinemasPage.jsx";
 import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ForbiddenPage from "./pages/ForbiddenPage.jsx";
-import { ADMIN_PANEL_PERMISSIONS } from "./domain/permissions.js";
+import { ADMIN_PERMISSIONS, PERMISSIONS } from "./constants/permissions.js";
 
 import "./App.css";
 
@@ -85,23 +85,51 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
+      {/* Panele giriş: yönetim izinlerinden en az biri yeterli.
+          Ekran bazlı yetki her alt ağaçta ayrıca kontrol ediliyor. */}
       <Route
         element={
-          <ProtectedRoute requiredPermissions={ADMIN_PANEL_PERMISSIONS} />
+          <ProtectedRoute
+            requiredPermissions={ADMIN_PERMISSIONS}
+            permissionMode="any"
+          />
         }
       >
         <Route
           path="/admin"
           element={
-            <Suspense fallback={<div className="route-fallback">Yönetim paneli yükleniyor…</div>}>
+            <Suspense
+              fallback={
+                <div className="route-fallback">
+                  Yönetim paneli yükleniyor…
+                </div>
+              }
+            >
               <AdminLayout />
             </Suspense>
           }
         >
-          <Route index element={<AdminDashboard />} />
-          <Route path="movies" element={<AdminMoviesPage />} />
-          <Route path="movies/new" element={<AdminMovieForm />} />
-          <Route path="movies/:id" element={<AdminMovieForm />} />
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.RESERVATION_READ]}
+              />
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.MOVIE_MANAGE]}
+              />
+            }
+          >
+            <Route path="movies" element={<AdminMoviesPage />} />
+            <Route path="movies/new" element={<AdminMovieForm />} />
+            <Route path="movies/:id" element={<AdminMovieForm />} />
+          </Route>
 
           {/* O5: admin ağacının kendi 404'ü */}
           <Route path="*" element={<AdminNotFoundPage />} />

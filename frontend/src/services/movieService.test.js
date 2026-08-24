@@ -124,14 +124,7 @@ describe("REQ-05 — arşivlenen film verisi silinmez", () => {
     // gerçek ağa çıkmadan, backend'in DÖNDÜRDÜĞÜ ŞEKLİ taklit eder.
     vi.stubGlobal(
       "fetch",
-      vi.fn((url) => {
-        if (url.endsWith("/genres")) {
-          return Promise.resolve({
-            ok: true,
-            status: 200,
-            json: () => Promise.resolve([]),
-          });
-        }
+      vi.fn(() => {
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -147,6 +140,7 @@ describe("REQ-05 — arşivlenen film verisi silinmez", () => {
               startDate: "2026-01-01T00:00:00Z",
               endDate: "2026-02-01T00:00:00Z", // geçmişte kalmış -> arşivlenmiş
               avgScore: 3.5,
+              genres: ["Dram", "Gerilim"],
             }),
         });
       })
@@ -155,6 +149,7 @@ describe("REQ-05 — arşivlenen film verisi silinmez", () => {
     const movie = await movieService.getMovieById(7);
 
     expect(movie.title).toBe("Son Tren");
+    expect(movie.genres).toEqual(["Dram", "Gerilim"]);
     expect(
       movieService.isMovieArchived(movie, new Date(2026, 6, 16))
     ).toBe(true);
@@ -258,7 +253,12 @@ describe("movieService.filterMovies", () => {
   const movies = [
     { title: "A", genre: "Komedi", ageRating: "7+" },
     { title: "B", genre: "Korku", ageRating: "18+" },
-    { title: "C", genre: "Komedi", ageRating: "13+" },
+    {
+      title: "C",
+      genre: "Komedi, Dram",
+      genres: ["Komedi", "Dram"],
+      ageRating: "13+",
+    },
   ];
 
   it("genre 'all' ise türe göre filtrelemez", () => {
@@ -302,11 +302,12 @@ describe("movieService.getAvailableGenres / getAvailableAgeRatings", () => {
   const movies = [
     { genre: "Korku", ageRating: "18+" },
     { genre: "Komedi", ageRating: "7+" },
-    { genre: "Komedi", ageRating: "13+" },
+    { genre: "Komedi, Dram", genres: ["Komedi", "Dram"], ageRating: "13+" },
   ];
 
   it("tekrarsız, alfabetik sıralı tür listesi döner", () => {
     expect(movieService.getAvailableGenres(movies)).toEqual([
+      "Dram",
       "Komedi",
       "Korku",
     ]);

@@ -6,29 +6,36 @@ import useAuth from "../../hooks/useAuth.js";
  * Rota koruyucusu — rol ve/veya izin tabanlı.
  *
  * Props:
- * - allowedRoles: string[] — izin verilen roller (opsiyonel)
- * - requiredPermissions: string[] — bunlardan EN AZ BİRİ gerekli (opsiyonel)
+ * - allowedRoles: string[] — geçiş dönemindeki rol tabanlı kontroller
+ * - requiredPermissions: string[] — izin tabanlı erişim listesi
+ * - permissionMode: "all" | "any" — izinlerin tamamı mı, biri mi gerekli
  * - redirectTo: string — giriş yapmamış kullanıcının gönderileceği rota
  *
- * İki farklı durumu ayırır (Y2):
- * - Giriş yapılmamış → /login'e gider; hedef `state.from` içinde saklanır,
- *   giriş başarılı olunca kullanıcı oraya geri döner.
+ * İki yetkisizlik durumu ayrı ele alınır (Y2):
+ * - Giriş yapılmamış → `redirectTo`'ya gider; hedef `state.from` içinde
+ *   saklanır, giriş başarılı olunca kullanıcı oraya geri döner.
  * - Giriş yapılmış ama yetki yok → /forbidden'a gider. Login'e geri atmak
- *   sonsuz döngü üretirdi ve kullanıcıya hiçbir açıklama vermezdi.
+ *   sonsuz döngü üretirdi ve kullanıcıya sebebi anlatmazdı.
  */
 function ProtectedRoute({
-  allowedRoles,
-  requiredPermissions,
+  allowedRoles = [],
+  requiredPermissions = [],
+  permissionMode = "all",
   redirectTo = "/login",
 }) {
-  const { user, role, canAny } = useAuth();
+  const { user, role, hasPermission } = useAuth();
   const location = useLocation();
 
-  const isRoleAllowed = !allowedRoles || allowedRoles.includes(role);
-  const isPermissionAllowed =
-    !requiredPermissions || canAny(requiredPermissions);
+  const roleAllowed =
+    allowedRoles.length === 0 || allowedRoles.includes(role);
 
-  if (isRoleAllowed && isPermissionAllowed) {
+  const permissionsAllowed =
+    requiredPermissions.length === 0 ||
+    (permissionMode === "any"
+      ? requiredPermissions.some(hasPermission)
+      : requiredPermissions.every(hasPermission));
+
+  if (roleAllowed && permissionsAllowed) {
     return <Outlet />;
   }
 

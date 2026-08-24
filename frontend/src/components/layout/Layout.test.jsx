@@ -6,7 +6,10 @@ import CartProvider from "../../context/CartProvider.jsx";
 import AuthProvider from "../../context/AuthProvider.jsx";
 import ThemeProvider from "../../context/ThemeProvider.jsx";
 import Layout from "./Layout.jsx";
-import { PERMISSIONS } from "../../domain/permissions.js";
+import {
+  ADMIN_PERMISSIONS,
+  PERMISSIONS,
+} from "../../constants/permissions.js";
 
 function renderLayout(initialPath = "/") {
   render(
@@ -70,14 +73,30 @@ describe("Layout ana menü", () => {
     ).toHaveAttribute("href", "/admin");
   });
 
-  it("admin rolündeki kullanıcıya Yönetim bağlantısı gösterir", () => {
-    signIn({ id: 1, name: "Yönetici", role: "admin" });
+  it("tam yetkili kullanıcıya Yönetim bağlantısı gösterir", () => {
+    signIn({
+      id: 1,
+      name: "Yönetici",
+      role: "admin",
+      permissions: [...ADMIN_PERMISSIONS],
+    });
 
     renderLayout();
 
     expect(
       screen.getByRole("link", { name: "Yönetim" })
     ).toBeInTheDocument();
+  });
+
+  it("izinsiz admin rolüne Yönetim bağlantısı göstermez", () => {
+    // Yetki artık rolden değil izin listesinden geliyor.
+    signIn({ id: 1, name: "Yönetici", role: "admin", permissions: [] });
+
+    renderLayout();
+
+    expect(
+      screen.queryByRole("link", { name: "Yönetim" })
+    ).not.toBeInTheDocument();
   });
 
   // Y4: projede hiç NavLink yoktu, aktif sayfa vurgulanmıyordu.

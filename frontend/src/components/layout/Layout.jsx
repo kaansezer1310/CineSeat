@@ -4,7 +4,8 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import useCart from "../../hooks/useCart.js";
 import useAuth from "../../hooks/useAuth.js";
 import useTheme from "../../hooks/useTheme.js";
-import { ADMIN_PANEL_PERMISSIONS } from "../../domain/permissions.js";
+import PermissionGate from "../routing/PermissionGate.jsx";
+import { ADMIN_PERMISSIONS } from "../../constants/permissions.js";
 
 // Y4: aktif sayfa vurgusu NavLink üzerinden geliyor; NavLink eşleşen
 // bağlantıya aria-current="page" da eklediği için ekran okuyucu da duyuyor.
@@ -16,7 +17,7 @@ function navigationLinkClass({ isActive }) {
 
 function Layout() {
   const { state } = useCart();
-  const { user, logout, canAny } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -29,10 +30,6 @@ function Layout() {
     },
     0
   );
-
-  // K2: yönetim paneline arayüzden giriş. Rol sabiti yerine izinlere bakılır
-  // (T5) — yetkisi olmayan kullanıcıda bağlantı hiç render edilmez.
-  const canSeeAdminPanel = canAny(ADMIN_PANEL_PERMISSIONS);
 
   return (
     <div className="app-shell">
@@ -51,11 +48,13 @@ function Layout() {
             Sinemalar
           </NavLink>
 
-          {canSeeAdminPanel && (
+          {/* K2: yönetim paneline arayüzden giriş. Rol sabiti yerine izinlere
+              bakılır (T5) — yetkisi olmayanda bağlantı hiç render edilmez. */}
+          <PermissionGate permissions={ADMIN_PERMISSIONS} mode="any">
             <NavLink to="/admin" className={navigationLinkClass}>
               Yönetim
             </NavLink>
-          )}
+          </PermissionGate>
 
           {user ? (
             <>

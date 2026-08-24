@@ -34,7 +34,7 @@ public class GenresController : ControllerBase
         => Ok(await _mediator.Send(new GetGenreByIdQuery { Id = id }, cancellationToken));
 
     [HttpPost]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.GenreManage)]
     public async Task<IActionResult> Create(
         [FromBody] CreateGenreCommand command, CancellationToken cancellationToken)
     {
@@ -43,7 +43,7 @@ public class GenresController : ControllerBase
     }
 
     [HttpPut("{id:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.GenreManage)]
     public async Task<IActionResult> Update(
         long id, [FromBody] UpdateGenreCommand command, CancellationToken cancellationToken)
     {
@@ -53,7 +53,7 @@ public class GenresController : ControllerBase
     }
 
     [HttpDelete("{id:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.GenreManage)]
     public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         await _mediator.Send(new DeleteGenreCommand { Id = id }, cancellationToken);

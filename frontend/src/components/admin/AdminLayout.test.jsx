@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import CartProvider from "../../context/CartProvider.jsx";
 import AuthProvider from "../../context/AuthProvider.jsx";
 import AdminLayout from "./AdminLayout.jsx";
-import { PERMISSIONS } from "../../domain/permissions.js";
+import {
+  ADMIN_PERMISSIONS,
+  PERMISSIONS,
+} from "../../constants/permissions.js";
 
 function renderAdminLayout(initialPath = "/admin") {
   render(
@@ -32,7 +35,12 @@ function signIn(user) {
 describe("AdminLayout", () => {
   beforeEach(() => {
     sessionStorage.clear();
-    signIn({ id: 1, name: "Yönetici Kullanıcı", role: "admin" });
+    signIn({
+      id: 1,
+      name: "Yönetici Kullanıcı",
+      role: "admin",
+      permissions: [...ADMIN_PERMISSIONS],
+    });
   });
 
   // K3: panele giren kullanıcının tarayıcı geri tuşundan başka çıkışı yoktu.

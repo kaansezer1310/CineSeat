@@ -30,14 +30,14 @@ public class GetReservationByIdQueryHandler : IRequestHandler<GetReservationById
     public async Task<ReservationDto> Handle(GetReservationByIdQuery request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetRequiredUserId();
-        var isAdmin = _currentUser.Role == RoleNames.Admin;
+        var canReadAll = _currentUser.HasPermission(PermissionNames.ReservationRead);
 
         var reservation = await _reservationRead.GetByIdAsync(request.Id, tracking: false, cancellationToken);
 
         // Sahiplik kontrolü ŞART: olmasaydı id deneyen herkes başkasının
         // rezervasyonunu (alıcı adı, e-postası, tutarı dahil) okuyabilirdi.
         // Yetkisiz erişim, kaydın varlığını sızdırmamak için NotFound döner.
-        if (reservation is null || (reservation.UserId != userId && !isAdmin))
+        if (reservation is null || (reservation.UserId != userId && !canReadAll))
             throw new NotFoundException("Rezervasyon", request.Id);
 
         var ticketsQuery = _ticketRead.GetWhere(t => t.ReservationId == request.Id, tracking: false)

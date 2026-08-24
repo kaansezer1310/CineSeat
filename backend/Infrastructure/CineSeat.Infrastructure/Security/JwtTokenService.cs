@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Common.Interfaces;
 using CineSeat.Application.Features.Auth.DTOs;
 using Microsoft.Extensions.Options;
@@ -22,7 +23,12 @@ public class JwtTokenService : ITokenService
         _settings = settings.Value;
     }
 
-    public AccessTokenDto CreateAccessToken(long userId, string username, string email, string roleName)
+    public AccessTokenDto CreateAccessToken(
+        long userId,
+        string username,
+        string email,
+        string roleName,
+        IEnumerable<string> permissions)
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
 
@@ -36,6 +42,13 @@ public class JwtTokenService : ITokenService
             new(ClaimTypes.Role, roleName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        claims.AddRange(
+            permissions
+                .Where(permission => !string.IsNullOrWhiteSpace(permission))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(permission => permission, StringComparer.Ordinal)
+                .Select(permission => new Claim(PermissionClaimTypes.Permission, permission)));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

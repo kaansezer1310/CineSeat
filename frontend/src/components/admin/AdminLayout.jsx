@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 
 import useAuth from '../../hooks/useAuth.js';
-import { PERMISSIONS } from '../../domain/permissions.js';
+import { PERMISSIONS } from '../../constants/permissions.js';
 import './admin.css';
 
 /**
@@ -44,11 +44,13 @@ function navigationLinkClass({ isActive }) {
 }
 
 export default function AdminLayout() {
-  const { user, logout, canAny } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
 
   const visibleSections = NAVIGATION_SECTIONS.map((section) => ({
     ...section,
-    items: section.items.filter((item) => canAny(item.permissions)),
+    items: section.items.filter((item) =>
+      item.permissions.some(hasPermission)
+    ),
   })).filter((section) => section.items.length > 0);
 
   return (

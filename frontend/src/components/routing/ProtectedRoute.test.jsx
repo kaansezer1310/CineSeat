@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import CartProvider from "../../context/CartProvider.jsx";
 import AuthProvider from "../../context/AuthProvider.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
-import { PERMISSIONS } from "../../domain/permissions.js";
+import { PERMISSIONS } from "../../constants/permissions.js";
 
 // Yönlendirme sırasında taşınan `location.state`'i görünür kılan yardımcı;
 // böylece "hedef saklandı mı" iddiası DOM üzerinden doğrulanabiliyor.
@@ -38,7 +38,11 @@ function renderProtectedAdminRoute(guard = null) {
 
             <Route
               element={
-                guard ?? <ProtectedRoute allowedRoles={["admin"]} />
+                guard ?? (
+                  <ProtectedRoute
+                    requiredPermissions={[PERMISSIONS.MOVIE_MANAGE]}
+                  />
+                )
               }
             >
               <Route
@@ -53,7 +57,7 @@ function renderProtectedAdminRoute(guard = null) {
   );
 }
 
-function signIn(role, extra = {}) {
+function signIn({ role = "member", permissions } = {}) {
   sessionStorage.setItem(
     "cineseat_user",
     JSON.stringify({
@@ -61,7 +65,7 @@ function signIn(role, extra = {}) {
       name: "Test Kullanıcı",
       email: "test@cineseat.com",
       role,
-      ...extra,
+      ...(permissions ? { permissions } : {}),
     })
   );
 }
@@ -89,20 +93,21 @@ describe("ProtectedRoute", () => {
     );
   });
 
-  it("giriş yapmış ama yetkisi olmayan kullanıcıyı 403 sayfasına gönderir", () => {
-    signIn("member");
+  it("gerekli izni olmayan kullanıcıyı 403 sayfasına gönderir", () => {
+    signIn({ permissions: [PERMISSIONS.COMMENT_MODERATE] });
 
+    // Login'e geri atmak, giriş yapmış kullanıcı için döngü üretir ve
+    // sebebi anlatmaz; bu yüzden ayrı bir 403 ekranı var.
     renderProtectedAdminRoute();
 
-    // Login'e geri atmak döngü üretir ve kullanıcıya sebebi anlatmaz.
     expect(screen.getByText("Yetkisiz sayfası")).toBeInTheDocument();
     expect(
       screen.queryByText("Admin içeriği")
     ).not.toBeInTheDocument();
   });
 
-  it("admin rolündeki kullanıcıya korumalı içeriği gösterir", () => {
-    signIn("admin");
+  it("gerekli izne sahip kullanıcıya rolünden bağımsız olarak içeriği gösterir", () => {
+    signIn({ role: "member", permissions: [PERMISSIONS.MOVIE_MANAGE] });
 
     renderProtectedAdminRoute();
 
@@ -111,12 +116,40 @@ describe("ProtectedRoute", () => {
     ).toBeInTheDocument();
   });
 
-  it("gerekli izne sahip kullanıcıya izin korumalı içeriği gösterir", () => {
-    signIn("member", { permissions: [PERMISSIONS.MOVIE_MANAGE] });
+  it("izinsiz admin rolüne erişim vermez", () => {
+    // Yetki artık rolden türetilmiyor: izin listesi neyse o geçerli.
+    signIn({ role: "admin", permissions: [] });
+
+    renderProtectedAdminRoute();
+
+    expect(screen.getByText("Yetkisiz sayfası")).toBeInTheDocument();
+  });
+
+  it("permissionMode 'all' varsayılanında izinlerin tamamını arar", () => {
+    signIn({ permissions: [PERMISSIONS.MOVIE_MANAGE] });
 
     renderProtectedAdminRoute(
       <ProtectedRoute
-        requiredPermissions={[PERMISSIONS.MOVIE_MANAGE]}
+        requiredPermissions={[
+          PERMISSIONS.MOVIE_MANAGE,
+          PERMISSIONS.GENRE_MANAGE,
+        ]}
+      />
+    );
+
+    expect(screen.getByText("Yetkisiz sayfası")).toBeInTheDocument();
+  });
+
+  it("permissionMode 'any' ile tek izin yeterlidir", () => {
+    signIn({ permissions: [PERMISSIONS.MOVIE_MANAGE] });
+
+    renderProtectedAdminRoute(
+      <ProtectedRoute
+        requiredPermissions={[
+          PERMISSIONS.MOVIE_MANAGE,
+          PERMISSIONS.GENRE_MANAGE,
+        ]}
+        permissionMode="any"
       />
     );
 
@@ -125,13 +158,11 @@ describe("ProtectedRoute", () => {
     ).toBeInTheDocument();
   });
 
-  it("izni olmayan kullanıcıyı izin korumalı rotadan 403'e gönderir", () => {
-    signIn("member", { permissions: [PERMISSIONS.COMMENT_MODERATE] });
+  it("rol tabanlı koruma çalışmaya devam eder", () => {
+    signIn({ role: "member" });
 
     renderProtectedAdminRoute(
-      <ProtectedRoute
-        requiredPermissions={[PERMISSIONS.MOVIE_MANAGE]}
-      />
+      <ProtectedRoute allowedRoles={["admin"]} />
     );
 
     expect(screen.getByText("Yetkisiz sayfası")).toBeInTheDocument();

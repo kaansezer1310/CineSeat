@@ -36,6 +36,7 @@ describe("authService.login", () => {
             username: "berke",
             email: "berke@cineseat.com",
             role: "User",
+            permissions: [],
           },
         })
       )
@@ -64,6 +65,7 @@ describe("authService.login", () => {
             username: "admin",
             email: "admin@cineseat.com",
             role: "Admin",
+            permissions: ["movie.manage", "reservation.read"],
           },
         })
       )
@@ -72,6 +74,7 @@ describe("authService.login", () => {
     const user = await authService.login("admin@cineseat.com", "Admin123!");
 
     expect(user.role).toBe("admin");
+    expect(user.permissions).toEqual(["movie.manage", "reservation.read"]);
   });
 
   it("yanlış bilgilerle backend'in 401 mesajını fırlatır (REQ-21)", async () => {

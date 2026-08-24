@@ -44,6 +44,7 @@ public class GetMyReservationsQueryHandler
                 ShowtimeId = r.ShowtimeId,
                 ShowtimeStart = r.Showtime.StartDatetime,
                 MovieTitle = r.Showtime.Movie.Title,
+                TicketCount = r.Tickets.Count,
                 Total = r.Total,
                 Status = r.Status
             });

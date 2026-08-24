@@ -315,9 +315,9 @@ anlamına gelmez. Her işin sahibi kodu yazar, diğer kişi inceleme ve kabul te
 
 **Kişi 2 — İzin sözleşmesi**
 
-- [ ] T5 için backend authorization policy'lerini seed edilen izin adlarıyla kaydet
-- [ ] Oturum/JWT veya profil cevabında kullanıcının izinlerini frontend'e güvenli biçimde aktar
-- [ ] Frontend için ortak `hasPermission` ve izinli rota/eylem koruyucularının sözleşmesini hazırla
+- [x] T5 için backend authorization policy'lerini seed edilen izin adlarıyla kaydet
+- [x] Oturum/JWT veya profil cevabında kullanıcının izinlerini frontend'e güvenli biçimde aktar
+- [x] Frontend için ortak `hasPermission` ve izinli rota/eylem koruyucularının sözleşmesini hazırla
 
 **Kapattığı bulgular:** K2 · K3 · Y2 · Y4 · O1 · O4 · O5
 
@@ -381,13 +381,13 @@ modülün arayüz entegrasyonunu bitirir.
 
 **Kişi 2 — Backend, veri modeli ve güvenlik**
 
-- [ ] **T1:** `MovieDto`'ya tür listesini ekle; liste sorgusunu ve testlerini güncelle
-- [ ] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et
-- [ ] **T3:** Sayfalama ile tarih/film/durum filtresi sunan `GET /api/reservations` ucunu ekle ve **`reservation.read` policy'siyle** koru
-- [ ] **T5:** Tüm admin controller eylemlerini ilgili izin policy'lerine geçir; yalnızca UI gizlemeye güvenme
-- [ ] **T7:** Kalıcı silme yerine `IsDeleted = true` kullanan arşivleme akışını tamamla; gereken kayıtlar için geri alma ucunu ekle
-- [ ] **T10:** `Comment.Content` doğrulamasını isteğe bağlı yap; puanı zorunlu ve kullanıcı/film başına tek kayıt tut
-- [ ] Rezervasyon tutarı ve kampanya indirimini backend'de hesapla; istemciden gelen toplamı güvenilir kabul etme
+- [x] **T1:** `MovieDto`'ya tür listesini ekle; liste sorgusunu ve testlerini güncelle
+- [ ] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et *(DTO ve API sözleşmesi tamamlandı; backend entegrasyon testleri bekliyor)*
+- [x] **T3:** Sayfalama ile tarih/film/durum filtresi sunan `GET /api/reservations` ucunu ekle ve **`reservation.read` policy'siyle** koru
+- [x] **T5:** Tüm admin controller eylemlerini ilgili izin policy'lerine geçir; yalnızca UI gizlemeye güvenme
+- [x] **T7:** Kalıcı silme yerine `IsDeleted = true` kullanan arşivleme akışını tamamla; gereken kayıtlar için geri alma ucunu ekle
+- [x] **T10:** `Comment.Content` doğrulamasını isteğe bağlı yap; puanı zorunlu ve kullanıcı/film başına tek kayıt tut
+- [x] Rezervasyon tutarı ve kampanya indirimini backend'de hesapla; istemciden gelen toplamı güvenilir kabul etme
 
 **Kişi 1 — Frontend servisleri ve uçtan uca akış**
 
@@ -434,41 +434,61 @@ modülün arayüz entegrasyonunu bitirir.
 
 ---
 
-### 4.1 Uygulama durumu — Kişi 1 hattı (24 Ağustos 2026)
+### 4.1 Uygulama durumu (24 Ağustos 2026)
 
 Kişi 1'in **Faz 1 ve Faz 2** işleri tamamlandı; Faz 3 ve Faz 5'ten backend
-beklemeyen kalemler de birlikte alındı.
+beklemeyen kalemler de birlikte alındı. Kişi 2'nin izin sözleşmesi (T5) ve
+Faz 4 backend kalemlerinin çoğu aynı dönemde tamamlandı; iki hat bu sürümde
+birleştirildi.
 
 | Kontrol | Önce | Sonra |
 |---|---|---|
-| `npm run test:run` | 188 / 188 (24 dosya) | **224 / 224 (28 dosya)** |
+| `npm run test:run` | 188 / 188 (24 dosya) | **223 / 223 (28 dosya)** |
 | `npm run lint` | 0 hata | **0 hata** |
-| `npm run build` | 717,44 kB (gzip 212,93) tek parça | **351,62 kB (gzip 107,22)** + ayrı admin parçası |
+| `npm run build` | 717,44 kB (gzip 212,93) tek parça | **351,90 kB (gzip 107,31)** + ayrı admin parçası |
 | `admin.css` `@media` | 0 | **4** |
 | Satır içi `style={{…}}` | 15 | **1** (veriden gelen koltuk sütun sayısı) |
 
 **Kapanan bulgular:** K2 · K3 · Y2 · Y3 · Y4 · O1 · O2 · O3 · O4 · O5
 
-**Eklenen yapı taşları**
+**Yetkilendirme — birleşen tek model**
 
-- `src/domain/permissions.js` — izin adları backend'de seed edilenlerle birebir
-  aynı; `resolvePermissions` cevapta `permissions` gelirse onu kullanır,
-  gelmezse admin rolüne geçici tam yetki verir. Kişi 2 izin claim'ini
-  eklediğinde geri düşüş kendiliğinden devre dışı kalır, frontend'de kod
-  değişmez.
+İki hat da izin katmanını paralel yazdı; birleştirmede tek sözleşme bırakıldı:
+
+- `src/constants/permissions.js` tek kaynak. (Kişi 1'in geçici
+  `src/domain/permissions.js` dosyası kaldırıldı.)
+- Yetki **yalnızca** izin listesinden geliyor. Backend artık izinleri JWT
+  claim'i olarak gönderdiği için "admin rolü = tam yetki" geri düşüşü
+  kaldırıldı; izinsiz bir admin hesabı panele giremez.
+- `AuthProvider` → `permissions` + `hasPermission`.
+- `ProtectedRoute` → `allowedRoles`, `requiredPermissions`, `permissionMode`
+  ("all" | "any") destekliyor; **giriş gerekiyor** ile **yetki yok** durumlarını
+  ayırıyor: misafir `/login`'e hedefi `state.from` ile taşıyarak, yetkisi
+  olmayan oturum `/forbidden`'a gidiyor.
+- `PermissionGate` koşullu arayüz öğeleri için (ör. ana menüdeki **Yönetim**
+  bağlantısı).
+- Panele giriş `ADMIN_PERMISSIONS` + `permissionMode="any"`, her admin alt
+  ağacı ayrıca kendi izniyle korunuyor.
+
+**Eklenen arayüz yapı taşları**
+
 - `src/components/ui/` — `PageHeader`, `DataTable`, `EmptyState`.
-- `ProtectedRoute` artık `requiredPermissions` de kabul ediyor; giriş
-  gerektiren durum ile yetkisizlik durumunu ayırıyor (`/login` ↔ `/forbidden`).
+- `DataTable` sıralama (`aria-sort`), yükleniyor iskeleti, boş durum ve dar
+  ekranda kart görünümü sağlıyor; DOM tek `<table>` kaldığı için başlık-hücre
+  ilişkisi bozulmuyor.
 
-**Kişi 2'yi bekleyen bağımlılıklar**
+**Sıradaki işler**
 
-- İzinlerin token/profil cevabına eklenmesi (T5) — frontend tüketici tarafı hazır.
 - `alert()` / `confirm()` çağrıları yerinde duruyor; `Toast` ve `ConfirmDialog`
   Kişi 2 · Faz 2 kapsamında.
-- Dashboard hâlâ `localStorage` rezervasyonlarından besleniyor (K4); doluluk
-  ızgarası `GET /api/reservations` (T3) sonrası yapılacak.
+- Dashboard hâlâ `localStorage` rezervasyonlarından besleniyor (K4). `GET
+  /api/reservations` (T3) hazır olduğu için bu artık Kişi 1'in Faz 4 işi:
+  dashboard ve rezervasyon ekranlarını bu uca bağlamak.
+- Frontend servisleri (seans, koltuk, rezervasyon, kampanya, yorum, favori,
+  profil, sinema) hâlâ mock veride; backend uçları hazır.
 - Sinema/salon, seans, kampanya, yorum moderasyonu ve kullanıcı yönetimi
-  ekranları API sözleşmeleri geldiğinde açılacak.
+  admin ekranları yazılınca `AdminLayout.jsx` içindeki `NAVIGATION_SECTIONS`
+  dizisine eklenecek.
 
 ---
 

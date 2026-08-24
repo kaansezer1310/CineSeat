@@ -9,6 +9,7 @@ public class ReservationSummaryDto
     public long ShowtimeId { get; set; }
     public DateTimeOffset ShowtimeStart { get; set; }
     public string MovieTitle { get; set; } = string.Empty;
+    public int TicketCount { get; set; }
     public decimal Total { get; set; }
     public ReservationStatus Status { get; set; }
 }
