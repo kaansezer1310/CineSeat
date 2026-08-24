@@ -23,12 +23,12 @@ public class HallTechsController : ControllerBase
     public async Task<IActionResult> GetByHall([FromQuery] long hallId)
         => Ok(await _mediator.Send(new GetTechsOfHallQuery { HallId = hallId }));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpPost]
     public async Task<IActionResult> Assign([FromBody] AssignTechToHallCommand command)
         => Ok(await _mediator.Send(command));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Remove(long id)
     {

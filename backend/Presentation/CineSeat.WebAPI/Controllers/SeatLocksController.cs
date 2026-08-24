@@ -1,5 +1,6 @@
 using CineSeat.Application.Features.SeatLocks.Commands.LockSeat;
 using CineSeat.Application.Features.SeatLocks.Commands.ReleaseSeat;
+using CineSeat.Application.Features.SeatLocks.DTOs;
 using CineSeat.Application.Features.SeatLocks.Queries.GetLockedSeatsByShowtime;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,13 +27,22 @@ public class SeatLocksController : ControllerBase
     public async Task<IActionResult> GetByShowtime([FromQuery] long showtimeId)
         => Ok(await _mediator.Send(new GetLockedSeatsByShowtimeQuery { ShowtimeId = showtimeId }));
 
-    /// <summary>Koltuk kilitler. Kilidi alan kullanıcı token'dan okunur.</summary>
+    /// <summary>
+    /// Koltuğu kilitler; aynı kullanıcı aynı isteği yinelerse kilit süresini yeniler.
+    /// Kilidi alan kullanıcı token'dan okunur.
+    /// </summary>
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> Lock([FromBody] LockSeatCommand command)
-        => Ok(await _mediator.Send(command));
+    [ProducesResponseType(typeof(SeatLockDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Lock(
+        [FromBody] LockSeatCommand command,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(command, cancellationToken));
 
-    /// <summary>Kilidi bırakır. Yalnızca kilidin sahibi (veya Admin) bırakabilir.</summary>
+    /// <summary>
+    /// Kilidi bırakır. Yalnızca kilidin sahibi veya showtime.manage izni olan
+    /// kullanıcı bırakabilir.
+    /// </summary>
     [HttpDelete("{id:long}")]
     [Authorize]
     public async Task<IActionResult> Release(long id)

@@ -31,13 +31,20 @@ public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
 
     public bool Remove(T model)
     {
-        var entityEntry = Table.Remove(model);
-        return entityEntry.State == EntityState.Deleted;
+        if (model.IsDeleted)
+            return false;
+
+        model.IsDeleted = true;
+        var entityEntry = Table.Update(model);
+        return entityEntry.State == EntityState.Modified;
     }
 
     public bool RemoveRange(List<T> datas)
     {
-        Table.RemoveRange(datas);
+        foreach (var model in datas)
+            model.IsDeleted = true;
+
+        Table.UpdateRange(datas);
         return true;
     }
 
@@ -48,6 +55,43 @@ public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
         // ile NullReferenceException'a yol açıyordu. İkisi de kapatıldı.
         T? model = await Table.FirstOrDefaultAsync(data => data.Id == id, cancellationToken);
         return model is not null && Remove(model);
+    }
+
+    // Bağlantı/geçici tablolarda (favori, koltuk kilidi, eşleme tabloları)
+    // soft-delete benzersiz indexleri bloke eder. Bu metot yalnızca o açıkça
+    // belirlenmiş yaşam döngüleri için kullanılmalıdır.
+    public bool HardDelete(T model)
+    {
+        var entityEntry = Table.Remove(model);
+        return entityEntry.State == EntityState.Deleted;
+    }
+
+    public bool HardDeleteRange(List<T> datas)
+    {
+        Table.RemoveRange(datas);
+        return true;
+    }
+
+    public async Task<bool> HardDeleteAsync(long id, CancellationToken cancellationToken = default)
+    {
+        var model = await Table
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(data => data.Id == id, cancellationToken);
+        return model is not null && HardDelete(model);
+    }
+
+    public async Task<bool> RestoreAsync(long id, CancellationToken cancellationToken = default)
+    {
+        var model = await Table
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(data => data.Id == id, cancellationToken);
+
+        if (model is null || !model.IsDeleted)
+            return false;
+
+        model.IsDeleted = false;
+        var entityEntry = Table.Update(model);
+        return entityEntry.State == EntityState.Modified;
     }
 
     public bool Update(T model)

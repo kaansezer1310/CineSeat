@@ -1,7 +1,11 @@
+using CineSeat.Application.Common.Constants;
+using CineSeat.Application.Common.Models;
 using CineSeat.Application.Features.Reservations.Commands.CancelReservation;
 using CineSeat.Application.Features.Reservations.Commands.CreateReservation;
+using CineSeat.Application.Features.Reservations.DTOs;
 using CineSeat.Application.Features.Reservations.Queries.GetMyReservations;
 using CineSeat.Application.Features.Reservations.Queries.GetReservationById;
+using CineSeat.Application.Features.Reservations.Queries.GetReservations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +27,18 @@ public class ReservationsController : ControllerBase
     {
         _mediator = mediator;
     }
+
+    /// <summary>
+    /// Tüm rezervasyonları yönetim ekranı için sayfalar. Rol adına değil,
+    /// reservation.read iznine bağlıdır.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Policy = PermissionNames.ReservationRead)]
+    [ProducesResponseType(typeof(PagedResult<ReservationSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] GetReservationsQuery query,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(query, cancellationToken));
 
     [HttpGet("my")]
     public async Task<IActionResult> GetMy([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)

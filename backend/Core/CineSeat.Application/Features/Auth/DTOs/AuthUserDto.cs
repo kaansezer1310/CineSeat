@@ -12,4 +12,5 @@ public class AuthUserDto
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
+    public IReadOnlyList<string> Permissions { get; set; } = Array.Empty<string>();
 }

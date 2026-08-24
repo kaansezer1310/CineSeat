@@ -31,7 +31,6 @@ public class GetLockedSeatsByShowtimeQueryHandler
                 Id = sl.Id,
                 ShowtimeId = sl.ShowtimeId,
                 SeatId = sl.SeatId,
-                UserId = sl.UserId,
                 LockExpiresAt = sl.LockExpiresAt
             });
 

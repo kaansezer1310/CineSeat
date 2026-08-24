@@ -25,17 +25,17 @@ public class ReleaseSeatCommandHandler : IRequestHandler<ReleaseSeatCommand, Uni
     public async Task<Unit> Handle(ReleaseSeatCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetRequiredUserId();
-        var isAdmin = _currentUser.Role == RoleNames.Admin;
+        var canManageShowtimes = _currentUser.HasPermission(PermissionNames.ShowtimeManage);
 
         var seatLock = await _read.GetByIdAsync(request.Id, tracking: true, cancellationToken);
 
         // Sahiplik kontrolü ŞART: id ile silinebilseydi herkes başkasının koltuk
         // kilidini açıp o koltuğu kapabilirdi. Başkasının kilidinin varlığını
         // sızdırmamak için yetkisiz erişim de NotFound olarak döner.
-        if (seatLock is null || (seatLock.UserId != userId && !isAdmin))
+        if (seatLock is null || (seatLock.UserId != userId && !canManageShowtimes))
             throw new NotFoundException("Koltuk kilidi", request.Id);
 
-        _write.Remove(seatLock);
+        _write.HardDelete(seatLock);
         await _write.SaveAsync(cancellationToken);
 
         return Unit.Value;

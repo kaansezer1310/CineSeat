@@ -9,15 +9,28 @@ import useAuth from "../../hooks/useAuth.js";
  * Şimdi üye-only sayfalar da korunuyor.
  *
  * Props:
- * - allowedRoles: string[] — izin verilen roller
+ * - allowedRoles: string[] — geçiş dönemindeki rol tabanlı kontroller
+ * - requiredPermissions: string[] — izin tabanlı erişim listesi
+ * - permissionMode: "all" | "any" — izinlerin tamamı mı, biri mi gerekli
  * - redirectTo: string — yetkisiz olunca yönlendirilecek rota (varsayılan: "/login")
  */
-function ProtectedRoute({ allowedRoles, redirectTo = "/login" }) {
-  const { role } = useAuth();
+function ProtectedRoute({
+  allowedRoles = [],
+  requiredPermissions = [],
+  permissionMode = "all",
+  redirectTo = "/login",
+}) {
+  const { role, hasPermission } = useAuth();
 
-  const isAllowed = allowedRoles.includes(role);
+  const roleAllowed =
+    allowedRoles.length === 0 || allowedRoles.includes(role);
+  const permissionsAllowed =
+    requiredPermissions.length === 0 ||
+    (permissionMode === "any"
+      ? requiredPermissions.some(hasPermission)
+      : requiredPermissions.every(hasPermission));
 
-  if (!isAllowed) {
+  if (!roleAllowed || !permissionsAllowed) {
     return <Navigate to={redirectTo} replace />;
   }
 

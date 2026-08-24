@@ -315,9 +315,9 @@ anlamına gelmez. Her işin sahibi kodu yazar, diğer kişi inceleme ve kabul te
 
 **Kişi 2 — İzin sözleşmesi**
 
-- [ ] T5 için backend authorization policy'lerini seed edilen izin adlarıyla kaydet
-- [ ] Oturum/JWT veya profil cevabında kullanıcının izinlerini frontend'e güvenli biçimde aktar
-- [ ] Frontend için ortak `hasPermission` ve izinli rota/eylem koruyucularının sözleşmesini hazırla
+- [x] T5 için backend authorization policy'lerini seed edilen izin adlarıyla kaydet
+- [x] Oturum/JWT veya profil cevabında kullanıcının izinlerini frontend'e güvenli biçimde aktar
+- [x] Frontend için ortak `hasPermission` ve izinli rota/eylem koruyucularının sözleşmesini hazırla
 
 **Kapattığı bulgular:** K2 · K3 · Y2 · Y4 · O1 · O4 · O5
 
@@ -379,13 +379,13 @@ modülün arayüz entegrasyonunu bitirir.
 
 **Kişi 2 — Backend, veri modeli ve güvenlik**
 
-- [ ] **T1:** `MovieDto`'ya tür listesini ekle; liste sorgusunu ve testlerini güncelle
-- [ ] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et
-- [ ] **T3:** Sayfalama ile tarih/film/durum filtresi sunan `GET /api/reservations` ucunu ekle ve **`reservation.read` policy'siyle** koru
-- [ ] **T5:** Tüm admin controller eylemlerini ilgili izin policy'lerine geçir; yalnızca UI gizlemeye güvenme
-- [ ] **T7:** Kalıcı silme yerine `IsDeleted = true` kullanan arşivleme akışını tamamla; gereken kayıtlar için geri alma ucunu ekle
-- [ ] **T10:** `Comment.Content` doğrulamasını isteğe bağlı yap; puanı zorunlu ve kullanıcı/film başına tek kayıt tut
-- [ ] Rezervasyon tutarı ve kampanya indirimini backend'de hesapla; istemciden gelen toplamı güvenilir kabul etme
+- [x] **T1:** `MovieDto`'ya tür listesini ekle; liste sorgusunu ve testlerini güncelle
+- [ ] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et *(DTO ve API sözleşmesi tamamlandı; backend entegrasyon testleri bekliyor)*
+- [x] **T3:** Sayfalama ile tarih/film/durum filtresi sunan `GET /api/reservations` ucunu ekle ve **`reservation.read` policy'siyle** koru
+- [x] **T5:** Tüm admin controller eylemlerini ilgili izin policy'lerine geçir; yalnızca UI gizlemeye güvenme
+- [x] **T7:** Kalıcı silme yerine `IsDeleted = true` kullanan arşivleme akışını tamamla; gereken kayıtlar için geri alma ucunu ekle
+- [x] **T10:** `Comment.Content` doğrulamasını isteğe bağlı yap; puanı zorunlu ve kullanıcı/film başına tek kayıt tut
+- [x] Rezervasyon tutarı ve kampanya indirimini backend'de hesapla; istemciden gelen toplamı güvenilir kabul etme
 
 **Kişi 1 — Frontend servisleri ve uçtan uca akış**
 

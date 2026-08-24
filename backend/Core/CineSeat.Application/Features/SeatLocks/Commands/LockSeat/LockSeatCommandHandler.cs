@@ -1,5 +1,6 @@
 using CineSeat.Application.Common.Exceptions;
 using CineSeat.Application.Common.Interfaces;
+using CineSeat.Application.Features.SeatLocks.DTOs;
 using CineSeat.Application.Repositories;
 using CineSeat.Domain.Entities;
 using CineSeat.Domain.Enums;
@@ -13,7 +14,7 @@ namespace CineSeat.Application.Features.SeatLocks.Commands.LockSeat;
 //  3) (ShowtimeId, SeatId) için SeatLock DB'de UNIQUE — bu yüzden yeni satır eklemek
 //     yerine var olan satırı kontrol edip güncelliyoruz (süresi dolmuşsa devral,
 //     dolmamışsa ve başka kullanıcıya aitse reddet, kendi kilidiyse süresini uzat).
-public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
+public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, SeatLockDto>
 {
     private readonly ISeatLockReadRepository _lockRead;
     private readonly ISeatLockWriteRepository _lockWrite;
@@ -41,7 +42,7 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
         _currentUser = currentUser;
     }
 
-    public async Task<long> Handle(LockSeatCommand request, CancellationToken cancellationToken)
+    public async Task<SeatLockDto> Handle(LockSeatCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetRequiredUserId();
 
@@ -91,7 +92,7 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
             };
             await _lockWrite.AddAsync(newLock, cancellationToken);
             await _lockWrite.SaveAsync(cancellationToken);
-            return newLock.Id;
+            return ToDto(newLock);
         }
 
         var isExpired = existingLock.LockExpiresAt < now;
@@ -107,6 +108,15 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, long>
         _lockWrite.Update(existingLock);
         await _lockWrite.SaveAsync(cancellationToken);
 
-        return existingLock.Id;
+        return ToDto(existingLock);
     }
+
+    private static SeatLockDto ToDto(SeatLock seatLock)
+        => new()
+        {
+            Id = seatLock.Id,
+            ShowtimeId = seatLock.ShowtimeId,
+            SeatId = seatLock.SeatId,
+            LockExpiresAt = seatLock.LockExpiresAt
+        };
 }

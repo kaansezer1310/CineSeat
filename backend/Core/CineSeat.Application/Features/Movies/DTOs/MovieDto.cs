@@ -17,4 +17,5 @@ public class MovieDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public decimal AvgScore { get; set; }
+    public IReadOnlyList<string> Genres { get; set; } = Array.Empty<string>();
 }

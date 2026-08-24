@@ -29,12 +29,12 @@ public class DistrictsController : ControllerBase
     public async Task<IActionResult> GetById(long id)
         => Ok(await _mediator.Send(new GetDistrictByIdQuery { Id = id }));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDistrictCommand command)
         => Ok(await _mediator.Send(command));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateDistrictCommand command)
     {
@@ -43,7 +43,7 @@ public class DistrictsController : ControllerBase
         return NoContent();
     }
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

@@ -26,7 +26,7 @@ public class GetTicketByIdQueryHandler : IRequestHandler<GetTicketByIdQuery, Tic
     public async Task<TicketDto> Handle(GetTicketByIdQuery request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetRequiredUserId();
-        var isAdmin = _currentUser.Role == RoleNames.Admin;
+        var canReadAll = _currentUser.HasPermission(PermissionNames.ReservationRead);
 
         // Sahibi tek sorguda öğrenmek için Reservation navigation'ı üzerinden
         // projeksiyon yapıyoruz; Include() bir EF metodu ve burada kullanılamaz.
@@ -46,7 +46,7 @@ public class GetTicketByIdQueryHandler : IRequestHandler<GetTicketByIdQuery, Tic
                 }),
             cancellationToken);
 
-        if (row is null || (row.OwnerId != userId && !isAdmin))
+        if (row is null || (row.OwnerId != userId && !canReadAll))
             throw new NotFoundException("Bilet", request.Id);
 
         return row.Dto;

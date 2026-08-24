@@ -16,7 +16,9 @@ function renderProtectedAdminRoute() {
             <Route path="/login" element={<p>Login sayfası</p>} />
 
             <Route
-              element={<ProtectedRoute allowedRoles={["admin"]} />}
+              element={
+                <ProtectedRoute requiredPermissions={["movie.manage"]} />
+              }
             >
               <Route
                 path="/admin"
@@ -44,7 +46,7 @@ describe("ProtectedRoute", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("member rolündeki kullanıcıyı admin rotasından login sayfasına yönlendirir", () => {
+  it("gerekli izni olmayan kullanıcıyı admin rotasından login sayfasına yönlendirir", () => {
     sessionStorage.setItem(
       "cineseat_user",
       JSON.stringify({
@@ -63,14 +65,15 @@ describe("ProtectedRoute", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("admin rolündeki kullanıcıya korumalı içeriği gösterir", () => {
+  it("gerekli izne sahip kullanıcıya rolünden bağımsız olarak korumalı içeriği gösterir", () => {
     sessionStorage.setItem(
       "cineseat_user",
       JSON.stringify({
         id: 1,
         name: "Ömer Faruk",
         email: "omer@cineseat.com",
-        role: "admin",
+        role: "member",
+        permissions: ["movie.manage"],
       })
     );
 

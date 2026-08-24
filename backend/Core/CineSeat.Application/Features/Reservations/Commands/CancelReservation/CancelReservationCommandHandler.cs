@@ -26,14 +26,14 @@ public class CancelReservationCommandHandler : IRequestHandler<CancelReservation
     public async Task<Unit> Handle(CancelReservationCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUser.GetRequiredUserId();
-        var isAdmin = _currentUser.Role == RoleNames.Admin;
+        var canManageAll = _currentUser.HasPermission(PermissionNames.ReservationManage);
 
         var reservation = await _read.GetByIdAsync(request.Id, tracking: true, cancellationToken);
 
         // Başkasına ait rezervasyonun var olduğunu bile sızdırmamak için sahiplik
         // uyuşmazlığını da NotFound olarak döndürüyoruz. Admin her rezervasyonu
         // iptal edebilir (müşteri hizmetleri).
-        if (reservation is null || (reservation.UserId != userId && !isAdmin))
+        if (reservation is null || (reservation.UserId != userId && !canManageAll))
             throw new NotFoundException("Rezervasyon", request.Id);
 
         if (reservation.Status == ReservationStatus.Cancelled)
