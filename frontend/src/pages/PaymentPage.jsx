@@ -123,7 +123,7 @@ function PaymentPage() {
     },
     onError: () => {
       isNavigatingToNextStep.current = true;
-      navigate("/odeme-hata");
+      navigate("/payment-error");
     }
   });
 
@@ -132,7 +132,7 @@ function PaymentPage() {
 
     if (paymentForm.cardNumber.startsWith("0000")) {
       isNavigatingToNextStep.current = true;
-      navigate("/odeme-hata");
+      navigate("/payment-error");
       return;
     }
 

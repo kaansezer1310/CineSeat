@@ -28,8 +28,8 @@ function PaymentErrorPage() {
         <h1>Ödeme Başarısız</h1>
         <p>Kredi kartı işleminiz banka tarafından reddedildi.</p>
         
-        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-          <Link className="primary-button" to="/odeme">
+        <div className="page-actions">
+          <Link className="primary-button" to="/payment">
             Tekrar Dene
           </Link>
           <button className="secondary-button" onClick={handleReturnToCart}>

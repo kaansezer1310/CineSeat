@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import { validateRegisterForm } from "../services/validation.js";
 
@@ -26,22 +26,30 @@ const INITIAL_FORM = {
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register, user } = useAuth();
+
+  // Y2: korumalı bir sayfadan gelindiyse (login üzerinden devredilen
+  // `state.from`), kayıt sonrası kullanıcı o sayfaya döner.
+  const from = location.state?.from;
+  const redirectTarget = from?.pathname
+    ? `${from.pathname}${from.search ?? ""}`
+    : "/";
 
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Zaten giriş yapılmışsa ana sayfaya yönlendir.
+  // Zaten giriş yapılmışsa hedefe (yoksa ana sayfaya) yönlendir.
   // navigate() render sırasında değil, useEffect içinde çağrılmalı —
   // React Router bunu render'da çağırmayı açıkça uyarıyor
   // ("You should call navigate() in a React.useEffect()...").
   useEffect(() => {
     if (user) {
-      navigate("/", { replace: true });
+      navigate(redirectTarget, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectTarget]);
 
   if (user) {
     return null;
@@ -95,7 +103,7 @@ function RegisterPage() {
         phone: formData.phone.trim(),
         gender: formData.gender,
       });
-      navigate("/", { replace: true });
+      navigate(redirectTarget, { replace: true });
     } catch (err) {
       setGeneralError(err.message || "Kayıt işlemi başarısız oldu.");
     } finally {
@@ -286,7 +294,11 @@ function RegisterPage() {
 
         <p className="auth-footer-text">
           Zaten hesabınız var mı?{" "}
-          <Link to="/login" className="auth-link">
+          <Link
+            to="/login"
+            state={from ? { from } : undefined}
+            className="auth-link"
+          >
             Giriş Yap
           </Link>
         </p>

@@ -1,4 +1,5 @@
-import { Route, Routes } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/layout/Layout.jsx";
 import HomePage from "./pages/HomePage.jsx";
@@ -11,17 +12,32 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import PaymentErrorPage from "./pages/PaymentErrorPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
-
-import AdminLayout from "./components/admin/AdminLayout.jsx";
-import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
-import AdminMoviesPage from "./pages/admin/AdminMoviesPage.jsx";
-import AdminMovieForm from "./pages/admin/AdminMovieForm.jsx";
 import CinemasPage from "./pages/CinemasPage.jsx";
 import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
+import ForbiddenPage from "./pages/ForbiddenPage.jsx";
 import { ADMIN_PERMISSIONS, PERMISSIONS } from "./constants/permissions.js";
 
 import "./App.css";
+
+// O2 / Faz 5: yönetim paneli ve yalnızca orada kullanılan ağır bağımlılıklar
+// (recharts, react-csv) ayrı parçaya iniyor; siteye giren normal ziyaretçi
+// bunları indirmiyor.
+const AdminLayout = lazy(() =>
+  import("./components/admin/AdminLayout.jsx")
+);
+const AdminDashboard = lazy(() =>
+  import("./pages/admin/AdminDashboard.jsx")
+);
+const AdminMoviesPage = lazy(() =>
+  import("./pages/admin/AdminMoviesPage.jsx")
+);
+const AdminMovieForm = lazy(() =>
+  import("./pages/admin/AdminMovieForm.jsx")
+);
+const AdminNotFoundPage = lazy(() =>
+  import("./pages/admin/AdminNotFoundPage.jsx")
+);
 
 function App() {
   return (
@@ -40,13 +56,27 @@ function App() {
         />
 
         <Route path="/cart" element={<CartPage />} />
-        <Route path="/odeme" element={<PaymentPage />} />
-        <Route path="/odeme-hata" element={<PaymentErrorPage />} />
+
+        {/* T8: kanonik ödeme rotaları İngilizce. Eski Türkçe adresler
+            paylaşılmış/yer imlenmiş olabilir, o yüzden silinmiyor —
+            kalıcı yönlendirme olarak korunuyor. */}
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/payment-error" element={<PaymentErrorPage />} />
+        <Route
+          path="/odeme"
+          element={<Navigate to="/payment" replace />}
+        />
+        <Route
+          path="/odeme-hata"
+          element={<Navigate to="/payment-error" replace />}
+        />
+
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cinemas" element={<CinemasPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
+        <Route path="/forbidden" element={<ForbiddenPage />} />
+
         {/* Üye ve Admin görebilir */}
         <Route element={<ProtectedRoute allowedRoles={["member", "admin"]} />}>
           <Route path="/profile" element={<ProfilePage />} />
@@ -55,6 +85,8 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
+      {/* Panele giriş: yönetim izinlerinden en az biri yeterli.
+          Ekran bazlı yetki her alt ağaçta ayrıca kontrol ediliyor. */}
       <Route
         element={
           <ProtectedRoute
@@ -63,7 +95,20 @@ function App() {
           />
         }
       >
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <Suspense
+              fallback={
+                <div className="route-fallback">
+                  Yönetim paneli yükleniyor…
+                </div>
+              }
+            >
+              <AdminLayout />
+            </Suspense>
+          }
+        >
           <Route
             element={
               <ProtectedRoute
@@ -73,15 +118,21 @@ function App() {
           >
             <Route index element={<AdminDashboard />} />
           </Route>
+
           <Route
             element={
-              <ProtectedRoute requiredPermissions={[PERMISSIONS.MOVIE_MANAGE]} />
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.MOVIE_MANAGE]}
+              />
             }
           >
             <Route path="movies" element={<AdminMoviesPage />} />
             <Route path="movies/new" element={<AdminMovieForm />} />
             <Route path="movies/:id" element={<AdminMovieForm />} />
           </Route>
+
+          {/* O5: admin ağacının kendi 404'ü */}
+          <Route path="*" element={<AdminNotFoundPage />} />
         </Route>
       </Route>
     </Routes>

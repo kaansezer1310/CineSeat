@@ -160,7 +160,7 @@ function ProfilePage() {
       {activeTab === "info" && (
         <div className="profile-panel">
           {saveMessage && (
-            <div className="auth-error" style={{ borderColor: "var(--color-success)", background: "rgba(113, 148, 124, 0.1)", color: "var(--color-success)" }} role="status">
+            <div className="auth-success" role="status">
               {saveMessage}
             </div>
           )}
@@ -235,7 +235,7 @@ function ProfilePage() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+            <div className="profile-form-actions">
               {editMode ? (
                 <>
                   <button
@@ -293,7 +293,9 @@ function ProfilePage() {
             </div>
           )}
 
-          <h2 className="profile-section-title" style={{ marginTop: "32px" }}>Geçmiş Biletler</h2>
+          <h2 className="profile-section-title profile-section-title--spaced">
+            Geçmiş Biletler
+          </h2>
           {pastTickets.length === 0 ? (
             <div className="temporary-panel">Geçmiş biletiniz bulunmuyor.</div>
           ) : (

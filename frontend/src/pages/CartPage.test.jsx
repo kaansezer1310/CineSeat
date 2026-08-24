@@ -192,7 +192,7 @@ describe("CartPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("checkout sırasında /odeme sayfasına yönlendirir", async () => {
+  it("checkout sırasında /payment sayfasına yönlendirir", async () => {
     renderCartPage();
 
     await screen.findByRole("heading", {
@@ -206,7 +206,7 @@ describe("CartPage", () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/odeme");
+      expect(mockNavigate).toHaveBeenCalledWith("/payment");
     });
   });
 

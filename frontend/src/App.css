@@ -766,7 +766,12 @@
 }
 
 .seat-map {
+  /* --seat-columns SeatMap.jsx tarafindan veriye gore set edilir;
+     sutun kurali burada, JSX'te degil. */
+  --seat-columns: 8;
+
   display: grid;
+  grid-template-columns: repeat(var(--seat-columns), minmax(0, 1fr));
   gap: 8px;
 
   width: min(100%, 620px);
@@ -2420,4 +2425,411 @@
 
 .release-notification-dismiss:hover {
   color: var(--color-text);
+}
+
+/* ==========================================================================
+   Faz 1 & 2 — navigasyon, ortak bileşenler ve satır içi stillerden taşınanlar
+   (bkz. docs/FRONTEND_DENETIM_VE_PLAN.md · Y3 · Y4 · O3)
+   ========================================================================== */
+
+/* --- Ana menü: aktif sayfa göstergesi (Y4) ------------------------------- */
+.main-navigation-link {
+  position: relative;
+  padding-bottom: 2px;
+}
+
+/* NavLink `<a>` olarak render edilir; `.main-navigation a` kuralını
+   geçebilmek için seçici bilerek bu özgüllükte. */
+.main-navigation a.main-navigation-link-active {
+  color: var(--color-header-accent);
+  font-weight: 600;
+}
+
+.main-navigation a.main-navigation-link-active::after {
+  content: "";
+
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+
+  height: 2px;
+  border-radius: 2px;
+
+  background: var(--color-header-accent);
+}
+
+.main-navigation-greeting {
+  color: var(--color-header-text-muted);
+
+  font-size: 0.95rem;
+}
+
+.main-navigation-logout {
+  padding: 0;
+
+  border: none;
+  background: transparent;
+  color: var(--color-header-accent);
+
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.main-navigation-logout:hover {
+  text-decoration: underline;
+}
+
+.main-navigation-logout:focus-visible {
+  outline: 2px solid var(--color-header-accent);
+  outline-offset: 3px;
+}
+
+/* --- Tembel yüklenen rotaların bekleme ekranı ---------------------------- */
+.route-fallback {
+  display: grid;
+  place-items: center;
+
+  min-height: 60vh;
+  padding: 40px;
+
+  color: var(--color-text-muted);
+}
+
+/* --- Sayfa altı eylem satırı (ForbiddenPage, PaymentErrorPage) ----------- */
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  margin-top: 1.5rem;
+}
+
+/* --- PageHeader ---------------------------------------------------------- */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+
+  margin-bottom: 24px;
+}
+
+.page-header-text {
+  max-width: 640px;
+}
+
+.page-header-title {
+  margin: 0;
+
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+}
+
+.page-header-description {
+  margin: 8px 0 0;
+
+  color: var(--color-text-muted);
+}
+
+.page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* --- EmptyState ---------------------------------------------------------- */
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+
+  padding: 48px 24px;
+
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 12px;
+
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.empty-state-title {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.empty-state-description {
+  margin: 0;
+  max-width: 460px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.92rem;
+}
+
+.empty-state-action {
+  margin-top: 8px;
+}
+
+/* --- DataTable ----------------------------------------------------------- */
+.data-table-wrapper {
+  /* Geniş tablolar sayfayı yatay kaydırtmaz, kendi içinde kayar. */
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+
+  background: var(--color-surface);
+
+  /* Rakamlar sütun içinde hizalı dursun (plan §3.3). */
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table-caption {
+  padding: 12px 16px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.data-table th,
+.data-table td {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid var(--color-border);
+
+  text-align: left;
+  vertical-align: middle;
+}
+
+.data-table th {
+  background: var(--color-surface-light);
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.data-table th[data-align="right"],
+.data-table td[data-align="right"] {
+  text-align: right;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+  color: inherit;
+
+  font: inherit;
+  cursor: pointer;
+}
+
+.data-table-sort-button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.data-table-sort-icon {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.data-table-skeleton {
+  display: block;
+
+  height: 12px;
+  border-radius: 6px;
+
+  background: var(--color-surface-light);
+}
+
+.data-table-loading-text {
+  margin: 12px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+}
+
+/* Dar ekran: tablo satırları karta dönüşür. DOM tek bir <table> olarak
+   kalır, böylece başlık-hücre ilişkisi ve ekran okuyucu desteği bozulmaz. */
+@media (max-width: 720px) {
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .data-table thead {
+    /* Görsel olarak gizli, erişilebilirlik ağacında mevcut. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .data-table tr {
+    margin-bottom: 14px;
+    padding: 6px 0;
+
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+  }
+
+  .data-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    padding: 10px 16px;
+
+    border-bottom: 1px dashed var(--color-border);
+
+    text-align: right;
+  }
+
+  .data-table td:last-child {
+    border-bottom: none;
+  }
+
+  .data-table td::before {
+    content: attr(data-label);
+
+    flex-shrink: 0;
+
+    color: var(--color-text-muted);
+
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+  }
+}
+
+/* --- Satır içi stillerden taşınanlar (O3) -------------------------------- */
+.movie-card-watchlist-button {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+
+  display: grid;
+  place-items: center;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+
+  background: var(--color-overlay-scrim);
+}
+
+.watchlist-heart-button--large {
+  font-size: 2.5rem;
+}
+
+.movie-details-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cart-summary-total--subtotal {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.cart-summary-row--discount {
+  margin-top: 0.5rem;
+
+  color: var(--color-success);
+}
+
+.cart-summary-row--discount span,
+.cart-summary-row--discount strong {
+  color: inherit;
+}
+
+.cart-summary-total--payable {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+
+  border-top: 1px solid var(--color-border);
+}
+
+.auth-success {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+
+  border: 1px solid var(--color-success);
+  border-radius: 8px;
+
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Y2: korumalı sayfadan yönlendirilen kullanıcıya sebebi açıklar. */
+.auth-notice {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background: var(--color-surface-light);
+  color: var(--color-text-muted);
+
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.profile-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  margin-top: 8px;
+}
+
+.profile-section-title--spaced {
+  margin-top: 32px;
 }

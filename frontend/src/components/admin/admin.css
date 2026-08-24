@@ -1,23 +1,91 @@
 .admin-layout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: var(--color-background);
   color: var(--color-text);
+
+  /* Panel sayı ve kimlik dolu: rakamlar sabit genişlikte hizalanır. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* K3 - Ust cubuk: kullanici kimligi, siteye donus ve cikis. */
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  padding: 14px 24px;
+
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.admin-topbar-logo {
+  color: var(--color-yellow-text);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-topbar-user {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-topbar-role {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.admin-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
 .admin-sidebar {
   width: 260px;
+  flex-shrink: 0;
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
-  padding: 30px 20px;
+  padding: 24px 20px;
 }
 
-.admin-sidebar h2 {
-  color: var(--color-yellow-text);
-  font-size: 1.5rem;
-  margin-bottom: 30px;
-  padding-bottom: 10px;
+.admin-nav-section + .admin-nav-section {
+  margin-top: 26px;
+}
+
+.admin-nav-section-title {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+
   border-bottom: 1px solid var(--color-border-strong);
+
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .admin-nav-list {
@@ -26,7 +94,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 6px;
 }
 
 .admin-nav-link {
@@ -42,6 +110,21 @@
 .admin-nav-link:hover {
   background-color: var(--color-surface-light);
   color: var(--color-text);
+}
+
+/* Y4 - aktif sayfa gostergesi. Altin renk yalnizca eyleme donuk /
+   secili ogelerde kullanilir (plan 3.2). */
+.admin-nav-link-active {
+  background-color: var(--color-surface-light);
+  color: var(--color-yellow-text);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-yellow);
+}
+
+.admin-nav-link:focus-visible,
+.admin-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 .admin-content {
@@ -242,4 +325,171 @@
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Y3 — sayfaların verdiği ama karşılığı olmayan sınıflar
+   ========================================================================== */
+.admin-dashboard,
+.admin-movies-page,
+.admin-movie-form-page,
+.admin-not-found {
+  display: flex;
+  flex-direction: column;
+
+  max-width: 1180px;
+}
+
+.admin-movie-form-page .admin-form {
+  /* İki sütunlu düzen 600px'e sığmıyor. */
+  max-width: 860px;
+}
+
+.admin-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  white-space: nowrap;
+}
+
+.admin-empty-text {
+  margin: 0 0 20px;
+
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   Y1 — panel dar ekranda kullanılabilir olmalı
+   ========================================================================== */
+@media (max-width: 900px) {
+  .admin-body {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    padding: 16px;
+
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .admin-sidebar nav {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .admin-nav-section + .admin-nav-section {
+    margin-top: 0;
+  }
+
+  .admin-nav-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .admin-nav-link {
+    padding: 8px 12px;
+  }
+
+  .admin-nav-link-active {
+    box-shadow: inset 0 -3px 0 var(--color-yellow);
+  }
+
+  .admin-content {
+    padding: 24px 16px;
+  }
+
+  .admin-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .admin-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .admin-form {
+    padding: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .admin-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 650px) {
+  .admin-topbar {
+    padding: 12px 16px;
+  }
+
+  .admin-topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-stats-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .admin-chart-container {
+    padding: 18px;
+    margin-top: 24px;
+  }
+}
+
+/* Ortak PageHeader panel içinde: müşteri sitesindekinden biraz daha sıkı. */
+.admin-content .page-header {
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.admin-content .page-header-title {
+  font-size: 1.75rem;
+}
+
+@media (max-width: 900px) {
+  .admin-content .page-header {
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .admin-content .page-header-title {
+    font-size: 1.4rem;
+  }
+}
+
+/* İki sütunlu form düzeni (plan Faz 3 · Kişi 1). */
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+
+.form-group--wide {
+  grid-column: 1 / -1;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 6px;
+
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
 }

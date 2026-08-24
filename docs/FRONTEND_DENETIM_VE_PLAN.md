@@ -305,13 +305,13 @@ anlamına gelmez. Her işin sahibi kodu yazar, diğer kişi inceleme ve kabul te
 
 **Kişi 1 — Arayüz ve rota sahipliği**
 
-- [ ] Ana menüde gerekli izne sahip kullanıcıya **Yönetim** bağlantısını göster
-- [ ] Admin kabuğuna kullanıcı adı, siteye dönüş ve çıkış içeren **üst çubuk** ekle
-- [ ] Menüleri `NavLink`'e geçir; aktif durumu görünür yap
-- [ ] Korumalı sayfadan girişe gelen kullanıcıyı `location.state.from` ile hedefe döndür
-- [ ] T9 uyarınca ana sayfadaki sinema sekmesini kaldır; menüye ayrı **`/cinemas`** bağlantısı ekle
-- [ ] T8 uyarınca kanonik ödeme rotalarını **`/payment`** ve **`/payment-error`** yap; eski Türkçe rotalardan yönlendir
-- [ ] Admin ağacına kendi 404 ekranını ekle
+- [x] Ana menüde gerekli izne sahip kullanıcıya **Yönetim** bağlantısını göster
+- [x] Admin kabuğuna kullanıcı adı, siteye dönüş ve çıkış içeren **üst çubuk** ekle
+- [x] Menüleri `NavLink`'e geçir; aktif durumu görünür yap
+- [x] Korumalı sayfadan girişe gelen kullanıcıyı `location.state.from` ile hedefe döndür
+- [x] T9 uyarınca ana sayfadaki sinema sekmesini kaldır; menüye ayrı **`/cinemas`** bağlantısı ekle
+- [x] T8 uyarınca kanonik ödeme rotalarını **`/payment`** ve **`/payment-error`** yap; eski Türkçe rotalardan yönlendir
+- [x] Admin ağacına kendi 404 ekranını ekle
 
 **Kişi 2 — İzin sözleşmesi**
 
@@ -327,9 +327,9 @@ anlamına gelmez. Her işin sahibi kodu yazar, diğer kişi inceleme ve kabul te
 
 **Kişi 1**
 
-- [ ] `PageHeader`, `DataTable` ve `EmptyState` bileşenlerini; mobil kart görünümü ve testleriyle yaz
-- [ ] Tanımsız admin CSS sınıflarını gerçek stillerle karşıla
-- [ ] Satır içi stilleri tema tokenlarına taşı
+- [x] `PageHeader`, `DataTable` ve `EmptyState` bileşenlerini; mobil kart görünümü ve testleriyle yaz
+- [x] Tanımsız admin CSS sınıflarını gerçek stillerle karşıla
+- [x] Satır içi stilleri tema tokenlarına taşı
 
 **Kişi 2**
 
@@ -348,12 +348,14 @@ senaryolarıyla inceleyecek.
 
 **Kişi 1 — Admin kabuğu, raporlar ve içerik**
 
-- [ ] Kenar çubuğunu **Raporlar / Katalog / Salonlar / Kullanıcılar** olarak böl; görünürlüğü izinlere bağla
+- [~] Kenar çubuğunu **Raporlar / Katalog / Salonlar / Kullanıcılar** olarak böl; görünürlüğü izinlere bağla
+  <br>→ Bölümlü ve izne bağlı menü altyapısı hazır; Raporlar ve Katalog bağlanmış durumda. Salonlar/Kullanıcılar bölümleri, ekranları yazılınca `AdminLayout.jsx` içindeki `NAVIGATION_SECTIONS` dizisine eklenecek.
 - [ ] Dashboard'u gerçek veri sözleşmesine hazırla; doluluk ızgarasını ekle, çubuk grafiği ikinci sıraya al
-- [ ] Film listesi ve formunu `DataTable` + iki sütunlu, alan bazlı doğrulanan form düzenine geçir
+- [~] Film listesi ve formunu `DataTable` + iki sütunlu, alan bazlı doğrulanan form düzenine geçir
+  <br>→ Liste `DataTable`'a, form iki sütunlu düzene geçti; etiketler `htmlFor`/`id` ile bağlandı. Alan bazlı doğrulama mesajları, `Toast`/`ConfirmDialog` (Kişi 2 · Faz 2) ile birlikte yapılacak.
 - [ ] Yorum moderasyonu ekranını ve izinli moderasyon eylemlerini ekle
 - [ ] Kullanıcı listeleme/yönetim ekranlarını ve izinli eylemleri ekle
-- [ ] Tüm bu ekranların dar ekranda tablo yerine karta dönüşmesini sağla
+- [x] Tüm bu ekranların dar ekranda tablo yerine karta dönüşmesini sağla
 
 **Kişi 2 — Operasyon ekranları ve veri adaptörleri**
 
@@ -415,7 +417,7 @@ modülün arayüz entegrasyonunu bitirir.
 
 **Kişi 1**
 
-- [ ] Admin rotalarını `React.lazy` ile tembel yükle; grafik kütüphanelerini ana paketten çıkar
+- [x] Admin rotalarını `React.lazy` ile tembel yükle; grafik kütüphanelerini ana paketten çıkar
 - [ ] Klavye gezintisi, görünür odak, hata metinleri ve 360 px görünümleri uçtan uca denetle
 
 **Kişi 2**
@@ -429,6 +431,64 @@ modülün arayüz entegrasyonunu bitirir.
 - [ ] Misafir, kullanıcı, kısıtlı yetkili ve tam admin rolleriyle kabul testi yap
 
 **Kapattığı bulgular:** O2 ve sürüm öncesi kalite riskleri
+
+---
+
+### 4.1 Uygulama durumu (24 Ağustos 2026)
+
+Kişi 1'in **Faz 1 ve Faz 2** işleri tamamlandı; Faz 3 ve Faz 5'ten backend
+beklemeyen kalemler de birlikte alındı. Kişi 2'nin izin sözleşmesi (T5) ve
+Faz 4 backend kalemlerinin çoğu aynı dönemde tamamlandı; iki hat bu sürümde
+birleştirildi.
+
+| Kontrol | Önce | Sonra |
+|---|---|---|
+| `npm run test:run` | 188 / 188 (24 dosya) | **223 / 223 (28 dosya)** |
+| `npm run lint` | 0 hata | **0 hata** |
+| `npm run build` | 717,44 kB (gzip 212,93) tek parça | **351,90 kB (gzip 107,31)** + ayrı admin parçası |
+| `admin.css` `@media` | 0 | **4** |
+| Satır içi `style={{…}}` | 15 | **1** (veriden gelen koltuk sütun sayısı) |
+
+**Kapanan bulgular:** K2 · K3 · Y2 · Y3 · Y4 · O1 · O2 · O3 · O4 · O5
+
+**Yetkilendirme — birleşen tek model**
+
+İki hat da izin katmanını paralel yazdı; birleştirmede tek sözleşme bırakıldı:
+
+- `src/constants/permissions.js` tek kaynak. (Kişi 1'in geçici
+  `src/domain/permissions.js` dosyası kaldırıldı.)
+- Yetki **yalnızca** izin listesinden geliyor. Backend artık izinleri JWT
+  claim'i olarak gönderdiği için "admin rolü = tam yetki" geri düşüşü
+  kaldırıldı; izinsiz bir admin hesabı panele giremez.
+- `AuthProvider` → `permissions` + `hasPermission`.
+- `ProtectedRoute` → `allowedRoles`, `requiredPermissions`, `permissionMode`
+  ("all" | "any") destekliyor; **giriş gerekiyor** ile **yetki yok** durumlarını
+  ayırıyor: misafir `/login`'e hedefi `state.from` ile taşıyarak, yetkisi
+  olmayan oturum `/forbidden`'a gidiyor.
+- `PermissionGate` koşullu arayüz öğeleri için (ör. ana menüdeki **Yönetim**
+  bağlantısı).
+- Panele giriş `ADMIN_PERMISSIONS` + `permissionMode="any"`, her admin alt
+  ağacı ayrıca kendi izniyle korunuyor.
+
+**Eklenen arayüz yapı taşları**
+
+- `src/components/ui/` — `PageHeader`, `DataTable`, `EmptyState`.
+- `DataTable` sıralama (`aria-sort`), yükleniyor iskeleti, boş durum ve dar
+  ekranda kart görünümü sağlıyor; DOM tek `<table>` kaldığı için başlık-hücre
+  ilişkisi bozulmuyor.
+
+**Sıradaki işler**
+
+- `alert()` / `confirm()` çağrıları yerinde duruyor; `Toast` ve `ConfirmDialog`
+  Kişi 2 · Faz 2 kapsamında.
+- Dashboard hâlâ `localStorage` rezervasyonlarından besleniyor (K4). `GET
+  /api/reservations` (T3) hazır olduğu için bu artık Kişi 1'in Faz 4 işi:
+  dashboard ve rezervasyon ekranlarını bu uca bağlamak.
+- Frontend servisleri (seans, koltuk, rezervasyon, kampanya, yorum, favori,
+  profil, sinema) hâlâ mock veride; backend uçları hazır.
+- Sinema/salon, seans, kampanya, yorum moderasyonu ve kullanıcı yönetimi
+  admin ekranları yazılınca `AdminLayout.jsx` içindeki `NAVIGATION_SECTIONS`
+  dizisine eklenecek.
 
 ---
 

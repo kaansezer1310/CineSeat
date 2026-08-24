@@ -54,11 +54,11 @@ function SeatMap({
         <span>PERDE</span>
       </div>
 
+      {/* Sütun sayısı veriden gelir; düzen kuralının kendisi CSS'te durur
+          (bkz. App.css `.seat-map`), JSX yalnızca değeri geçirir. */}
       <div
         className="seat-map"
-        style={{
-          gridTemplateColumns: `repeat(${seatsPerRow}, minmax(0, 1fr))`,
-        }}
+        style={{ "--seat-columns": seatsPerRow }}
       >
         {seatIds.map((seatId) => {
           const storedStatus =

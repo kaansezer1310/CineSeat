@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import { validateLoginForm } from "../services/validation.js";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, user } = useAuth();
+
+  // Y2: korumalı bir sayfadan buraya yönlendirilen kullanıcı, giriş
+  // yaptıktan sonra ana sayfaya değil gitmek istediği sayfaya döner.
+  const from = location.state?.from;
+  const redirectTarget = from?.pathname
+    ? `${from.pathname}${from.search ?? ""}`
+    : "/";
+  const wasRedirected = location.state?.reason === "login-required";
 
   const [formData, setFormData] = useState({
     email: "",
@@ -16,12 +25,12 @@ function LoginPage() {
   const [generalError, setGeneralError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Zaten giriş yapılmışsa ana sayfaya yönlendir.
+  // Zaten giriş yapılmışsa hedefe (yoksa ana sayfaya) yönlendir.
   useEffect(() => {
     if (user) {
-      navigate("/", { replace: true });
+      navigate(redirectTarget, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectTarget]);
 
   if (user) {
     return null;
@@ -55,7 +64,7 @@ function LoginPage() {
     setIsLoading(true);
     try {
       await login(formData.email.trim(), formData.password);
-      navigate("/", { replace: true });
+      navigate(redirectTarget, { replace: true });
     } catch (err) {
       // REQ-21: Genel hata mesajı (alan belirtmeden)
       setGeneralError(err.message || "E-posta veya şifre hatalı.");
@@ -71,6 +80,13 @@ function LoginPage() {
           <h1>Giriş Yap</h1>
           <p>CineSeat hesabınıza giriş yapın</p>
         </div>
+
+        {wasRedirected && !generalError && (
+          <div className="auth-notice" role="status">
+            Bu sayfayı görüntülemek için önce giriş yapmalısınız. Giriş
+            yaptıktan sonra kaldığınız yerden devam edeceksiniz.
+          </div>
+        )}
 
         {generalError && (
           <div className="auth-error" role="alert">
@@ -124,7 +140,11 @@ function LoginPage() {
 
         <p className="auth-footer-text">
           Hesabınız yok mu?{" "}
-          <Link to="/register" className="auth-link">
+          <Link
+            to="/register"
+            state={from ? { from } : undefined}
+            className="auth-link"
+          >
             Kayıt Ol
           </Link>
         </p>
