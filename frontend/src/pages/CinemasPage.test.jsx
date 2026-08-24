@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import CinemasPage from "./CinemasPage.jsx";
 
@@ -22,29 +22,24 @@ describe("CinemasPage", () => {
     });
   });
 
-  it("onViewSessions verilmişse 'Seansları Gör' tıklanınca onu çağırır", async () => {
-    const onViewSessions = vi.fn();
-
+  // T9: sayfa ana sayfada sekme olmaktan çıkıp kendi rotası olduğu için
+  // başlığını artık kendisi render ediyor.
+  it("kendi sayfa başlığını gösterir", async () => {
     render(
       <MemoryRouter>
-        <CinemasPage onViewSessions={onViewSessions} />
+        <CinemasPage />
       </MemoryRouter>
     );
 
-    const firstCard = (
-      await screen.findAllByRole("heading", { level: 3 })
-    )[0].closest(".cinema-card");
-
-    fireEvent.click(
-      within(firstCard).getByRole("button", {
-        name: "Seansları Gör",
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Sinemalarımız",
       })
-    );
-
-    expect(onViewSessions).toHaveBeenCalledTimes(1);
+    ).toBeInTheDocument();
   });
 
-  it("onViewSessions verilmemişse 'Seansları Gör' ana sayfaya yönlendirir", async () => {
+  it("'Seansları Gör' kullanıcıyı ana sayfaya yönlendirir", async () => {
     render(
       <MemoryRouter initialEntries={["/cinemas"]}>
         <Routes>

@@ -1,13 +1,22 @@
 import { useEffect } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 import useCart from "../../hooks/useCart.js";
 import useAuth from "../../hooks/useAuth.js";
 import useTheme from "../../hooks/useTheme.js";
+import { ADMIN_PANEL_PERMISSIONS } from "../../domain/permissions.js";
+
+// Y4: aktif sayfa vurgusu NavLink üzerinden geliyor; NavLink eşleşen
+// bağlantıya aria-current="page" da eklediği için ekran okuyucu da duyuyor.
+function navigationLinkClass({ isActive }) {
+  return isActive
+    ? "main-navigation-link main-navigation-link-active"
+    : "main-navigation-link";
+}
 
 function Layout() {
   const { state } = useCart();
-  const { user, logout } = useAuth();
+  const { user, logout, canAny } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -21,6 +30,10 @@ function Layout() {
     0
   );
 
+  // K2: yönetim paneline arayüzden giriş. Rol sabiti yerine izinlere bakılır
+  // (T5) — yetkisi olmayan kullanıcıda bağlantı hiç render edilmez.
+  const canSeeAdminPanel = canAny(ADMIN_PANEL_PERMISSIONS);
+
   return (
     <div className="app-shell">
       <header className="main-header">
@@ -28,43 +41,64 @@ function Layout() {
           CineSeat
         </Link>
 
-        <nav className="main-navigation">
-          <Link to="/">Vizyondaki Filmler</Link>
+        <nav className="main-navigation" aria-label="Ana menü">
+          <NavLink to="/" end className={navigationLinkClass}>
+            Vizyondaki Filmler
+          </NavLink>
+
+          {/* T9: sinemalar artık ana sayfada sekme değil, kendi rotası. */}
+          <NavLink to="/cinemas" className={navigationLinkClass}>
+            Sinemalar
+          </NavLink>
+
+          {canSeeAdminPanel && (
+            <NavLink to="/admin" className={navigationLinkClass}>
+              Yönetim
+            </NavLink>
+          )}
 
           {user ? (
             <>
-              <span style={{ color: "var(--color-header-text-muted)" }}>
+              <span className="main-navigation-greeting">
                 Hoşgeldin, {user.name}
               </span>
-              <Link to="/profile">Profilim</Link>
+
+              <NavLink to="/profile" className={navigationLinkClass}>
+                Profilim
+              </NavLink>
+
               <button
+                type="button"
                 onClick={logout}
-                style={{
-                  background: "transparent",
-                  color: "var(--color-header-accent)",
-                  cursor: "pointer",
-                }}
+                className="main-navigation-logout"
               >
                 Çıkış
               </button>
             </>
           ) : (
             <>
-              <Link to="/login">Giriş Yap</Link>
-              <Link to="/register">Kayıt Ol</Link>
+              <NavLink to="/login" className={navigationLinkClass}>
+                Giriş Yap
+              </NavLink>
+
+              <NavLink to="/register" className={navigationLinkClass}>
+                Kayıt Ol
+              </NavLink>
             </>
           )}
 
-          <Link
-            className="cart-navigation-link"
+          <NavLink
             to="/cart"
+            className={({ isActive }) =>
+              `${navigationLinkClass({ isActive })} cart-navigation-link`
+            }
           >
             Sepet
 
             <span className="cart-count">
               {totalTicketCount}
             </span>
-          </Link>
+          </NavLink>
 
           <button
             onClick={toggleTheme}

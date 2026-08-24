@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import AuthContext from "./AuthContext.js";
 import { authService } from "../services/authService.js";
 import useCart from "../hooks/useCart.js";
+import {
+  hasAnyPermission,
+  hasPermission,
+  resolvePermissions,
+} from "../domain/permissions.js";
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -38,13 +43,24 @@ function AuthProvider({ children }) {
     dispatch({ type: "CLEAR_CART" });
   };
 
-  const value = {
-    user,
-    role: user?.role || "guest",
-    login,
-    register,
-    logout,
-  };
+  // İzin türevleri her render'da yeniden hesaplanmasın diye memolanıyor;
+  // `can`/`canAny` menü ve rota koruyucularının bağımlılık listelerine giriyor.
+  const value = useMemo(
+    () => ({
+      user,
+      role: user?.role || "guest",
+      permissions: resolvePermissions(user),
+      can: (permission) => hasPermission(user, permission),
+      canAny: (permissions) => hasAnyPermission(user, permissions),
+      login,
+      register,
+      logout,
+    }),
+    // login/register/logout her render'da yeniden oluşuyor ama kimlik
+    // değişimleri yalnızca `user` üzerinden geldiği için bağımlılık odur.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user]
+  );
 
   return (
     <AuthContext.Provider value={value}>

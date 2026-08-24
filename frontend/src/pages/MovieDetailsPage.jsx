@@ -92,12 +92,11 @@ function MovieDetailsPage() {
         <div className="movie-details-content">
           <p className="page-label">{movie.genre}</p>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div className="movie-details-title-row">
             <h1>{movie.title}</h1>
             <button
               type="button"
-              className={`watchlist-heart-button ${isFavorite(movie.id) ? 'watchlist-heart-button--active' : 'watchlist-heart-button--inactive'}`}
-              style={{ fontSize: "2.5rem" }}
+              className={`watchlist-heart-button watchlist-heart-button--large ${isFavorite(movie.id) ? 'watchlist-heart-button--active' : 'watchlist-heart-button--inactive'}`}
               onClick={() => toggleFavorite(movie.id)}
               title={isFavorite(movie.id) ? "İzleme listesinden çıkar" : "İzleme listesine ekle"}
               aria-label="Favori Ekle/Çıkar"

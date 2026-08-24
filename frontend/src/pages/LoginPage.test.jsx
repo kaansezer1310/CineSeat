@@ -21,20 +21,29 @@ import CartProvider from "../context/CartProvider.jsx";
 import AuthProvider from "../context/AuthProvider.jsx";
 import LoginPage from "./LoginPage.jsx";
 
-function renderLoginPage() {
+function renderLoginPage(locationState = null) {
   render(
-    <MemoryRouter initialEntries={["/login"]}>
+    <MemoryRouter
+      initialEntries={[{ pathname: "/login", state: locationState }]}
+    >
       <CartProvider>
         <AuthProvider>
           <Routes>
             <Route path="/" element={<p>Ana sayfa</p>} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/profile" element={<p>Profil sayfası</p>} />
           </Routes>
         </AuthProvider>
       </CartProvider>
     </MemoryRouter>
   );
 }
+
+// Korumalı bir sayfadan yönlendirilen kullanıcının taşıdığı state.
+const REDIRECTED_FROM_PROFILE = {
+  from: { pathname: "/profile", search: "" },
+  reason: "login-required",
+};
 
 describe("LoginPage — zaten giriş yapmış kullanıcı yönlendirmesi", () => {
   beforeEach(() => {
@@ -195,5 +204,79 @@ describe("LoginPage — giriş akışı", () => {
     expect(storedUser.password).toBeUndefined();
 
     vi.unstubAllGlobals();
+  });
+});
+
+describe("LoginPage — Y2: hedefe geri dönüş", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("yönlendirilerek gelen kullanıcıya sebebini açıklar", () => {
+    renderLoginPage(REDIRECTED_FROM_PROFILE);
+
+    expect(
+      screen.getByText(/önce giriş yapmalısınız/i)
+    ).toBeInTheDocument();
+  });
+
+  it("doğrudan gelen kullanıcıya açıklama göstermez", () => {
+    renderLoginPage();
+
+    expect(
+      screen.queryByText(/önce giriş yapmalısınız/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it("giriş sonrası ana sayfaya değil gelinen sayfaya döner", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              token: "fake-jwt-token",
+              expiresAt: "2026-12-31T00:00:00Z",
+              user: {
+                id: 4,
+                name: "Berke",
+                surname: "Kuş",
+                username: "berke",
+                email: "berke@cineseat.com",
+                role: "User",
+              },
+            }),
+        })
+      )
+    );
+
+    renderLoginPage(REDIRECTED_FROM_PROFILE);
+
+    fireEvent.change(screen.getByLabelText("E-posta"), {
+      target: { value: "berke@cineseat.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Şifre"), {
+      target: { value: "Test12" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Giriş Yap" }));
+
+    expect(
+      await screen.findByText("Profil sayfası")
+    ).toBeInTheDocument();
+  });
+
+  it("kayıt bağlantısına hedefi taşır", () => {
+    renderLoginPage(REDIRECTED_FROM_PROFILE);
+
+    expect(
+      screen.getByRole("link", { name: "Kayıt Ol" })
+    ).toHaveAttribute("href", "/register");
   });
 });

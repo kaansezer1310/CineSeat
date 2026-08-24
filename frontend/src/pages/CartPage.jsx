@@ -66,7 +66,7 @@ function CartPage() {
       return;
     }
 
-    navigate("/odeme");
+    navigate("/payment");
   }
 
   if (state.items.length === 0) {
@@ -250,20 +250,26 @@ function CartPage() {
             <strong>{totalTicketCount}</strong>
           </div>
 
-          <div className="cart-summary-total" style={{ borderBottom: discountAmount > 0 ? 'none' : undefined, paddingBottom: discountAmount > 0 ? 0 : undefined }}>
+          <div
+            className={
+              discountAmount > 0
+                ? "cart-summary-total cart-summary-total--subtotal"
+                : "cart-summary-total"
+            }
+          >
             <span>Ara Toplam</span>
             <strong>{formatPrice(subtotal)} TL</strong>
           </div>
           
           {campaignsApplied.map((campaign, index) => (
-            <div className="cart-summary-row" key={index} style={{ color: 'var(--color-success)', marginTop: '0.5rem' }}>
+            <div className="cart-summary-row cart-summary-row--discount" key={index}>
               <span>{campaign.name}</span>
               <strong>-{formatPrice(campaign.amount)} TL</strong>
             </div>
           ))}
           
           {discountAmount > 0 && (
-             <div className="cart-summary-total" style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+             <div className="cart-summary-total cart-summary-total--payable">
                <span>Ödenecek Tutar</span>
                <strong>{formatPrice(cartTotal)} TL</strong>
              </div>

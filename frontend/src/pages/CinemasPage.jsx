@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import PageHeader from '../components/ui/PageHeader.jsx';
+import EmptyState from '../components/ui/EmptyState.jsx';
 import './cinemas.css';
 
 // Mock Data: Sinema Şubeleri
@@ -24,7 +27,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-export default function CinemasPage({ onViewSessions } = {}) {
+export default function CinemasPage() {
   const navigate = useNavigate();
   const [selectedCity, setSelectedCity] = useState("Tümü");
   const [userLocation, setUserLocation] = useState(null);
@@ -67,11 +70,6 @@ export default function CinemasPage({ onViewSessions } = {}) {
   // Gerçek "bu şubenin seansları" filtrelemesi için sessions.js'e bir
   // cinemaId alanı eklenmesi gerekir.
   function handleViewSessions() {
-    if (onViewSessions) {
-      onViewSessions();
-      return;
-    }
-
     navigate("/");
   }
 
@@ -92,14 +90,19 @@ export default function CinemasPage({ onViewSessions } = {}) {
 
   return (
     <div className="cinemas-page">
-      <div className="cinemas-location-status" style={{ marginBottom: '20px', color: 'var(--color-text-muted)' }}>
-        <p>{locationStatus}</p>
-      </div>
+      {/* T9: sekme değil kendi rotası olduğu için başlık artık burada. */}
+      <PageHeader
+        title="Sinemalarımız"
+        description="Size en yakın sinemaları keşfedin ve detayları görün."
+      />
+
+      <p className="cinemas-location-status">{locationStatus}</p>
 
       <div className="cinemas-filter">
-        <label>Şehir Seçin: </label>
-        <select 
-          value={selectedCity} 
+        <label htmlFor="cinemas-city-select">Şehir Seçin: </label>
+        <select
+          id="cinemas-city-select"
+          value={selectedCity}
           onChange={(e) => setSelectedCity(e.target.value)}
           className="city-select"
         >
@@ -120,8 +123,7 @@ export default function CinemasPage({ onViewSessions } = {}) {
               </p>
             )}
             <button
-              className="secondary-button"
-              style={{ marginTop: '14px' }}
+              className="secondary-button cinema-card-action"
               type="button"
               onClick={handleViewSessions}
             >
@@ -130,7 +132,11 @@ export default function CinemasPage({ onViewSessions } = {}) {
           </div>
         ))}
         {filteredCinemas.length === 0 && (
-          <p>Bu şehirde henüz sinemamız bulunmuyor.</p>
+          <EmptyState
+            icon="🎦"
+            title="Bu şehirde henüz sinemamız bulunmuyor."
+            description="Başka bir şehir seçerek yakınınızdaki salonlara bakabilirsiniz."
+          />
         )}
       </div>
     </div>

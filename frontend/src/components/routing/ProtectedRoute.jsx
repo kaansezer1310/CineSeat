@@ -1,27 +1,48 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import useAuth from "../../hooks/useAuth.js";
 
 /**
- * Sprint 3 / 1.2.4 — Genişletilmiş ProtectedRoute (REQ-21, Güvenlik 4.2)
- *
- * Sprint 1 review'da (K2) sadece admin koruması vardı.
- * Şimdi üye-only sayfalar da korunuyor.
+ * Rota koruyucusu — rol ve/veya izin tabanlı.
  *
  * Props:
- * - allowedRoles: string[] — izin verilen roller
- * - redirectTo: string — yetkisiz olunca yönlendirilecek rota (varsayılan: "/login")
+ * - allowedRoles: string[] — izin verilen roller (opsiyonel)
+ * - requiredPermissions: string[] — bunlardan EN AZ BİRİ gerekli (opsiyonel)
+ * - redirectTo: string — giriş yapmamış kullanıcının gönderileceği rota
+ *
+ * İki farklı durumu ayırır (Y2):
+ * - Giriş yapılmamış → /login'e gider; hedef `state.from` içinde saklanır,
+ *   giriş başarılı olunca kullanıcı oraya geri döner.
+ * - Giriş yapılmış ama yetki yok → /forbidden'a gider. Login'e geri atmak
+ *   sonsuz döngü üretirdi ve kullanıcıya hiçbir açıklama vermezdi.
  */
-function ProtectedRoute({ allowedRoles, redirectTo = "/login" }) {
-  const { role } = useAuth();
+function ProtectedRoute({
+  allowedRoles,
+  requiredPermissions,
+  redirectTo = "/login",
+}) {
+  const { user, role, canAny } = useAuth();
+  const location = useLocation();
 
-  const isAllowed = allowedRoles.includes(role);
+  const isRoleAllowed = !allowedRoles || allowedRoles.includes(role);
+  const isPermissionAllowed =
+    !requiredPermissions || canAny(requiredPermissions);
 
-  if (!isAllowed) {
-    return <Navigate to={redirectTo} replace />;
+  if (isRoleAllowed && isPermissionAllowed) {
+    return <Outlet />;
   }
 
-  return <Outlet />;
+  if (!user) {
+    return (
+      <Navigate
+        to={redirectTo}
+        replace
+        state={{ from: location, reason: "login-required" }}
+      />
+    );
+  }
+
+  return <Navigate to="/forbidden" replace state={{ from: location }} />;
 }
 
 export default ProtectedRoute;
