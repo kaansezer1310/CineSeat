@@ -5,7 +5,7 @@ import { NotFoundError } from "./errors.js";
 // Backend <-> frontend uyarlaması
 // ---------------------------------------------------------------------------
 // Backend'in MovieDto'su (Id, Title, Duration, Description, AgeLimit,
-// Language, Poster, StartDate, EndDate, AvgScore) ile frontend'in beklediği
+// Language, Poster, StartDate, EndDate, AvgScore, Genres) ile frontend'in beklediği
 // film şekli (genre, ageRating, releaseYear, releaseDate, rating.average...)
 // birebir aynı değil. Bu fonksiyonlar aradaki dönüşümü tek yerde yapar —
 // HomePage/MovieDetailsPage/AdminMovieForm hiç değişmeden çalışmaya devam eder.
@@ -34,22 +34,20 @@ function toDateOnlyString(isoDateTime) {
   return typeof isoDateTime === "string" ? isoDateTime.slice(0, 10) : "";
 }
 
-// NOT (bilinçli sınırlama): Backend'in MovieDto'sunda tür (genre) bilgisi
-// YOK — bir filmin türleri ayrı bir uç noktadan (`GET /movies/{id}/genres`)
-// geliyor ve tekil bir string değil, LİSTE (bir film birden fazla türe sahip
-// olabilir). Film listesinde (getMovies) her film için ayrı bir tür isteği
-// atmak (N+1) performans açısından mantıksız olacağından, listede `genre`
-// boş bırakılıyor — bu yüzden ana sayfadaki tür filtresi şu an gerçek veriyle
-// çalışmıyor. Film detayında (getMovieById) tek bir ek istekle gerçek
-// türler çekiliyor. Kalıcı çözüm: backend'in MovieDto'suna türleri de
-// eklemesi (ayrı bir görev/karar).
 function mapMovieDto(dto, { genres = [] } = {}) {
   const releaseDate = toDateOnlyString(dto.startDate);
+  const genreNames =
+    genres.length > 0
+      ? genres
+      : Array.isArray(dto.genres)
+        ? dto.genres
+        : [];
 
   return {
     id: dto.id,
     title: dto.title,
-    genre: genres.length > 0 ? genres.join(", ") : "",
+    genre: genreNames.join(", "),
+    genres: genreNames,
     duration: dto.duration,
     ageRating: ageLimitToAgeRating(dto.ageLimit),
     releaseYear: releaseDate ? Number(releaseDate.slice(0, 4)) : null,
@@ -123,18 +121,12 @@ async function getMovies() {
 }
 
 async function getMovieById(movieId) {
-  const [dto, genres] = await Promise.all([
-    apiClient.get(`/movies/${movieId}`).catch((err) => {
-      if (err.status === 404) throw new NotFoundError("Film bulunamadı.");
-      throw err;
-    }),
-    apiClient
-      .get(`/movies/${movieId}/genres`)
-      .then((list) => list.map((g) => g.name))
-      .catch(() => []),
-  ]);
+  const dto = await apiClient.get(`/movies/${movieId}`).catch((err) => {
+    if (err.status === 404) throw new NotFoundError("Film bulunamadı.");
+    throw err;
+  });
 
-  return mapMovieDto(dto, { genres });
+  return mapMovieDto(dto);
 }
 
 async function addMovie(movieData) {
@@ -248,7 +240,10 @@ function sortMovies(movieList, sortValue) {
 // boş değer o kritere göre filtre uygulamaz.
 function filterMovies(movieList, { genre = "all", ageRating = "all" } = {}) {
   return movieList.filter((movie) => {
-    const matchesGenre = genre === "all" || movie.genre === genre;
+    const matchesGenre =
+      genre === "all" ||
+      movie.genres?.includes(genre) ||
+      movie.genre === genre;
     const matchesAgeRating =
       ageRating === "all" || movie.ageRating === ageRating;
 
@@ -258,7 +253,11 @@ function filterMovies(movieList, { genre = "all", ageRating = "all" } = {}) {
 
 function getAvailableGenres(movieList) {
   return Array.from(
-    new Set(movieList.map((movie) => movie.genre).filter(Boolean))
+    new Set(
+      movieList.flatMap((movie) =>
+        movie.genres?.length ? movie.genres : [movie.genre].filter(Boolean)
+      )
+    )
   ).sort((a, b) => a.localeCompare(b, "tr-TR"));
 }
 

@@ -12,7 +12,7 @@ public class RemoveTechFromHallCommandHandler : IRequestHandler<RemoveTechFromHa
 
     public async Task<Unit> Handle(RemoveTechFromHallCommand request, CancellationToken cancellationToken)
     {
-        var removed = await _write.RemoveAsync(request.Id, cancellationToken);
+        var removed = await _write.HardDeleteAsync(request.Id, cancellationToken);
         if (!removed)
             throw new NotFoundException("Salon-Teknoloji ataması", request.Id);
 

@@ -1,5 +1,6 @@
 using System.Text;
 using CineSeat.Application;
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Common.Interfaces;
 using CineSeat.Infrastructure;
 using CineSeat.Infrastructure.Security;
@@ -57,7 +58,15 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in PermissionNames.All)
+    {
+        options.AddPolicy(
+            permission,
+            policy => policy.RequireClaim(PermissionClaimTypes.Permission, permission));
+    }
+});
 
 // ---- CORS: frontend (Vite, farklı port) tarayıcıdan istek atabilsin ----
 // Farklı origin (host+port) demek, tarayıcının bu isteği varsayılan olarak

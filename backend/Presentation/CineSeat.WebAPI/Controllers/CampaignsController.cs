@@ -34,20 +34,20 @@ public class CampaignsController : ControllerBase
 
     /// <summary>Pasifler dahil tüm kampanyalar — yönetim ekranı.</summary>
     [HttpGet]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CampaignManage)]
     [ProducesResponseType(typeof(List<CampaignDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new GetAllCampaignsQuery(), cancellationToken));
 
     [HttpGet("{id:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CampaignManage)]
     [ProducesResponseType(typeof(CampaignDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(long id, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(new GetCampaignByIdQuery { Id = id }, cancellationToken));
 
     [HttpPost]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CampaignManage)]
     public async Task<IActionResult> Create(
         [FromBody] CreateCampaignCommand command, CancellationToken cancellationToken)
     {
@@ -56,7 +56,7 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpPut("{id:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CampaignManage)]
     public async Task<IActionResult> Update(
         long id, [FromBody] UpdateCampaignCommand command, CancellationToken cancellationToken)
     {
@@ -66,7 +66,7 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpDelete("{id:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CampaignManage)]
     public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         await _mediator.Send(new DeleteCampaignCommand { Id = id }, cancellationToken);

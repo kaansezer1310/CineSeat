@@ -5,8 +5,10 @@ using CineSeat.Application.Features.MovieGenres.Commands.RemoveGenreFromMovie;
 using CineSeat.Application.Features.MovieGenres.Queries.GetGenresOfMovie;
 using CineSeat.Application.Features.Movies.Commands.CreateMovie;
 using CineSeat.Application.Features.Movies.Commands.DeleteMovie;
+using CineSeat.Application.Features.Movies.Commands.RestoreMovie;
 using CineSeat.Application.Features.Movies.Commands.UpdateMovie;
 using CineSeat.Application.Features.Movies.DTOs;
+using CineSeat.Application.Features.Movies.Queries.GetArchivedMovies;
 using CineSeat.Application.Features.Movies.Queries.GetMovieById;
 using CineSeat.Application.Features.Movies.Queries.GetMovies;
 using CineSeat.Application.Features.Genres.DTOs;
@@ -23,7 +25,7 @@ namespace CineSeat.WebAPI.Controllers;
 /// Burada ne DbContext var, ne repository, ne iş kuralı, ne doğrulama.
 /// Bir endpoint eklemek = bir Command/Query göndermek.
 ///
-/// Okuma endpoint'leri herkese açık; yazma endpoint'leri Admin rolüne kapalı.
+/// Okuma endpoint'leri herkese açık; yazma endpoint'leri movie.manage iznine kapalı.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -42,6 +44,15 @@ public class MoviesController : ControllerBase
     public async Task<IActionResult> GetAll([FromQuery] GetMoviesQuery query, CancellationToken cancellationToken)
         => Ok(await _mediator.Send(query, cancellationToken));
 
+    /// <summary>Arşivlenmiş filmleri yönetim ekranı için listeler.</summary>
+    [HttpGet("archived")]
+    [Authorize(Policy = PermissionNames.MovieManage)]
+    [ProducesResponseType(typeof(PagedResult<MovieDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetArchived(
+        [FromQuery] GetArchivedMoviesQuery query,
+        CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(query, cancellationToken));
+
     /// <summary>Tek film getirir.</summary>
     [HttpGet("{id:long}")]
     [ProducesResponseType(typeof(MovieDto), StatusCodes.Status200OK)]
@@ -57,7 +68,7 @@ public class MoviesController : ControllerBase
 
     /// <summary>Yeni film oluşturur.</summary>
     [HttpPost]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.MovieManage)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -68,7 +79,7 @@ public class MoviesController : ControllerBase
     }
 
     [HttpPut("{id:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.MovieManage)]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateMovieCommand command, CancellationToken cancellationToken)
     {
         command.Id = id;
@@ -77,16 +88,25 @@ public class MoviesController : ControllerBase
     }
 
     [HttpDelete("{id:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.MovieManage)]
     public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         await _mediator.Send(new DeleteMovieCommand { Id = id }, cancellationToken);
         return NoContent();
     }
 
+    /// <summary>Arşivlenmiş filmi yeniden etkinleştirir.</summary>
+    [HttpPost("{id:long}/restore")]
+    [Authorize(Policy = PermissionNames.MovieManage)]
+    public async Task<IActionResult> Restore(long id, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new RestoreMovieCommand { Id = id }, cancellationToken);
+        return NoContent();
+    }
+
     /// <summary>Filme tür atar.</summary>
     [HttpPost("{id:long}/genres")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.MovieManage)]
     public async Task<IActionResult> AssignGenre(
         long id, [FromBody] AssignGenreToMovieCommand command, CancellationToken cancellationToken)
     {
@@ -96,7 +116,7 @@ public class MoviesController : ControllerBase
 
     /// <summary>Filmden tür atamasını kaldırır.</summary>
     [HttpDelete("{id:long}/genres/{genreId:long}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.MovieManage)]
     public async Task<IActionResult> RemoveGenre(long id, long genreId, CancellationToken cancellationToken)
     {
         await _mediator.Send(

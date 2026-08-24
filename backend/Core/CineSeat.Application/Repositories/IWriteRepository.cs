@@ -12,6 +12,10 @@ public interface IWriteRepository<T> : IRepository<T> where T : BaseEntity
     bool Remove(T model);
     bool RemoveRange(List<T> datas);
     Task<bool> RemoveAsync(long id, CancellationToken cancellationToken = default);
+    bool HardDelete(T model);
+    bool HardDeleteRange(List<T> datas);
+    Task<bool> HardDeleteAsync(long id, CancellationToken cancellationToken = default);
+    Task<bool> RestoreAsync(long id, CancellationToken cancellationToken = default);
     bool Update(T model);
     Task<int> SaveAsync(CancellationToken cancellationToken = default);
 }

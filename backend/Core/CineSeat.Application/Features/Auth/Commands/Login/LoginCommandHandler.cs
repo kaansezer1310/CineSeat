@@ -43,7 +43,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
                     u.Email,
                     u.PasswordHash,
                     u.PasswordSalt,
-                    RoleName = u.Role.Name
+                    RoleName = u.Role.Name,
+                    Permissions = u.Role.RolePermissions
+                        .Select(rolePermission => rolePermission.Permission.Name)
+                        .OrderBy(permission => permission)
+                        .ToList()
                 }),
             cancellationToken);
 
@@ -56,7 +60,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
         }
 
         var token = _tokenService.CreateAccessToken(
-            candidate.Id, candidate.Username, candidate.Email, candidate.RoleName);
+            candidate.Id,
+            candidate.Username,
+            candidate.Email,
+            candidate.RoleName,
+            candidate.Permissions);
 
         return new AuthResultDto
         {
@@ -69,7 +77,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResultDto>
                 Surname = candidate.Surname,
                 Username = candidate.Username,
                 Email = candidate.Email,
-                Role = candidate.RoleName
+                Role = candidate.RoleName,
+                Permissions = candidate.Permissions
             }
         };
     }

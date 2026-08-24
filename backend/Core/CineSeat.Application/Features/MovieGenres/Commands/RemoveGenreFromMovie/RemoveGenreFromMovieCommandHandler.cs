@@ -31,7 +31,7 @@ public class RemoveGenreFromMovieCommandHandler : IRequestHandler<RemoveGenreFro
         if (movieGenre is null)
             throw new NotFoundException("Film-tür eşleşmesi", $"film:{request.MovieId}, tür:{request.GenreId}");
 
-        _write.Remove(movieGenre);
+        _write.HardDelete(movieGenre);
         await _write.SaveAsync(cancellationToken);
 
         return Unit.Value;

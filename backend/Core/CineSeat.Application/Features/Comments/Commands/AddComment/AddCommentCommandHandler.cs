@@ -53,7 +53,7 @@ public class AddCommentCommandHandler : IRequestHandler<AddCommentCommand, long>
             MovieId = request.MovieId,
             UserId = userId,
             Rating = request.Rating,
-            Content = request.Content.Trim(),
+            Content = request.Content?.Trim() ?? string.Empty,
             IsEdited = false
         };
 

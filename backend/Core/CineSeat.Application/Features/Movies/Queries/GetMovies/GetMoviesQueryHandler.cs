@@ -59,7 +59,11 @@ public class GetMoviesQueryHandler : IRequestHandler<GetMoviesQuery, PagedResult
                 Poster = m.Poster,
                 StartDate = m.StartDate,
                 EndDate = m.EndDate,
-                AvgScore = m.AvgScore
+                AvgScore = m.AvgScore,
+                Genres = m.MovieGenres
+                    .Select(movieGenre => movieGenre.Genre.Name)
+                    .OrderBy(genre => genre)
+                    .ToList()
             });
 
         var items = await _queryExecutor.ToListAsync(pageQuery, cancellationToken);

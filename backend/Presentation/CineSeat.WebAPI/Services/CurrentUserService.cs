@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Common.Exceptions;
 using CineSeat.Application.Common.Interfaces;
 
@@ -33,7 +34,17 @@ public class CurrentUserService : ICurrentUserService
 
     public string? Role => Principal?.FindFirstValue(ClaimTypes.Role);
 
+    public IReadOnlyCollection<string> Permissions
+        => Principal?
+            .FindAll(PermissionClaimTypes.Permission)
+            .Select(claim => claim.Value)
+            .ToHashSet(StringComparer.Ordinal)
+            ?? new HashSet<string>(StringComparer.Ordinal);
+
     public bool IsAuthenticated => Principal?.Identity?.IsAuthenticated ?? false;
+
+    public bool HasPermission(string permission)
+        => Principal?.HasClaim(PermissionClaimTypes.Permission, permission) ?? false;
 
     public long GetRequiredUserId()
         => UserId ?? throw new UnauthorizedException();

@@ -25,6 +25,7 @@ function mapAuthResult(authResult) {
     phone: "",
     gender: "",
     role: mapRole(user.role),
+    permissions: Array.isArray(user.permissions) ? user.permissions : [],
     token,
   };
 }

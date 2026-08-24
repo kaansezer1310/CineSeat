@@ -38,9 +38,14 @@ function AuthProvider({ children }) {
     dispatch({ type: "CLEAR_CART" });
   };
 
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : [];
+  const hasPermission = (permission) => permissions.includes(permission);
+
   const value = {
     user,
     role: user?.role || "guest",
+    permissions,
+    hasPermission,
     login,
     register,
     logout,

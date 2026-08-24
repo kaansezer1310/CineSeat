@@ -10,7 +10,10 @@ public interface ICurrentUserService
     long? UserId { get; }
     string? Username { get; }
     string? Role { get; }
+    IReadOnlyCollection<string> Permissions { get; }
     bool IsAuthenticated { get; }
+
+    bool HasPermission(string permission);
 
     /// <summary>
     /// Kimlik doğrulaması zorunlu handler'lar için: kullanıcı yoksa

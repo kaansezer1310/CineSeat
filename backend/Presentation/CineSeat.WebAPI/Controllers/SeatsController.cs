@@ -24,12 +24,12 @@ public class SeatsController : ControllerBase
     public async Task<IActionResult> GetSeatMap([FromQuery] long hallId)
         => Ok(await _mediator.Send(new GetSeatMapQuery { HallId = hallId }));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpPost("bulk")]
     public async Task<IActionResult> CreateSeats([FromBody] CreateSeatsCommand command)
         => Ok(await _mediator.Send(command));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateSeatCommand command)
     {
@@ -38,7 +38,7 @@ public class SeatsController : ControllerBase
         return NoContent();
     }
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

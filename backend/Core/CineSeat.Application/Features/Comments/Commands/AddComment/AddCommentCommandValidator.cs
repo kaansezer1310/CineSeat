@@ -14,7 +14,6 @@ public class AddCommentCommandValidator : AbstractValidator<AddCommentCommand>
             .WithMessage("Puan 1 ile 5 arasında olmalıdır.");
 
         RuleFor(x => x.Content)
-            .NotEmpty().WithMessage("Yorum içeriği boş olamaz.")
             .MaximumLength(1000).WithMessage("Yorum en fazla 1000 karakter olabilir.");
     }
 }

@@ -51,7 +51,18 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
             throw new ConflictException("Bu kullanıcı adı zaten alınmış.");
 
         var role = await _queryExecutor.FirstOrDefaultAsync(
-            _roleRead.GetWhere(r => r.Name == RoleNames.User, tracking: false), cancellationToken);
+            _roleRead
+                .GetWhere(r => r.Name == RoleNames.User, tracking: false)
+                .Select(r => new
+                {
+                    r.Id,
+                    r.Name,
+                    Permissions = r.RolePermissions
+                        .Select(rolePermission => rolePermission.Permission.Name)
+                        .OrderBy(permission => permission)
+                        .ToList()
+                }),
+            cancellationToken);
         if (role is null)
             throw new NotFoundException("Rol", RoleNames.User);
 
@@ -73,7 +84,12 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
         await _userWrite.AddAsync(user, cancellationToken);
         await _userWrite.SaveAsync(cancellationToken);
 
-        var token = _tokenService.CreateAccessToken(user.Id, user.Username, user.Email, role.Name);
+        var token = _tokenService.CreateAccessToken(
+            user.Id,
+            user.Username,
+            user.Email,
+            role.Name,
+            role.Permissions);
 
         return new AuthResultDto
         {
@@ -86,7 +102,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResul
                 Surname = user.Surname,
                 Username = user.Username,
                 Email = user.Email,
-                Role = role.Name
+                Role = role.Name,
+                Permissions = role.Permissions
             }
         };
     }

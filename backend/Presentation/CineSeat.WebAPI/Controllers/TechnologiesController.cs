@@ -29,12 +29,12 @@ public class TechnologiesController : ControllerBase
     public async Task<IActionResult> GetById(long id)
         => Ok(await _mediator.Send(new GetTechnologyByIdQuery { Id = id }));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTechnologyCommand command)
         => Ok(await _mediator.Send(command));
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateTechnologyCommand command)
     {
@@ -43,7 +43,7 @@ public class TechnologiesController : ControllerBase
         return NoContent();
     }
 
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Policy = PermissionNames.CinemaManage)]
     [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(long id)
     {

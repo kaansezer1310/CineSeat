@@ -19,6 +19,7 @@ import AdminMovieForm from "./pages/admin/AdminMovieForm.jsx";
 import CinemasPage from "./pages/CinemasPage.jsx";
 import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
+import { ADMIN_PERMISSIONS, PERMISSIONS } from "./constants/permissions.js";
 
 import "./App.css";
 
@@ -55,13 +56,32 @@ function App() {
       </Route>
 
       <Route
-        element={<ProtectedRoute allowedRoles={["admin"]} />}
+        element={
+          <ProtectedRoute
+            requiredPermissions={ADMIN_PERMISSIONS}
+            permissionMode="any"
+          />
+        }
       >
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="movies" element={<AdminMoviesPage />} />
-          <Route path="movies/new" element={<AdminMovieForm />} />
-          <Route path="movies/:id" element={<AdminMovieForm />} />
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.RESERVATION_READ]}
+              />
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+          </Route>
+          <Route
+            element={
+              <ProtectedRoute requiredPermissions={[PERMISSIONS.MOVIE_MANAGE]} />
+            }
+          >
+            <Route path="movies" element={<AdminMoviesPage />} />
+            <Route path="movies/new" element={<AdminMovieForm />} />
+            <Route path="movies/:id" element={<AdminMovieForm />} />
+          </Route>
         </Route>
       </Route>
     </Routes>

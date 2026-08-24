@@ -36,7 +36,7 @@ public class RemoveFavoriteCommandHandler : IRequestHandler<RemoveFavoriteComman
         if (favorite is null)
             throw new NotFoundException("Favori", request.MovieId);
 
-        _write.Remove(favorite);
+        _write.HardDelete(favorite);
         await _write.SaveAsync(cancellationToken);
 
         return Unit.Value;
