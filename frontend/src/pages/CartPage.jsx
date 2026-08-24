@@ -2,6 +2,7 @@ import {
   Link,
   useNavigate,
 } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   TICKET_TYPE_LIST,
@@ -26,7 +27,25 @@ function CartPage() {
   );
 
   const subtotal = calcSubtotal(state.items);
-  const { discountAmount, campaignsApplied } = campaignService.getCampaignDiscount(subtotal, user);
+
+  // Kampanyalar backend'den geliyor; buradaki hesap yalnızca ÖN İZLEME.
+  // Bağlayıcı tutarı rezervasyon oluşurken sunucu hesaplar (istemciden
+  // toplam gönderilmez, yalnızca kampanya id'si).
+  const { data: campaigns = [] } = useQuery({
+    queryKey: ["activeCampaigns"],
+    queryFn: campaignService.getActiveCampaigns,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const appliedCampaign = campaignService.pickBestCampaign(
+    campaigns,
+    subtotal,
+    user
+  );
+  const discountAmount = campaignService.calculateDiscount(
+    appliedCampaign,
+    subtotal
+  );
   const cartTotal = subtotal - discountAmount;
 
   function handleRemoveItem(itemId) {
@@ -136,7 +155,7 @@ function CartPage() {
 
                       <strong>
                         {item.seats
-                          .map((seat) => seat.seatId)
+                          .map((seat) => seat.seatLabel ?? seat.seatId)
                           .join(", ")}
                       </strong>
                     </p>
@@ -174,7 +193,7 @@ function CartPage() {
                             key={`${item.sessionId}-${seat.seatId}`}
                           >
                             <label htmlFor={selectId}>
-                              {seat.seatId} koltuğu
+                              {seat.seatLabel ?? seat.seatId} koltuğu
                               <span className="visually-hidden">
                                 {" "}
                                 bilet tipi
@@ -261,12 +280,12 @@ function CartPage() {
             <strong>{formatPrice(subtotal)} TL</strong>
           </div>
           
-          {campaignsApplied.map((campaign, index) => (
-            <div className="cart-summary-row cart-summary-row--discount" key={index}>
-              <span>{campaign.name}</span>
-              <strong>-{formatPrice(campaign.amount)} TL</strong>
+          {appliedCampaign && discountAmount > 0 && (
+            <div className="cart-summary-row cart-summary-row--discount">
+              <span>{appliedCampaign.name}</span>
+              <strong>-{formatPrice(discountAmount)} TL</strong>
             </div>
-          ))}
+          )}
           
           {discountAmount > 0 && (
              <div className="cart-summary-total cart-summary-total--payable">

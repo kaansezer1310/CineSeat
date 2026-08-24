@@ -1,165 +1,124 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import commentService from "./commentService.js";
+vi.mock("./apiClient.js", () => {
+  const client = {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    del: vi.fn(),
+  };
 
-const testUser = { id: 99, name: "Test Kullanıcı" };
-const otherUser = { id: 100, name: "Başka Kullanıcı" };
+  return { default: client, apiClient: client };
+});
 
-describe("commentService", () => {
+const { default: apiClient } = await import("./apiClient.js");
+const { default: commentService } = await import("./commentService.js");
+
+function commentDto(overrides = {}) {
+  return {
+    id: 1,
+    movieId: 7,
+    userId: 2,
+    username: "kaan",
+    rating: 4,
+    content: "Fena değildi.",
+    isEdited: false,
+    createdAt: "2026-08-01T10:00:00+03:00",
+    ...overrides,
+  };
+}
+
+describe("commentService.getCommentsByMovieId", () => {
   beforeEach(() => {
-    localStorage.clear();
+    vi.clearAllMocks();
   });
 
-  it("getCommentsByMovieId, tohum (seed) yorumları film id'sine göre döner", async () => {
-    const comments = await commentService.getCommentsByMovieId(1);
+  it("film id'siyle sayfalı olarak okur ve arayüz şekline çevirir", async () => {
+    apiClient.get.mockResolvedValue({ items: [commentDto()] });
 
-    expect(comments.length).toBeGreaterThan(0);
-    expect(
-      comments.every((comment) => comment.movieId === 1)
-    ).toBe(true);
-  });
+    const comments = await commentService.getCommentsByMovieId(7);
 
-  it("hiç yorumu olmayan bir film için boş dizi döner", async () => {
-    const comments = await commentService.getCommentsByMovieId(999);
-
-    expect(comments).toEqual([]);
-  });
-
-  it("addComment, 10 karakterden kısa yorumu reddeder", async () => {
-    await expect(
-      commentService.addComment(1, testUser, "kısa")
-    ).rejects.toThrow(/10-500 karakter/);
-  });
-
-  it("addComment, 500 karakterden uzun yorumu reddeder", async () => {
-    const longText = "a".repeat(501);
-
-    await expect(
-      commentService.addComment(1, testUser, longText)
-    ).rejects.toThrow(/10-500 karakter/);
-  });
-
-  it("addComment, yasaklı kelime içeren yorumu reddeder", async () => {
-    await expect(
-      commentService.addComment(
-        1,
-        testUser,
-        "Bu film gerçekten çok aptalca bir hikayeydi."
-      )
-    ).rejects.toThrow(/uygunsuz/);
-  });
-
-  it("addComment, geçerli yorumu kaydeder ve listede görünür", async () => {
-    await commentService.addComment(
-      1,
-      testUser,
-      "Gerçekten güzel bir filmdi, tavsiye ederim."
+    expect(apiClient.get).toHaveBeenCalledWith(
+      "/comments?movieId=7&pageNumber=1&pageSize=50"
     );
 
-    const comments = await commentService.getCommentsByMovieId(1);
-
-    expect(
-      comments.some(
-        (comment) =>
-          comment.text ===
-          "Gerçekten güzel bir filmdi, tavsiye ederim."
-      )
-    ).toBe(true);
+    expect(comments[0]).toMatchObject({
+      id: 1,
+      userName: "kaan",
+      rating: 4,
+      text: "Fena değildi.",
+    });
   });
 
-  it("yeni yorumlar en üstte listelenir (tarihe göre yeniden eskiye)", async () => {
-    await commentService.addComment(
-      2,
-      testUser,
-      "İlk eklenen yorum metni budur."
-    );
-    await new Promise((resolve) => setTimeout(resolve, 5));
-    await commentService.addComment(
-      2,
-      otherUser,
-      "İkinci eklenen yorum metni budur."
-    );
+  it("metni olmayan (yalnızca puan) kaydı boş metne çevirir", async () => {
+    // T10: yorum metni isteğe bağlı.
+    apiClient.get.mockResolvedValue({
+      items: [commentDto({ content: null })],
+    });
 
-    const comments = await commentService.getCommentsByMovieId(2);
+    const [comment] = await commentService.getCommentsByMovieId(7);
 
-    expect(comments[0].text).toBe(
-      "İkinci eklenen yorum metni budur."
-    );
+    expect(comment.text).toBe("");
+    expect(comment.rating).toBe(4);
   });
 
-  it("updateComment, yalnızca yorumun sahibi tarafından düzenlenebilir", async () => {
-    const created = await commentService.addComment(
-      1,
-      testUser,
-      "Düzenlenecek olan orijinal yorum metni."
-    );
+  it("boş cevapta çökmez", async () => {
+    apiClient.get.mockResolvedValue(null);
 
     await expect(
-      commentService.updateComment(
-        created.id,
-        otherUser.id,
-        "Başkasının yorumunu değiştirmeye çalışıyorum."
-      )
-    ).rejects.toThrow(/kendi yorumunu/);
+      commentService.getCommentsByMovieId(7)
+    ).resolves.toEqual([]);
+  });
+});
+
+describe("commentService.addComment", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    apiClient.post.mockResolvedValue(1);
   });
 
-  it("updateComment, sahibi tarafından çağrılınca metni günceller", async () => {
-    const created = await commentService.addComment(
-      1,
-      testUser,
-      "Düzenlenecek olan orijinal yorum metni."
-    );
+  it("puan ve metni birlikte gönderir", async () => {
+    await commentService.addComment(7, {
+      rating: 5,
+      content: "  Harikaydı.  ",
+    });
 
-    const updated = await commentService.updateComment(
-      created.id,
-      testUser.id,
-      "Güncellenmiş yorum metni işte budur."
-    );
-
-    expect(updated.text).toBe(
-      "Güncellenmiş yorum metni işte budur."
-    );
+    expect(apiClient.post).toHaveBeenCalledWith("/comments", {
+      movieId: 7,
+      rating: 5,
+      content: "Harikaydı.",
+    });
   });
 
-  it("deleteComment, yalnızca yorumun sahibi tarafından silinebilir", async () => {
-    const created = await commentService.addComment(
-      1,
-      testUser,
-      "Silinecek olan yorum metni budur işte."
-    );
+  it("metin boşsa content null gönderir", async () => {
+    await commentService.addComment(7, { rating: 3, content: "   " });
 
-    await expect(
-      commentService.deleteComment(created.id, otherUser.id)
-    ).rejects.toThrow(/kendi yorumunu/);
+    expect(apiClient.post).toHaveBeenCalledWith("/comments", {
+      movieId: 7,
+      rating: 3,
+      content: null,
+    });
   });
 
-  it("deleteComment, sahibi tarafından çağrılınca yorumu kaldırır", async () => {
-    const created = await commentService.addComment(
-      1,
-      testUser,
-      "Silinecek olan yorum metni budur işte."
-    );
+  it("metin hiç verilmezse de çalışır", async () => {
+    await commentService.addComment(7, { rating: 1 });
 
-    await commentService.deleteComment(created.id, testUser.id);
+    const [, body] = apiClient.post.mock.calls[0];
+    expect(body.content).toBeNull();
+  });
+});
 
-    const comments = await commentService.getCommentsByMovieId(1);
-
-    expect(
-      comments.some((comment) => comment.id === created.id)
-    ).toBe(false);
+describe("commentService.deleteComment", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("var olmayan bir yorumu güncellemeye/silmeye çalışmak hata fırlatır", async () => {
-    await expect(
-      commentService.updateComment(
-        "yok-boyle-bir-id",
-        testUser.id,
-        "Herhangi bir metin buraya yazılabilir."
-      )
-    ).rejects.toThrow(/bulunamadı/);
+  it("yorum kimliğiyle siler", async () => {
+    apiClient.del.mockResolvedValue(null);
 
-    await expect(
-      commentService.deleteComment("yok-boyle-bir-id", testUser.id)
-    ).rejects.toThrow(/bulunamadı/);
+    await commentService.deleteComment(9);
+
+    // Sahibi mi moderatör mü ayrımını backend yapıyor; ayrı uç yok.
+    expect(apiClient.del).toHaveBeenCalledWith("/comments/9");
   });
 });

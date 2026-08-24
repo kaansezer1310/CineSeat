@@ -1,32 +1,54 @@
-import sessions from "../data/sessions.js";
-import { NotFoundError } from "./errors.js";
+import apiClient from "./apiClient.js";
 
-function wait(milliseconds) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
+// Backend `ShowtimeDto` döner:
+//   { id, movieId, hallId, startDatetime, basePrice, format,
+//     hallName, cinemaName, totalSeats }
+//
+// Arayüz seansı "13 Temmuz · 13:30 · Salon 1" biçiminde gösteriyor; ham ISO
+// tarihi ekrana basılamaz. Bu yüzden burada hem görüntüleme alanları
+// (`date`/`time`) hem de karşılaştırma için ham `startDatetime` birlikte
+// taşınır — mevcut ekranlar ve sepet öğeleri alan adlarını değiştirmeden
+// çalışmaya devam eder.
+const DATE_FORMATTER = new Intl.DateTimeFormat("tr-TR", {
+  day: "numeric",
+  month: "long",
+});
+
+const TIME_FORMATTER = new Intl.DateTimeFormat("tr-TR", {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function mapShowtimeDto(dto) {
+  const startsAt = new Date(dto.startDatetime);
+  const isValidDate = !Number.isNaN(startsAt.getTime());
+
+  return {
+    id: dto.id,
+    movieId: dto.movieId,
+    hallId: dto.hallId,
+    startDatetime: dto.startDatetime,
+    date: isValidDate ? DATE_FORMATTER.format(startsAt) : "",
+    time: isValidDate ? TIME_FORMATTER.format(startsAt) : "",
+    hallName: dto.hallName ?? "",
+    cinemaName: dto.cinemaName ?? "",
+    price: Number(dto.basePrice) || 0,
+    totalSeats: dto.totalSeats ?? 0,
+    format: dto.format ?? null,
+  };
 }
 
-async function getSessionsByMovieId(movieId) {
-  await wait(500);
+async function getSessionsByMovieId(movieId, { pageSize = 50 } = {}) {
+  const result = await apiClient.get(
+    `/showtimes/by-movie/${movieId}?pageNumber=1&pageSize=${pageSize}`
+  );
 
-  return sessions.filter((session) => {
-    return session.movieId === movieId;
-  });
+  return (result?.items ?? []).map(mapShowtimeDto);
 }
 
 async function getSessionById(sessionId) {
-  await wait(400);
-
-  const session = sessions.find((sessionItem) => {
-    return sessionItem.id === sessionId;
-  });
-
-  if (!session) {
-    throw new NotFoundError("Seans bulunamadı.");
-  }
-
-  return session;
+  const dto = await apiClient.get(`/showtimes/${sessionId}`);
+  return mapShowtimeDto(dto);
 }
 
 const TURKISH_MONTHS = {
@@ -50,11 +72,9 @@ const TURKISH_MONTHS = {
   aralik: 11,
 };
 
-// Seans verisindeki `date` alanı yıl içermeyen bir görüntüleme metni
-// ("13 Temmuz") — REQ-18'in "gösterim saati geçmiş/geçmemiş" ayrımını doğru
-// yapabilmek için `time` ile birlikte gerçek bir Date'e çevrilmesi gerekir.
-// Yıl bilgisi olmadığından referans tarihin yılı varsayılır (mock veri
-// zaten tek bir takvim yılı içinde kurgulanmış — bkz. movies.js releaseDate).
+// Görüntüleme metni ("13 Temmuz" + "13:30") yıl içermez. Sepete daha önce
+// eklenmiş ya da geçmiş rezervasyonlardan gelen öğelerde yalnızca bu metinler
+// bulunabilir; o durumda referans tarihin yılı varsayılır.
 function parseSessionDateTime(dateText, timeText, referenceDate = new Date()) {
   if (!dateText || !timeText) {
     return null;
@@ -104,11 +124,25 @@ function hasSessionPassed(dateText, timeText, referenceDate = new Date()) {
   return sessionDateTime < referenceDate;
 }
 
+// ISO tarih varsa yıl tahmini yapmaya gerek yok — bu yol her zaman tercih
+// edilmeli; `hasSessionPassed` yalnızca eski/eksik veri için geri düşüştür.
+function isShowtimeInPast(item, referenceDate = new Date()) {
+  if (item?.startDatetime) {
+    const startsAt = new Date(item.startDatetime);
+    if (!Number.isNaN(startsAt.getTime())) {
+      return startsAt < referenceDate;
+    }
+  }
+
+  return hasSessionPassed(item?.date, item?.time, referenceDate);
+}
+
 const sessionService = {
   getSessionsByMovieId,
   getSessionById,
   parseSessionDateTime,
   hasSessionPassed,
+  isShowtimeInPast,
 };
 
 export default sessionService;

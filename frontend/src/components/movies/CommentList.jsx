@@ -1,12 +1,8 @@
-import { useState } from "react";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import useAuth from "../../hooks/useAuth.js";
 import commentService from "../../services/commentService.js";
+import { PERMISSIONS } from "../../constants/permissions.js";
 
 const dateFormatter = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -16,24 +12,24 @@ const dateFormatter = new Intl.DateTimeFormat("tr-TR", {
   minute: "2-digit",
 });
 
-// Tohum (mock) yorumlar `seed-` önekiyle geliyor ve düzenlenemez/silinemez —
-// gerçek bir kullanıcıya ait olmayan, demo/geçmiş veri olarak davranılır.
-// Yalnızca kullanıcının KENDİ eklediği (`comment-` önekli) yorumlar, aynı
-// kullanıcı tarafından düzenlenebilir/silinebilir.
-function isOwnEditableComment(comment, user) {
+function RatingBadge({ rating }) {
   return (
-    Boolean(user) &&
-    comment.userId === user.id &&
-    comment.id.startsWith("comment-")
+    <span
+      className="comment-item-rating"
+      aria-label={`${rating} yıldız`}
+      title={`${rating} / 5`}
+    >
+      <span aria-hidden="true">{"★".repeat(rating)}</span>
+      <span aria-hidden="true" className="comment-item-rating-empty">
+        {"★".repeat(Math.max(0, 5 - rating))}
+      </span>
+    </span>
   );
 }
 
 function CommentList({ movieId }) {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const queryClient = useQueryClient();
-
-  const [editingCommentId, setEditingCommentId] = useState(null);
-  const [editingText, setEditingText] = useState("");
 
   const {
     data: comments = [],
@@ -45,37 +41,21 @@ function CommentList({ movieId }) {
     staleTime: 10 * 1000,
   });
 
-  const updateCommentMutation = useMutation({
-    mutationFn: ({ commentId, text }) =>
-      commentService.updateComment(commentId, user.id, text),
-    onSuccess: () => {
-      setEditingCommentId(null);
-      queryClient.invalidateQueries({
-        queryKey: ["comments", movieId],
-      });
-    },
-  });
-
   const deleteCommentMutation = useMutation({
-    mutationFn: (commentId) =>
-      commentService.deleteComment(commentId, user.id),
+    mutationFn: (commentId) => commentService.deleteComment(commentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["comments", movieId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["comments", movieId] });
+      queryClient.invalidateQueries({ queryKey: ["movie", movieId] });
     },
   });
 
-  function startEditing(comment) {
-    setEditingCommentId(comment.id);
-    setEditingText(comment.text);
-  }
+  // Backend düzenleme ucu sunmuyor (yalnızca ekle/sil); bu yüzden düzenleme
+  // arayüzü de yok. Silme yetkisi ise iki kaynaktan gelebilir: kaydın sahibi
+  // olmak ya da `comment.moderate` iznine sahip olmak.
+  const canModerate = hasPermission(PERMISSIONS.COMMENT_MODERATE);
 
-  function handleSaveEdit(commentId) {
-    updateCommentMutation.mutate({
-      commentId,
-      text: editingText,
-    });
+  function canDelete(comment) {
+    return Boolean(user) && (comment.userId === user.id || canModerate);
   }
 
   if (isLoading) {
@@ -93,90 +73,48 @@ function CommentList({ movieId }) {
   if (comments.length === 0) {
     return (
       <p className="comment-list-status">
-        Henüz yorum yapılmamış. İlk yorumu sen yaz!
+        Henüz puan verilmemiş. İlk değerlendirmeyi sen yap!
       </p>
     );
   }
 
   return (
     <ul className="comment-list">
-      {comments.map((comment) => {
-        const isEditing = editingCommentId === comment.id;
-        const canModify = isOwnEditableComment(comment, user);
+      {comments.map((comment) => (
+        <li className="comment-item" key={comment.id}>
+          <div className="comment-item-header">
+            <strong>{comment.userName}</strong>
 
-        return (
-          <li className="comment-item" key={comment.id}>
-            <div className="comment-item-header">
-              <strong>{comment.userName}</strong>
-              <span className="comment-item-date">
-                {dateFormatter.format(new Date(comment.createdAt))}
-              </span>
+            <RatingBadge rating={comment.rating} />
+
+            <span className="comment-item-date">
+              {dateFormatter.format(new Date(comment.createdAt))}
+            </span>
+          </div>
+
+          {/* T10: metin isteğe bağlı — yalnızca puan verilmiş olabilir. */}
+          {comment.text ? (
+            <p className="comment-item-text">{comment.text}</p>
+          ) : (
+            <p className="comment-item-text comment-item-text-empty">
+              Yorum yazılmamış, yalnızca puan verilmiş.
+            </p>
+          )}
+
+          {canDelete(comment) && (
+            <div className="comment-item-actions">
+              <button
+                type="button"
+                className="comment-action-button"
+                onClick={() => deleteCommentMutation.mutate(comment.id)}
+                disabled={deleteCommentMutation.isPending}
+              >
+                Sil
+              </button>
             </div>
-
-            {isEditing ? (
-              <div className="comment-edit-form">
-                <textarea
-                  className="comment-textarea"
-                  value={editingText}
-                  onChange={(event) =>
-                    setEditingText(event.target.value)
-                  }
-                />
-
-                <div className="comment-edit-actions">
-                  <button
-                    className="primary-button"
-                    type="button"
-                    onClick={() => handleSaveEdit(comment.id)}
-                    disabled={updateCommentMutation.isPending}
-                  >
-                    Kaydet
-                  </button>
-
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={() => setEditingCommentId(null)}
-                  >
-                    Vazgeç
-                  </button>
-                </div>
-
-                {updateCommentMutation.isError && (
-                  <p className="comment-form-error">
-                    {updateCommentMutation.error.message}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="comment-item-text">{comment.text}</p>
-            )}
-
-            {canModify && !isEditing && (
-              <div className="comment-item-actions">
-                <button
-                  type="button"
-                  className="comment-action-button"
-                  onClick={() => startEditing(comment)}
-                >
-                  Düzenle
-                </button>
-
-                <button
-                  type="button"
-                  className="comment-action-button"
-                  onClick={() =>
-                    deleteCommentMutation.mutate(comment.id)
-                  }
-                  disabled={deleteCommentMutation.isPending}
-                >
-                  Sil
-                </button>
-              </div>
-            )}
-          </li>
-        );
-      })}
+          )}
+        </li>
+      ))}
     </ul>
   );
 }

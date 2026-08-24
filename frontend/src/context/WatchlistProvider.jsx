@@ -1,84 +1,68 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import useAuth from "../hooks/useAuth.js";
+import favoriteService from "../services/favoriteService.js";
 import WatchlistContext from "./WatchlistContext.js";
 
 /**
- * Sprint 3 / 1.2.7 — İzleme listesi state (REQ-24)
+ * İzleme listesi (REQ-24).
  *
- * Kullanıcı başına localStorage'da tutulan favori film listesi.
- * Yalnız giriş yapan üyeler (member/admin) favori ekleyebilir.
+ * Liste kullanıcı hesabına bağlı olarak backend'de tutulur; tarayıcı verisi
+ * silindiğinde ya da başka bir cihazdan girildiğinde kaybolmaz. Yalnızca
+ * giriş yapmış kullanıcı favori ekleyebilir.
  */
-
-function getStorageKey(userId) {
-  return `cineseat_watchlist_${userId}`;
-}
-
-function loadWatchlist(userId) {
-  if (!userId) return [];
-  try {
-    const stored = localStorage.getItem(getStorageKey(userId));
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveWatchlist(userId, list) {
-  localStorage.setItem(getStorageKey(userId), JSON.stringify(list));
-}
-
 function WatchlistProvider({ children }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
   const userId = user?.id;
 
-  const [watchlist, setWatchlist] = useState(() => loadWatchlist(userId));
+  const { data: favorites = [] } = useQuery({
+    // Kullanıcı anahtara dahil: çıkış/giriş yapıldığında önceki kullanıcının
+    // listesi ekranda kalmaz.
+    queryKey: ["favorites", userId],
+    queryFn: favoriteService.getMyFavorites,
+    enabled: Boolean(userId),
+    staleTime: 60 * 1000,
+  });
 
-  // Kullanıcı değiştiğinde (login/logout) watchlist'i yeni kullanıcının
-  // localStorage kaydından yeniden yükle. React'in "render sırasında state
-  // ayarlama" deseni kullanılıyor (bkz. react.dev/learn/you-might-not-need-an-effect)
-  // — bir `useEffect` içinde senkron `setState` yerine, önceki `userId`'yi
-  // ayrı bir state'te tutup render sırasında karşılaştırarak güncelliyoruz.
-  // Bu, ekstra bir render turu (effect sonrası) olmadan aynı anda commit
-  // edilir ve `react-hooks/set-state-in-effect` kuralını ihlal etmez.
-  const [syncedUserId, setSyncedUserId] = useState(userId);
+  const watchlist = favorites.map((favorite) => favorite.movieId);
 
-  if (syncedUserId !== userId) {
-    setSyncedUserId(userId);
-    setWatchlist(loadWatchlist(userId));
-  }
+  const toggleMutation = useMutation({
+    mutationFn: ({ movieId, isCurrentlyFavorite }) =>
+      isCurrentlyFavorite
+        ? favoriteService.removeFavorite(movieId)
+        : favoriteService.addFavorite(movieId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorites", userId] });
+    },
+  });
+
+  const isFavorite = useCallback(
+    (movieId) => watchlist.includes(movieId),
+    [watchlist]
+  );
 
   const toggleFavorite = useCallback(
     (movieId) => {
-      if (!userId) return;
+      if (!userId) {
+        return;
+      }
 
-      const current = loadWatchlist(userId);
-      const updated = current.includes(movieId)
-        ? current.filter((id) => id !== movieId)
-        : [...current, movieId];
-
-      saveWatchlist(userId, updated);
-      setWatchlist(updated);
+      toggleMutation.mutate({
+        movieId,
+        isCurrentlyFavorite: watchlist.includes(movieId),
+      });
     },
-    [userId]
+    [userId, watchlist, toggleMutation]
   );
 
-  const isFavorite = useCallback(
-    (movieId) => {
-      if (!userId) return false;
-      return loadWatchlist(userId).includes(movieId);
-    },
-    [userId]
-  );
-
-  const getFavoriteMovieIds = useCallback(() => {
-    if (!userId) return [];
-    return loadWatchlist(userId);
-  }, [userId]);
+  const getFavoriteMovieIds = useCallback(() => watchlist, [watchlist]);
 
   return (
     <WatchlistContext.Provider
-      value={{ watchlist, toggleFavorite, isFavorite, getFavoriteMovieIds }}
+      value={{ watchlist, favorites, toggleFavorite, isFavorite, getFavoriteMovieIds }}
     >
       {children}
     </WatchlistContext.Provider>

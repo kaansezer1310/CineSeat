@@ -6,7 +6,7 @@ import { validateLoginForm } from "../services/validation.js";
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, user } = useAuth();
+  const { login, user, isSessionExpired } = useAuth();
 
   // Y2: korumalı bir sayfadan buraya yönlendirilen kullanıcı, giriş
   // yaptıktan sonra ana sayfaya değil gitmek istediği sayfaya döner.
@@ -81,7 +81,13 @@ function LoginPage() {
           <p>CineSeat hesabınıza giriş yapın</p>
         </div>
 
-        {wasRedirected && !generalError && (
+        {isSessionExpired && !generalError && (
+          <div className="auth-notice" role="status">
+            Oturumunuzun süresi doldu. Devam etmek için yeniden giriş yapın.
+          </div>
+        )}
+
+        {wasRedirected && !isSessionExpired && !generalError && (
           <div className="auth-notice" role="status">
             Bu sayfayı görüntülemek için önce giriş yapmalısınız. Giriş
             yaptıktan sonra kaldığınız yerden devam edeceksiniz.

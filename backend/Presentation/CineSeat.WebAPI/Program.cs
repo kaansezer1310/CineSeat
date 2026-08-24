@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using CineSeat.Application;
 using CineSeat.Application.Common.Constants;
 using CineSeat.Application.Common.Interfaces;
@@ -83,7 +84,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+// Enum'lar JSON'da sayi degil ad olarak tasinir ("Adult", "IMAX").
+// Sayi tasindiginda istemci tarafinda ayri bir eslesme tablosu tutmak
+// gerekiyordu; enum'a yeni deger eklendiginde iki taraf sessizce ayrisirdi.
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());

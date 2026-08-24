@@ -778,6 +778,13 @@
   margin: 0 auto;
 }
 
+/* Koltuklar kendi (satir, sutun) konumlarina yerlesir; boylece devre disi
+   koltuklar planda bosluk birakir. Degerleri SeatMap veriden gecirir. */
+.seat[style*="--seat-row"] {
+  grid-row: var(--seat-row);
+  grid-column: var(--seat-column);
+}
+
 .seat {
   display: grid;
   aspect-ratio: 1;
@@ -2832,4 +2839,82 @@
 
 .profile-section-title--spaced {
   margin-top: 32px;
+}
+
+/* --- T10: puan + yorum tek formda ------------------------------------- */
+.comment-rating-field {
+  margin: 0 0 14px;
+  padding: 0;
+  border: none;
+}
+
+.comment-rating-field legend {
+  padding: 0 0 6px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.comment-rating-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.rating-star {
+  padding: 0 2px;
+
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.5;
+
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.rating-star-filled {
+  color: var(--color-yellow-text);
+  opacity: 1;
+}
+
+.rating-star:hover {
+  transform: scale(1.1);
+}
+
+.rating-star:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.comment-optional-hint {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.comment-form-hint {
+  margin: 8px 0 0;
+
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.comment-item-rating {
+  color: var(--color-yellow-text);
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.comment-item-rating-empty {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+}
+
+.comment-item-text-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
 }

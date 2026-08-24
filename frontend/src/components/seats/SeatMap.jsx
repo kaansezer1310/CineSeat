@@ -6,32 +6,6 @@ import {
 } from "../../domain/seatStatus.js";
 import Seat from "./Seat.jsx";
 
-function createSeatIds(totalSeats) {
-  const seatsPerRow = totalSeats === 60 ? 10 : 8;
-  const rowCount = Math.ceil(totalSeats / seatsPerRow);
-
-  const seatIds = [];
-
-  for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
-    const rowLetter = String.fromCharCode(65 + rowIndex);
-
-    for (
-      let seatNumber = 1;
-      seatNumber <= seatsPerRow;
-      seatNumber += 1
-    ) {
-      const seatId = `${rowLetter}${seatNumber}`;
-
-      seatIds.push(seatId);
-    }
-  }
-
-  return {
-    seatIds,
-    seatsPerRow,
-  };
-}
-
 const SEAT_LEGEND_CLASS_NAMES = {
   [SEAT_STATUS.BOS]: "seat-status-bos",
   [SEAT_STATUS.SECILI]: "seat-status-secili",
@@ -39,14 +13,31 @@ const SEAT_LEGEND_CLASS_NAMES = {
   [SEAT_STATUS.DOLU]: "seat-status-dolu",
 };
 
-function SeatMap({
-  totalSeats,
-  seatStatuses,
-  selectedSeats,
-  onSeatSelect,
-}) {
-  const { seatIds, seatsPerRow } =
-    createSeatIds(totalSeats);
+/**
+ * Koltuk planı.
+ *
+ * Koltuklar artık `totalSeats`tan türetilmiyor; salonun gerçek koltuk
+ * listesinden geliyor. Her koltuk kendi (satır, sütun) konumuna
+ * yerleştirildiği için devre dışı/eksik koltuklar planda doğal bir boşluk
+ * bırakır — düzgün bir dikdörtgen varsayımı yok.
+ *
+ * seats: [{ id, label, row, column }]
+ */
+function SeatMap({ seats = [], seatStatuses, selectedSeats, onSeatSelect }) {
+  const columnCount = seats.reduce(
+    (max, seat) => Math.max(max, seat.column ?? 0),
+    0
+  );
+
+  if (seats.length === 0) {
+    return (
+      <div className="seat-map-section">
+        <div className="temporary-panel">
+          Bu seans için koltuk planı bulunamadı.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="seat-map-section">
@@ -58,14 +49,13 @@ function SeatMap({
           (bkz. App.css `.seat-map`), JSX yalnızca değeri geçirir. */}
       <div
         className="seat-map"
-        style={{ "--seat-columns": seatsPerRow }}
+        style={{ "--seat-columns": columnCount || 1 }}
       >
-        {seatIds.map((seatId) => {
+        {seats.map((seat) => {
           const storedStatus =
-            seatStatuses[seatId] ?? SEAT_STATUS.BOS;
+            seatStatuses[seat.id] ?? SEAT_STATUS.BOS;
 
-          const isSelectedLocally =
-            selectedSeats.includes(seatId);
+          const isSelectedLocally = selectedSeats.includes(seat.id);
 
           const status = resolveDisplaySeatStatus(
             storedStatus,
@@ -74,8 +64,11 @@ function SeatMap({
 
           return (
             <Seat
-              key={seatId}
-              seatId={seatId}
+              key={seat.id}
+              seatId={seat.id}
+              label={seat.label}
+              row={seat.row}
+              column={seat.column}
               status={status}
               onSelect={onSeatSelect}
             />

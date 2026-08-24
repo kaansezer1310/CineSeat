@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import useAuth from "../hooks/useAuth.js";
 import useWatchlist from "../hooks/useWatchlist.js";
 import movieService from "../services/movieService.js";
 import reservationService from "../services/reservationService.js";
+import profileService from "../services/profileService.js";
 import sessionService from "../services/sessionService.js";
 import { validateRegisterForm } from "../services/validation.js";
 
@@ -53,15 +54,39 @@ function ProfilePage() {
     }
   };
 
+  const updateProfileMutation = useMutation({
+    mutationFn: profileService.updateProfile,
+    onSuccess: (updatedProfile) => {
+      // Oturumdaki kullanıcıyı da tazele; token aynı kalır.
+      const stored = JSON.parse(
+        sessionStorage.getItem("cineseat_user") ?? "{}"
+      );
+
+      sessionStorage.setItem(
+        "cineseat_user",
+        JSON.stringify({ ...stored, ...updatedProfile })
+      );
+
+      setSaveMessage("Bilgileriniz başarıyla güncellendi.");
+      setFormErrors({});
+      setEditMode(false);
+      setTimeout(() => setSaveMessage(""), 3000);
+    },
+    onError: (error) => {
+      setFormErrors({ general: error.message });
+    },
+  });
+
   const handleSave = () => {
-    // Şifre alanları boşsa doğrulamadan muaf tut (değiştirmek istemiyor)
+    // Şifre alanları boşsa doğrulamadan muaf tut (değiştirmek istemiyor).
+    // Not: şifre değişimi backend'de ayrı bir akış — bu form yalnızca ad,
+    // soyad, telefon ve cinsiyeti günceller.
     const dataToValidate = { ...formData };
     if (!dataToValidate.password && !dataToValidate.passwordConfirm) {
       dataToValidate.password = "SKIP01"; // geçici — validate'ten geçmesi için
       dataToValidate.passwordConfirm = "SKIP01";
     }
     const errors = validateRegisterForm(dataToValidate);
-    // Şifre skip'leniyorsa hataları kaldır
     if (!formData.password && !formData.passwordConfirm) {
       delete errors.password;
       delete errors.passwordConfirm;
@@ -72,44 +97,36 @@ function ProfilePage() {
       return;
     }
 
-    // Mock güncelleme — sessionStorage'daki user'ı güncelle
-    const updatedUser = {
-      ...user,
+    updateProfileMutation.mutate({
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
-      name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-      username: formData.username.trim(),
       phone: formData.phone.trim(),
       gender: formData.gender,
-    };
-    sessionStorage.setItem("cineseat_user", JSON.stringify(updatedUser));
-    setSaveMessage("Bilgileriniz başarıyla güncellendi.");
-    setEditMode(false);
-    setTimeout(() => setSaveMessage(""), 3000);
-  };
-
-  // === BİLETLERİM sekmesi ===
-  const { data: reservations = [] } = useQuery({
-    queryKey: ["reservations"],
-    queryFn: reservationService.getAllReservations,
-    staleTime: 30 * 1000,
-  });
-
-  // REQ-18: "Güncel" / "Geçmiş" ayrımı gösterim saatine göre yapılır —
-  // rezervasyonun ne zaman satın alındığına değil. Bir rezervasyon birden
-  // fazla seans içerebilir; en az bir seansı henüz geçmemişse "Güncel"
-  // sayılır (kullanıcının hâlâ gideceği bir gösterim var demektir).
-  const reservationHasUpcomingSession = (reservation) => {
-    return reservation.items.some((item) => {
-      return !sessionService.hasSessionPassed(item.date, item.time);
     });
   };
 
-  const currentTickets = reservations.filter(
-    reservationHasUpcomingSession
-  );
+  // === BİLETLERİM sekmesi ===
+  // Kullanıcının KENDİ rezervasyonları (GET /api/reservations/my). Önceden
+  // localStorage'dan okunuyordu: başka bir tarayıcıdan girildiğinde liste
+  // boş görünüyordu.
+  const { data: reservationPage } = useQuery({
+    queryKey: ["myReservations"],
+    queryFn: () => reservationService.getMyReservations(),
+    enabled: Boolean(user),
+    staleTime: 30 * 1000,
+  });
+
+  const reservations = reservationPage?.items ?? [];
+
+  // REQ-18: "Güncel" / "Geçmiş" ayrımı gösterim saatine göre yapılır —
+  // rezervasyonun ne zaman satın alındığına değil. Backend seans başlangıcını
+  // ISO tarih olarak döndürdüğü için yıl tahmini gerekmiyor.
+  const isUpcoming = (reservation) =>
+    !sessionService.isShowtimeInPast(reservation);
+
+  const currentTickets = reservations.filter(isUpcoming);
   const pastTickets = reservations.filter(
-    (r) => !reservationHasUpcomingSession(r)
+    (reservation) => !isUpcoming(reservation)
   );
 
   // === İZLEME LİSTEM sekmesi ===
@@ -281,12 +298,15 @@ function ProfilePage() {
               {currentTickets.map((r) => (
                 <div key={r.id} className="profile-ticket-card">
                   <div className="profile-ticket-header">
-                    <strong>{r.id}</strong>
-                    <span>{new Date(r.createdAt).toLocaleString("tr-TR")}</span>
+                    <strong>{r.resNo}</strong>
+                    <span>
+                      {new Date(r.startDatetime).toLocaleString("tr-TR")}
+                    </span>
                   </div>
                   <div className="profile-ticket-body">
+                    <span>{r.movieTitle}</span>
                     <span>{r.ticketCount} bilet</span>
-                    <span>{r.totalPrice?.toFixed(2)} ₺</span>
+                    <span>{r.total.toFixed(2)} ₺</span>
                   </div>
                 </div>
               ))}
@@ -303,12 +323,15 @@ function ProfilePage() {
               {pastTickets.map((r) => (
                 <div key={r.id} className="profile-ticket-card profile-ticket-past">
                   <div className="profile-ticket-header">
-                    <strong>{r.id}</strong>
-                    <span>{new Date(r.createdAt).toLocaleString("tr-TR")}</span>
+                    <strong>{r.resNo}</strong>
+                    <span>
+                      {new Date(r.startDatetime).toLocaleString("tr-TR")}
+                    </span>
                   </div>
                   <div className="profile-ticket-body">
+                    <span>{r.movieTitle}</span>
                     <span>{r.ticketCount} bilet</span>
-                    <span>{r.totalPrice?.toFixed(2)} ₺</span>
+                    <span>{r.total.toFixed(2)} ₺</span>
                   </div>
                 </div>
               ))}

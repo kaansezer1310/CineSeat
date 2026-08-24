@@ -382,7 +382,8 @@ modülün arayüz entegrasyonunu bitirir.
 **Kişi 2 — Backend, veri modeli ve güvenlik**
 
 - [x] **T1:** `MovieDto`'ya tür listesini ekle; liste sorgusunu ve testlerini güncelle
-- [ ] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et *(DTO ve API sözleşmesi tamamlandı; backend entegrasyon testleri bekliyor)*
+- [x] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et
+  <br>→ Düzeltme (24 Ağustos): önceki not "sözleşme tamamlandı" diyordu ama **yenileme ucu yoktu**. `POST /api/seatlocks/renew` eklendi. Ayrıca koltuk haritası için `GET /api/showtimes/{id}/seats` eklendi (salon koltukları + seans bazlı durum). Backend entegrasyon testleri hâlâ bekliyor.
 - [x] **T3:** Sayfalama ile tarih/film/durum filtresi sunan `GET /api/reservations` ucunu ekle ve **`reservation.read` policy'siyle** koru
 - [x] **T5:** Tüm admin controller eylemlerini ilgili izin policy'lerine geçir; yalnızca UI gizlemeye güvenme
 - [x] **T7:** Kalıcı silme yerine `IsDeleted = true` kullanan arşivleme akışını tamamla; gereken kayıtlar için geri alma ucunu ekle

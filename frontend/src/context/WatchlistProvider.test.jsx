@@ -1,72 +1,140 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import AuthContext from "./AuthContext.js";
+import CartProvider from "./CartProvider.jsx";
+import AuthProvider from "./AuthProvider.jsx";
 import WatchlistProvider from "./WatchlistProvider.jsx";
 import useWatchlist from "../hooks/useWatchlist.js";
+import favoriteService from "../services/favoriteService.js";
 
-function TestConsumer() {
-  const { watchlist, toggleFavorite } = useWatchlist();
+vi.mock("../services/favoriteService.js", () => ({
+  default: {
+    getMyFavorites: vi.fn(),
+    addFavorite: vi.fn(),
+    removeFavorite: vi.fn(),
+  },
+}));
+
+function WatchlistProbe() {
+  const { watchlist, isFavorite, toggleFavorite } = useWatchlist();
 
   return (
     <div>
-      <span data-testid="watchlist">{JSON.stringify(watchlist)}</span>
-      <button onClick={() => toggleFavorite(1)}>Toggle 1</button>
+      <p data-testid="ids">{watchlist.join(",")}</p>
+      <p data-testid="is-fav-1">{String(isFavorite(1))}</p>
+      <button type="button" onClick={() => toggleFavorite(1)}>
+        Değiştir
+      </button>
     </div>
   );
 }
 
-function renderWithUser(user) {
-  return render(
-    <AuthContext.Provider value={{ user, role: user?.role ?? "guest" }}>
-      <WatchlistProvider>
-        <TestConsumer />
-      </WatchlistProvider>
-    </AuthContext.Provider>
+function renderProbe() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  render(
+    <QueryClientProvider client={queryClient}>
+      <CartProvider>
+        <AuthProvider>
+          <WatchlistProvider>
+            <WatchlistProbe />
+          </WatchlistProvider>
+        </AuthProvider>
+      </CartProvider>
+    </QueryClientProvider>
   );
 }
 
-describe("WatchlistProvider — kullanıcı değişince yeniden senkronizasyon", () => {
+function signIn(id) {
+  sessionStorage.setItem(
+    "cineseat_user",
+    JSON.stringify({
+      id,
+      name: "Test",
+      email: "test@cineseat.com",
+      role: "member",
+    })
+  );
+}
+
+describe("WatchlistProvider", () => {
   beforeEach(() => {
-    localStorage.clear();
+    vi.clearAllMocks();
+    sessionStorage.clear();
+    favoriteService.getMyFavorites.mockResolvedValue([]);
   });
 
-  it("kullanıcı A'nın favorisi, kullanıcı B'ye geçince (aynı oturumda) sızmaz", () => {
-    localStorage.setItem(
-      "cineseat_watchlist_1",
-      JSON.stringify([42])
-    );
-    localStorage.setItem(
-      "cineseat_watchlist_2",
-      JSON.stringify([])
-    );
+  it("misafir için sunucuya istek atmaz", () => {
+    renderProbe();
 
-    const { rerender } = renderWithUser({ id: 1, role: "member" });
-
-    expect(screen.getByTestId("watchlist").textContent).toBe(
-      "[42]"
-    );
-
-    rerender(
-      <AuthContext.Provider
-        value={{ user: { id: 2, role: "member" }, role: "member" }}
-      >
-        <WatchlistProvider>
-          <TestConsumer />
-        </WatchlistProvider>
-      </AuthContext.Provider>
-    );
-
-    expect(screen.getByTestId("watchlist").textContent).toBe("[]");
+    expect(favoriteService.getMyFavorites).not.toHaveBeenCalled();
+    expect(screen.getByTestId("ids")).toHaveTextContent("");
   });
 
-  it("toggleFavorite, doğru kullanıcının localStorage kaydını günceller", () => {
-    renderWithUser({ id: 5, role: "member" });
+  it("giriş yapmış kullanıcının favorilerini sunucudan okur", async () => {
+    signIn(4);
+    favoriteService.getMyFavorites.mockResolvedValue([
+      { movieId: 1, title: "Çığlık" },
+      { movieId: 3, title: "Ada" },
+    ]);
 
-    fireEvent.click(screen.getByText("Toggle 1"));
+    renderProbe();
 
-    expect(
-      JSON.parse(localStorage.getItem("cineseat_watchlist_5"))
-    ).toEqual([1]);
+    await waitFor(() => {
+      expect(screen.getByTestId("ids")).toHaveTextContent("1,3");
+    });
+
+    expect(screen.getByTestId("is-fav-1")).toHaveTextContent("true");
+  });
+
+  it("favoride olmayan filmi ekler", async () => {
+    signIn(4);
+    favoriteService.addFavorite.mockResolvedValue(null);
+
+    renderProbe();
+
+    await waitFor(() => {
+      expect(favoriteService.getMyFavorites).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Değiştir" }));
+
+    await waitFor(() => {
+      expect(favoriteService.addFavorite).toHaveBeenCalledWith(1);
+    });
+    expect(favoriteService.removeFavorite).not.toHaveBeenCalled();
+  });
+
+  it("favorideki filmi çıkarır", async () => {
+    signIn(4);
+    favoriteService.getMyFavorites.mockResolvedValue([{ movieId: 1 }]);
+    favoriteService.removeFavorite.mockResolvedValue(null);
+
+    renderProbe();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("is-fav-1")).toHaveTextContent("true");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Değiştir" }));
+
+    await waitFor(() => {
+      expect(favoriteService.removeFavorite).toHaveBeenCalledWith(1);
+    });
+  });
+
+  it("misafirken favori değiştirmeye çalışmak istek üretmez", () => {
+    renderProbe();
+
+    fireEvent.click(screen.getByRole("button", { name: "Değiştir" }));
+
+    expect(favoriteService.addFavorite).not.toHaveBeenCalled();
+    expect(favoriteService.removeFavorite).not.toHaveBeenCalled();
   });
 });

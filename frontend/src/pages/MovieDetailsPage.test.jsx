@@ -3,7 +3,6 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from "@testing-library/react";
 import {
   QueryClient,
@@ -26,6 +25,7 @@ import CartProvider from "../context/CartProvider.jsx";
 import AuthProvider from "../context/AuthProvider.jsx";
 import movieService from "../services/movieService.js";
 import sessionService from "../services/sessionService.js";
+import commentService from "../services/commentService.js";
 import MovieDetailsPage from "./MovieDetailsPage.jsx";
 
 vi.mock("../hooks/useWatchlist.js", () => ({
@@ -56,6 +56,15 @@ vi.mock("../services/sessionService.js", () => ({
   },
 }));
 
+vi.mock("../services/commentService.js", () => ({
+  default: {
+    getCommentsByMovieId: vi.fn(),
+    addComment: vi.fn(),
+    deleteComment: vi.fn(),
+    MAX_LENGTH: 1000,
+  },
+}));
+
 function renderMovieDetailsPage(movieId = 1) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -80,15 +89,16 @@ function renderMovieDetailsPage(movieId = 1) {
 }
 
 function loginAsMember() {
-  sessionStorage.setItem(
-    "cineseat_user",
-    JSON.stringify({
-      id: 4,
-      name: "Berke",
-      email: "berke@cineseat.com",
-      role: "member",
-    })
-  );
+  const user = {
+    id: 4,
+    name: "Berke",
+    email: "berke@cineseat.com",
+    role: "member",
+  };
+
+  sessionStorage.setItem("cineseat_user", JSON.stringify(user));
+
+  return user;
 }
 
 const movieWithTrailer = {
@@ -206,230 +216,163 @@ describe("MovieDetailsPage — Fragman modalı (1.3.8)", () => {
   });
 });
 
-// id: 5 gerçek movies.js'te rating {average: 0, count: 0} ile tohumlanmış —
-// bu testler gerçek seed puanıyla karışmadan, sıfırdan puanlama davranışını
-// doğrulayabilsin diye kasıtlı seçildi (ratingService, movie.id üzerinden
-// gerçek data/movies.js'e bakıyor, test mock'una değil).
-const movieForRatingTests = {
-  ...movieWithTrailer,
-  id: 5,
-};
-
-describe("MovieDetailsPage — Puanlama (1.3.9)", () => {
+// T10: puan ve yorum tek kayıt. Yıldız artık yorum formunun içinde ve
+// puan zorunlu, metin isteğe bağlı. Ayrı `ratingService` kaldırıldı.
+describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
     localStorage.clear();
     sessionService.getSessionsByMovieId.mockResolvedValue([]);
-    movieService.getMovieById.mockResolvedValue(
-      movieForRatingTests
-    );
+    movieService.getMovieById.mockResolvedValue(movieWithTrailer);
+    commentService.getCommentsByMovieId.mockResolvedValue([]);
+    commentService.addComment.mockResolvedValue(42);
   });
 
-  it("ziyaretçi için yıldızlar pasiftir, giriş uyarısı gösterilir", async () => {
+  it("ziyaretçiye form yerine giriş uyarısı gösterilir", async () => {
     renderMovieDetailsPage();
 
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    expect(
-      screen.getByText("Puan vermek için giriş yapmalısın.")
-    ).toBeInTheDocument();
-
-    const firstStar = screen.getByRole("button", {
-      name: "1 yıldız ver",
-    });
-
-    expect(firstStar).toBeDisabled();
-  });
-
-  it("üye bir yıldıza tıklayınca puanı gönderir ve özet güncellenir", async () => {
-    loginAsMember();
-
-    renderMovieDetailsPage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    expect(
-      screen.queryByText("Puan vermek için giriş yapmalısın.")
-    ).not.toBeInTheDocument();
-
-    const fifthStar = screen.getByRole("button", {
-      name: "5 yıldız ver",
-    });
-
-    expect(fifthStar).not.toBeDisabled();
-
-    fireEvent.click(fifthStar);
-
-    expect(
-      await screen.findByText("5.0 / 5 (1 oy)")
-    ).toBeInTheDocument();
-  });
-});
-
-describe("MovieDetailsPage — Yorumlar (1.3.10 / 1.3.11)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    sessionStorage.clear();
-    localStorage.clear();
-    sessionService.getSessionsByMovieId.mockResolvedValue([]);
-  });
-
-  it("ziyaretçiye yorum formu yerine giriş uyarısı gösterilir", async () => {
-    movieService.getMovieById.mockResolvedValue({
-      ...movieWithTrailer,
-      id: 3,
-    });
-
-    renderMovieDetailsPage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    expect(
-      screen.getByText("Yorum yapmak için giriş yapın.")
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText("Yorumun")
-    ).not.toBeInTheDocument();
-  });
-
-  it("hiç yorumu olmayan bir filmde boş durum mesajı gösterir", async () => {
-    movieService.getMovieById.mockResolvedValue({
-      ...movieWithTrailer,
-      id: 3,
-    });
-
-    renderMovieDetailsPage();
+    await screen.findByRole("heading", { name: "Neon Yağmuru" });
 
     expect(
       await screen.findByText(
-        "Henüz yorum yapılmamış. İlk yorumu sen yaz!"
+        "Puan vermek ve yorum yapmak için giriş yapın."
       )
     ).toBeInTheDocument();
   });
 
-  it("id 1 filminde tohum (mock) yorumlar listelenir", async () => {
-    movieService.getMovieById.mockResolvedValue({
-      ...movieWithTrailer,
-      id: 1,
-    });
-
-    renderMovieDetailsPage();
-
-    expect(
-      await screen.findByText(
-        /Görsel efektler harikaydı/
-      )
-    ).toBeInTheDocument();
-  });
-
-  it("üye, kısa bir yorumla gönder butonunu etkinleştiremez", async () => {
+  it("yıldız seçilmeden gönder butonu etkin değildir", async () => {
     loginAsMember();
-    movieService.getMovieById.mockResolvedValue({
-      ...movieWithTrailer,
-      id: 3,
-    });
 
     renderMovieDetailsPage();
 
-    const textarea = await screen.findByLabelText("Yorumun");
-
-    fireEvent.change(textarea, { target: { value: "kısa" } });
+    await screen.findByRole("heading", { name: "Neon Yağmuru" });
 
     expect(
-      screen.getByRole("button", { name: "Yorum Yap" })
+      await screen.findByRole("button", { name: "Gönder" })
     ).toBeDisabled();
+    expect(
+      screen.getByText("Göndermek için önce bir yıldız seç.")
+    ).toBeInTheDocument();
   });
 
-  it("üye geçerli bir yorum gönderince listede görünür", async () => {
+  it("yalnızca yıldız seçilerek, metin yazmadan gönderilebilir", async () => {
     loginAsMember();
-    movieService.getMovieById.mockResolvedValue({
-      ...movieWithTrailer,
-      id: 3,
-    });
 
     renderMovieDetailsPage();
 
-    const textarea = await screen.findByLabelText("Yorumun");
-
-    fireEvent.change(textarea, {
-      target: {
-        value: "Bu film hakkında gerçekten olumlu düşünüyorum.",
-      },
-    });
+    await screen.findByRole("heading", { name: "Neon Yağmuru" });
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Yorum Yap" })
+      await screen.findByRole("button", { name: "4 yıldız ver" })
     );
 
-    // Buton "Yorum Yap"a dönene kadar bekle — mutation tamamlanmadan
-    // metni sadece textarea'nın kendi (React kontrollü) içeriğinde de
-    // bulmak mümkün, bu yüzden gerçek listeye düşene kadar bekliyoruz.
-    await screen.findByRole("button", { name: "Yorum Yap" });
+    const submit = screen.getByRole("button", { name: "Gönder" });
+    expect(submit).toBeEnabled();
 
-    const list = await screen.findByRole("list");
+    fireEvent.click(submit);
+
+    await waitFor(() => {
+      expect(commentService.addComment).toHaveBeenCalledWith(1, {
+        rating: 4,
+        content: "",
+      });
+    });
+  });
+
+  it("yıldız ve metin birlikte gönderilir", async () => {
+    loginAsMember();
+
+    renderMovieDetailsPage();
+
+    await screen.findByRole("heading", { name: "Neon Yağmuru" });
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "5 yıldız ver" })
+    );
+
+    fireEvent.change(screen.getByLabelText(/Yorumun/), {
+      target: { value: "Görsel efektler harikaydı." },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Gönder" }));
+
+    await waitFor(() => {
+      expect(commentService.addComment).toHaveBeenCalledWith(1, {
+        rating: 5,
+        content: "Görsel efektler harikaydı.",
+      });
+    });
+  });
+
+  it("metinsiz bir değerlendirmede listede açıklama gösterir", async () => {
+    commentService.getCommentsByMovieId.mockResolvedValue([
+      {
+        id: 9,
+        movieId: 1,
+        userId: 2,
+        userName: "kaan",
+        rating: 3,
+        text: "",
+        isEdited: false,
+        createdAt: "2026-08-01T10:00:00+03:00",
+      },
+    ]);
+
+    renderMovieDetailsPage();
 
     expect(
-      await within(list).findByText(
-        "Bu film hakkında gerçekten olumlu düşünüyorum."
+      await screen.findByText(
+        "Yorum yazılmamış, yalnızca puan verilmiş."
       )
     ).toBeInTheDocument();
   });
 
-  it("üye kendi yorumunu silebilir, başkasının yorumunda düzenle/sil butonu görmez", async () => {
+  it("başkasının yorumunda silme butonu göstermez", async () => {
     loginAsMember();
-    movieService.getMovieById.mockResolvedValue({
-      ...movieWithTrailer,
-      id: 1,
-    });
+    commentService.getCommentsByMovieId.mockResolvedValue([
+      {
+        id: 9,
+        movieId: 1,
+        userId: 999,
+        userName: "baskasi",
+        rating: 3,
+        text: "Fena değildi.",
+        isEdited: false,
+        createdAt: "2026-08-01T10:00:00+03:00",
+      },
+    ]);
 
     renderMovieDetailsPage();
 
-    // id 1'deki seed yorumlar başka kullanıcılara ait — düzenle/sil yok.
-    await screen.findByText(/Görsel efektler harikaydı/);
+    await screen.findByText("Fena değildi.");
 
     expect(
       screen.queryByRole("button", { name: "Sil" })
     ).not.toBeInTheDocument();
+  });
 
-    const textarea = screen.getByLabelText("Yorumun");
+  it("kendi yorumunda silme butonu gösterir", async () => {
+    const user = loginAsMember();
+    commentService.getCommentsByMovieId.mockResolvedValue([
+      {
+        id: 9,
+        movieId: 1,
+        userId: user.id,
+        userName: user.name,
+        rating: 3,
+        text: "Kendi yorumum.",
+        isEdited: false,
+        createdAt: "2026-08-01T10:00:00+03:00",
+      },
+    ]);
 
-    fireEvent.change(textarea, {
-      target: { value: "Kendi eklediğim yeni yorum metni." },
-    });
+    renderMovieDetailsPage();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Yorum Yap" })
-    );
+    await screen.findByText("Kendi yorumum.");
 
-    await screen.findByRole("button", { name: "Yorum Yap" });
-
-    const list = await screen.findByRole("list");
-
-    await within(list).findByText(
-      "Kendi eklediğim yeni yorum metni."
-    );
-
-    const deleteButtons = within(list).getAllByRole("button", {
-      name: "Sil",
-    });
-
-    expect(deleteButtons).toHaveLength(1);
-
-    fireEvent.click(deleteButtons[0]);
-
-    await waitFor(() => {
-      expect(
-        within(list).queryByText(
-          "Kendi eklediğim yeni yorum metni."
-        )
-      ).not.toBeInTheDocument();
-    });
+    expect(
+      screen.getByRole("button", { name: "Sil" })
+    ).toBeInTheDocument();
   });
 });
