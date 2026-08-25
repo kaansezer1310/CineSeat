@@ -162,6 +162,29 @@ describe("PaymentPage — ödeme simülasyonu (T6)", () => {
     });
   });
 
+  it("koltuk kilidi alınamazsa kullanıcıyı çıkmazda bırakmaz", async () => {
+    // Kilit gelmezse "Koltuklar ayriliyor..." butonu sonsuza kadar kapali
+    // kaliyor ve kullaniciya neden odeyemedigi hic soylenmiyordu.
+    seatService.lockSeats.mockResolvedValue([]);
+
+    renderPaymentPage();
+
+    expect(
+      await screen.findByText(/Koltuklariniz ayrilamadi/i)
+    ).toBeInTheDocument();
+  });
+
+  it("kart numarası sınırsız uzatılamaz", async () => {
+    renderPaymentPage();
+
+    const input = await screen.findByLabelText(/Kart Numarası/i);
+
+    fireEvent.change(input, { target: { value: "4".padEnd(40, "9") } });
+
+    // Hicbir kart 19 haneden uzun degil.
+    expect(input.value.replace(/\s/g, "")).toHaveLength(19);
+  });
+
   it("demo ödeme olduğunu açıkça belirtir", async () => {
     renderPaymentPage();
 

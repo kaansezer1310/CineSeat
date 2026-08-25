@@ -12,7 +12,7 @@
 |---|---|---|
 | `dotnet build CineSeat.slnx` | 0 hata | **0 hata** |
 | `npm run lint` | 0 hata | **0 hata** |
-| `npm run test:run` | 223 / 223 (28 dosya) | **400 / 400 (47 dosya)** |
+| `npm run test:run` | 223 / 223 (28 dosya) | **407 / 407 (47 dosya)** |
 | `dotnet test` | (test projesi yoktu) | **107 / 107** entegrasyon testi |
 | `npm run build` | 351,90 kB (gzip 107,31) | **351,51 kB (gzip 107,18)** + ekran başına ayrı parça |
 | Mock veride çalışan servis | 7 | **0** |
@@ -1038,3 +1038,79 @@ npm run lint                  → 0 hata
 npm run test:run              → 400 / 400 (47 dosya)
 npm run build                 → başarılı
 ```
+
+---
+
+## 16. "Koltuklar ayrılıyor…" takılması ve kart numarası sınırı
+
+### 16.1 Ödemenin tamamlanamamasının sebebi
+
+Ödeme butonu "Koltuklar ayrılıyor…" yazısıyla kalıcı olarak kapalı kalıyordu.
+Ekranda hata da yoktu.
+
+Sebep **kodda değil, çalışan süreçteydi**: Visual Studio'nun ayağa kaldırdığı
+backend, hata ayıklayıcı bir istisnada duraklattığı için **donmuştu**. Ölçüldü:
+
+```
+GET /api/movies -> HTTP 000 (zaman aşımı)
+```
+
+`PaymentPage`, kilitleri aldıktan sonra `lockExpiresAt` değerini set ediyor ve
+buton `isLocking = lockExpiresAt === null` koşuluna bağlı. Donmuş sunucuya
+giden kilit istekleri **hiç dönmediği** için bu değer hiç oluşmuyordu. Hata
+görünmemesinin sebebi de bu: istek başarısız olmuyor, yalnızca sonuçlanmıyor.
+
+Süreç yenilendikten sonra akışın tamamı doğrulandı:
+
+| Adım | Sonuç |
+|---|---|
+| `POST /seatlocks` (koltuk 251) | 200 — `lockExpiresAt` dolu |
+| `POST /seatlocks` (koltuk 252) | 200 |
+| `POST /reservations` | 200 — RES-76F84DF47D |
+| Fiyat | 260 (Yetişkin) + **130** (Çocuk = 260 × 0.50) = 390 |
+| `DELETE /seatlocks/17` ve `/18` | **204** |
+
+Son iki satır §15'teki iki düzeltmeyi de sahada doğruluyor: çocuk çarpanı artık
+iki tarafta da 0.50, ve rezervasyonun sildiği kilitleri bırakmak 404 yerine
+204 dönüyor — donmanın kaynağı olan istisna artık hiç oluşmuyor.
+
+### 16.2 Kullanıcıyı çıkmazda bırakmama
+
+Kök sebep süreçteydi, ancak arayüzün bu duruma verdiği tepki de kusurluydu:
+hiç kilit alınamadığında `acquired.reduce(..., null)` `null` döndürüyor, buton
+sonsuza kadar kapalı kalıyor ve kullanıcıya **hiçbir şey söylenmiyordu**.
+
+Artık boş sonuç açık bir hata olarak ele alınıyor; kullanıcı sepete dönüp
+tekrar denemesi gerektiğini görüyor.
+
+### 16.3 Kart numarası sınırsız uzuyordu
+
+Girdide `maxLength` yoktu ve `formatCardNumber` de rakamları kırpmıyordu;
+kart numarası istenildiği kadar uzatılabiliyordu.
+
+Sınır **biçimleme fonksiyonuna** kondu — girdinin `onChange`'i zaten oradan
+geçtiği için tek yerde çözülüyor. Marka anlaşıldığında o markanın sınırı,
+anlaşılmadığında hiçbir kartın aşamayacağı 19 hane uygulanıyor:
+
+| Girdi | Sonuç |
+|---|---|
+| Visa, 40 hane | 19 hane |
+| Amex (`37…`), 30 hane | **15 hane** |
+| Mastercard (`55…`), 30 hane | **16 hane** |
+| Markası belirsiz, 40 hane | 19 hane |
+
+Girdiye ayrıca `maxLength={23}` (19 hane + 4 boşluk) eklendi; tarayıcı fazla
+tuş vuruşunu baştan kabul etmiyor.
+
+### 16.4 Doğrulama
+
+```
+dotnet build --no-incremental → 0 uyarı, 0 hata
+dotnet test                   → 107 / 107
+npm run lint                  → 0 hata
+npm run test:run              → 407 / 407 (47 dosya)
+npm run build                 → başarılı
+```
+
+Yeni testler: kart uzunluk sınırı için 5, kilit alınamama çıkmazı ve girdi
+sınırı için 2.

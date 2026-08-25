@@ -108,6 +108,15 @@ function PaymentPage() {
         return;
       }
 
+      // Hic kilit alinamadiysa buton "Koltuklar ayriliyor..." halinde sonsuza
+      // kadar kapali kalirdi: kullaniciya ne oldugunu soylemeyen bir cikmaz.
+      if (acquired.length === 0) {
+        setLockError(
+          "Koltuklariniz ayrilamadi. Lutfen sepetinize donup tekrar deneyin."
+        );
+        return;
+      }
+
       lockIdsRef.current = acquired.map((lock) => lock.id);
       storeLockIds(lockIdsRef.current);
 
@@ -457,10 +466,13 @@ function PaymentPage() {
                   <span className="payment-card-brand"> · {cardBrandLabel}</span>
                 )}
               </label>
+              {/* maxLength: 19 hane + aradaki 4 bosluk. Hicbir kart bundan
+                  uzun degil; bicimleme de ayrica kirpiyor (formatCardNumber). */}
               <input
                 id="payment-cardNumber"
                 type="text"
                 inputMode="numeric"
+                maxLength={23}
                 autoComplete="cc-number"
                 placeholder="0000 0000 0000 0000"
                 value={paymentForm.cardNumber}
