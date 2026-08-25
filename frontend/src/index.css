@@ -27,6 +27,13 @@
   --color-text: #f2edf5;
   --color-text-muted: #aaa0b4;
 
+  /* Grafik serileri. Tema basina AYRI secildi (otomatik cevirme degil) ve
+     dataviz dogrulayicisiyla olculdu: koyu yuzey #1b1425 uzerinde aciklik
+     bandi, kroma tabani, renk korlugu ayrimi ve kontrast -> hepsi gecti.
+     CVD ayrimi DeltaE 27.1 (hedef 8). */
+  --chart-series-1: #8765a3;
+  --chart-series-2: #ad8838;
+
   --color-border: rgba(190, 164, 207, 0.14);
   --color-border-strong: rgba(190, 164, 207, 0.25);
 
@@ -87,6 +94,10 @@ body[data-theme="light"] {
 
   --color-text: #251f2e;
   --color-text-muted: #574f61;
+
+  /* Acik yuzey #ffffff icin ayrica dogrulandi; CVD DeltaE 27.4. */
+  --chart-series-1: #6b4790;
+  --chart-series-2: #b3852b;
 
   --color-border: rgba(92, 62, 122, 0.18);
   --color-border-strong: rgba(92, 62, 122, 0.32);

@@ -31,7 +31,11 @@
 .main-navigation {
   display: flex;
   align-items: center;
-  gap: 28px;
+  flex-wrap: wrap;
+
+  /* Grup ici aralik dar, ayiricinin iki yani genis: boylece hangi ogenin
+     hangi gruba ait oldugu bakisla anlasiliyor. */
+  gap: 22px;
 }
 
 .main-navigation a {
@@ -2487,10 +2491,30 @@
   background: var(--color-header-accent);
 }
 
-.main-navigation-greeting {
-  color: var(--color-header-text-muted);
+/* Site gezintisi ile hesap islemlerini ayiran ince cizgi. Onceden hepsi tek
+   duz siradaydi ve pesi sira yazilmis gibi okunuyordu. */
+.main-navigation-divider {
+  width: 1px;
+  height: 20px;
 
-  font-size: 0.95rem;
+  /* Ayiricinin iki yanindaki fazladan bosluk, grup ici araliktan (22px)
+     belirgin sekilde genis olmali; ayrim ancak o zaman bakisla okunuyor. */
+  margin: 0 8px;
+
+  background: var(--color-header-border);
+}
+
+/* Hesap baglantisi kullanicinin adini tasiyor; digerlerinden ayrilsin diye
+   biraz daha belirgin. */
+.main-navigation-account {
+  max-width: 14ch;
+  overflow: hidden;
+
+  color: var(--color-header-text);
+
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .main-navigation-logout {

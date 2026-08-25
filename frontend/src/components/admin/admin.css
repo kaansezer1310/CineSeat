@@ -233,17 +233,59 @@
   margin: 0;
 }
 
-.admin-chart-container {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 30px;
-  margin-top: 40px;
+/* Iki kucuk grafik yan yana. Tek buyuk grafik yerine kucuk katlar: bilet
+   adedi ile gelir ayri olcekler, ayni eksende karsilastirilamaz. */
+.admin-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+
+  margin-top: 32px;
 }
 
-.admin-chart-container h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
+.admin-chart-card {
+  min-width: 0;
+  padding: 20px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background-color: var(--color-surface);
+}
+
+.admin-chart-title {
+  margin: 0 0 16px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-chart-empty {
+  margin: 0;
+  padding: 32px 0;
+
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Cubuk renkleri CSS'ten geliyor: recharts fill'i oznitelik olarak yaziyor,
+   oznitelikte var() cozulmuyor. CSS fill ozelligi onu geciyor ve tema
+   degisince renk de degisiyor. */
+.chart-bar-1 path {
+  fill: var(--chart-series-1);
+}
+
+.chart-bar-2 path {
+  fill: var(--chart-series-2);
+}
+
+/* Izgara geri planda: veri onde olmali. */
+.chart-grid line {
+  stroke: var(--color-border);
 }
 
 /* Tablolar */
@@ -449,8 +491,11 @@
     gap: 16px;
   }
 
-  .admin-chart-container {
-    padding: 18px;
+  .admin-chart-card {
+    padding: 16px;
+  }
+
+  .admin-chart-grid {
     margin-top: 24px;
   }
 }

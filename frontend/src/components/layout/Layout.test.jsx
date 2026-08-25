@@ -113,6 +113,48 @@ describe("Layout ana menü", () => {
   });
 
   // T9: sinemalar artık ana sayfada sekme değil, menüden ulaşılan rota.
+  it("kullanıcı adını profile giden bir bağlantı olarak gösterir", () => {
+    signIn({
+      id: 1,
+      name: "Sistem",
+      role: "Admin",
+      permissions: [],
+      token: "t",
+    });
+
+    renderLayout("/");
+
+    // Onceden "Hosgeldin, X" tiklanmaz bir metindi ama baglantilarin
+    // arasinda baglanti gibi duruyordu. Artik isim profilin kendi etiketi.
+    const hesap = screen.getByRole("link", { name: /Profilim — Sistem/ });
+
+    expect(hesap).toHaveAttribute("href", "/profile");
+  });
+
+  it("giriş yapmamış kullanıcıya hesap bağlantısı göstermez", () => {
+    renderLayout("/");
+
+    expect(
+      screen.queryByRole("link", { name: /Profilim —/ })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş Yap" })).toBeInTheDocument();
+  });
+
+  it("karşılama metnini ayrı bir öğe olarak bırakmaz", () => {
+    signIn({
+      id: 1,
+      name: "Sistem",
+      role: "Admin",
+      permissions: [],
+      token: "t",
+    });
+
+    renderLayout("/");
+
+    // Ayni bilgiyi iki kez soyleyen olu metin geri gelmemeli.
+    expect(screen.queryByText(/Hoşgeldin/)).not.toBeInTheDocument();
+  });
+
   it("menüden /cinemas rotasına bağlantı verir", () => {
     renderLayout();
 

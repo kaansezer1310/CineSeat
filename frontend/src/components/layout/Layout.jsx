@@ -56,14 +56,24 @@ function Layout() {
             </NavLink>
           </PermissionGate>
 
+          {/* Site gezintisi burada biter; asagisi hesap islemleri. Ayirici,
+              iki grubu birbirine karistirmadan okunur kiliyor. */}
+          <span className="main-navigation-divider" aria-hidden="true" />
+
           {user ? (
             <>
-              <span className="main-navigation-greeting">
-                Hoşgeldin, {user.name}
-              </span>
-
-              <NavLink to="/profile" className={navigationLinkClass}>
-                Profilim
+              {/* "Hosgeldin, X" ayri bir metin olarak duruyordu: tiklanmaz
+                  oldugu halde baglantilarin arasinda baglanti gibi
+                  gorunuyor, ustelik yanindaki "Profilim" ile ayni seyi iki
+                  kez soyluyordu. Isim artik profilin KENDI etiketi. */}
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `${navigationLinkClass({ isActive })} main-navigation-account`
+                }
+                aria-label={`Profilim — ${user.name}`}
+              >
+                {user.name}
               </NavLink>
 
               <button
