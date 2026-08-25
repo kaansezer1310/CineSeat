@@ -64,7 +64,7 @@ function AdminUsersPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="👥 Kullanıcılar"
+        title="Kullanıcılar"
         description="Rol değişimi kullanıcının yetkilerini doğrudan etkiler; değişiklik bir sonraki girişinde geçerli olur."
       />
 
@@ -162,7 +162,6 @@ function AdminUsersPage() {
           initialSort={{ key: "username", direction: "asc" }}
           emptyState={
             <EmptyState
-              icon="👥"
               title="Kullanıcı bulunamadı"
               description="Arama ölçütlerini gevşetip tekrar deneyin."
             />

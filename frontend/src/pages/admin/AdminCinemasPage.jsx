@@ -42,7 +42,7 @@ function AdminCinemasPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="🏢 Sinemalar"
+        title="Sinemalar"
         description="Salonlar sinemaya bağlıdır; seans açabilmek için önce sinema ve salon gerekir."
         actions={
           <button
@@ -99,7 +99,6 @@ function AdminCinemasPage() {
           initialSort={{ key: "name", direction: "asc" }}
           emptyState={
             <EmptyState
-              icon="🏢"
               title="Henüz sinema yok"
               description="Salon ve seans açabilmek için önce bir sinema ekleyin."
             />

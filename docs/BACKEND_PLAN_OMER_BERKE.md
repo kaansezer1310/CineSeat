@@ -13,13 +13,13 @@
 ```
 backend/
 ├─ Core/
-│  ├─ CineSeat.Domain         → Entities, Enums (BaseEntity: Id, CreatedAt, UpdatedAt, IsDeleted)
-│  └─ CineSeat.Application     → Features (CQRS), Common, Repositories (arayüzler)  [EF YOK]
+│ ├─ CineSeat.Domain → Entities, Enums (BaseEntity: Id, CreatedAt, UpdatedAt, IsDeleted)
+│ └─ CineSeat.Application → Features (CQRS), Common, Repositories (arayüzler) [EF YOK]
 ├─ Infrastructure/
-│  ├─ CineSeat.Infrastructure  → şu an ~boş (dış servisler buraya: JWT, mail, ödeme…)
-│  └─ CineSeat.Persistence     → DbContext, Migrations, Repository impl, Interceptor, ServiceRegistration
+│ ├─ CineSeat.Infrastructure → şu an ~boş (dış servisler buraya: JWT, mail, ödeme…)
+│ └─ CineSeat.Persistence → DbContext, Migrations, Repository impl, Interceptor, ServiceRegistration
 └─ Presentation/
-   └─ CineSeat.WebAPI          → Controllers, Middleware, Program.cs
+ └─ CineSeat.WebAPI → Controllers, Middleware, Program.cs
 ```
 
 **Bağımlılık yönü:** `WebAPI → Application + Persistence + Infrastructure`, `Persistence → Application + Domain`, `Application → Domain`. (Onion korunuyor; Application, EF'i tanımıyor.)
@@ -46,18 +46,18 @@ backend/
 
 `Core/CineSeat.Application/Repositories/<Entity>/`:
 ```csharp
-public interface IDistrictReadRepository  : IReadRepository<District>  { }
+public interface IDistrictReadRepository : IReadRepository<District> { }
 public interface IDistrictWriteRepository : IWriteRepository<District> { }
 ```
 `Infrastructure/CineSeat.Persistence/Repositories/<Entity>/`:
 ```csharp
 public class DistrictReadRepository : ReadRepository<District>, IDistrictReadRepository
 {
-    public DistrictReadRepository(ApplicationDbContext ctx) : base(ctx) { }
+ public DistrictReadRepository(ApplicationDbContext ctx) : base(ctx) { }
 }
 public class DistrictWriteRepository : WriteRepository<District>, IDistrictWriteRepository
 {
-    public DistrictWriteRepository(ApplicationDbContext ctx) : base(ctx) { }
+ public DistrictWriteRepository(ApplicationDbContext ctx) : base(ctx) { }
 }
 ```
 `Persistence/ServiceRegistration.cs` içine ekle:
@@ -72,35 +72,35 @@ services.AddScoped<IDistrictWriteRepository, DistrictWriteRepository>();
 ```csharp
 public class CreateDistrictCommand : IRequest<long>
 {
-    public string DistrictName { get; set; } = string.Empty;
-    public long CityId { get; set; }
+ public string DistrictName { get; set; } = string.Empty;
+ public long CityId { get; set; }
 }
 ```
 `<Ad>CommandHandler.cs`
 ```csharp
 public class CreateDistrictCommandHandler : IRequestHandler<CreateDistrictCommand, long>
 {
-    private readonly IDistrictWriteRepository _write;
-    public CreateDistrictCommandHandler(IDistrictWriteRepository write) => _write = write;
+ private readonly IDistrictWriteRepository _write;
+ public CreateDistrictCommandHandler(IDistrictWriteRepository write) => _write = write;
 
-    public async Task<long> Handle(CreateDistrictCommand request, CancellationToken ct)
-    {
-        var district = new District { DistrictName = request.DistrictName, CityId = request.CityId };
-        await _write.AddAsync(district, ct);
-        await _write.SaveAsync(ct);
-        return district.Id;   // CreatedAt'i ELLE SET ETME — interceptor doldurur
-    }
+ public async Task<long> Handle(CreateDistrictCommand request, CancellationToken ct)
+ {
+ var district = new District { DistrictName = request.DistrictName, CityId = request.CityId };
+ await _write.AddAsync(district, ct);
+ await _write.SaveAsync(ct);
+ return district.Id; // CreatedAt'i ELLE SET ETME — interceptor doldurur
+ }
 }
 ```
 `<Ad>CommandValidator.cs` (opsiyonel ama önerilir — otomatik çalışır)
 ```csharp
 public class CreateDistrictCommandValidator : AbstractValidator<CreateDistrictCommand>
 {
-    public CreateDistrictCommandValidator()
-    {
-        RuleFor(x => x.DistrictName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.CityId).GreaterThan(0);
-    }
+ public CreateDistrictCommandValidator()
+ {
+ RuleFor(x => x.DistrictName).NotEmpty().MaximumLength(100);
+ RuleFor(x => x.CityId).GreaterThan(0);
+ }
 }
 ```
 
@@ -110,24 +110,24 @@ public class CreateDistrictCommandValidator : AbstractValidator<CreateDistrictCo
 ```csharp
 public class GetDistrictsByCityQuery : IRequest<List<DistrictDto>>
 {
-    public long CityId { get; set; }
+ public long CityId { get; set; }
 }
 ```
 `<Ad>QueryHandler.cs` — **EF'in `ToListAsync`'ini DEĞİL, `IAsyncQueryExecutor`'ı kullan:**
 ```csharp
 public class GetDistrictsByCityQueryHandler : IRequestHandler<GetDistrictsByCityQuery, List<DistrictDto>>
 {
-    private readonly IDistrictReadRepository _read;
-    private readonly IAsyncQueryExecutor _exec;
-    public GetDistrictsByCityQueryHandler(IDistrictReadRepository read, IAsyncQueryExecutor exec)
-    { _read = read; _exec = exec; }
+ private readonly IDistrictReadRepository _read;
+ private readonly IAsyncQueryExecutor _exec;
+ public GetDistrictsByCityQueryHandler(IDistrictReadRepository read, IAsyncQueryExecutor exec)
+ { _read = read; _exec = exec; }
 
-    public async Task<List<DistrictDto>> Handle(GetDistrictsByCityQuery request, CancellationToken ct)
-    {
-        var query = _read.GetWhere(d => d.CityId == request.CityId, tracking: false)
-            .Select(d => new DistrictDto { Id = d.Id, DistrictName = d.DistrictName });
-        return await _exec.ToListAsync(query, ct);
-    }
+ public async Task<List<DistrictDto>> Handle(GetDistrictsByCityQuery request, CancellationToken ct)
+ {
+ var query = _read.GetWhere(d => d.CityId == request.CityId, tracking: false)
+ .Select(d => new DistrictDto { Id = d.Id, DistrictName = d.DistrictName });
+ return await _exec.ToListAsync(query, ct);
+ }
 }
 ```
 
@@ -139,13 +139,13 @@ public class GetDistrictsByCityQueryHandler : IRequestHandler<GetDistrictsByCity
 [Route("api/[controller]")]
 public class DistrictsController : ControllerBase
 {
-    private readonly IMediator _mediator;
-    public DistrictsController(IMediator mediator) => _mediator = mediator;
+ private readonly IMediator _mediator;
+ public DistrictsController(IMediator mediator) => _mediator = mediator;
 
-    [HttpPost] public async Task<IActionResult> Create([FromBody] CreateDistrictCommand c)
-        => Ok(await _mediator.Send(c));
-    [HttpGet]  public async Task<IActionResult> GetByCity([FromQuery] long cityId)
-        => Ok(await _mediator.Send(new GetDistrictsByCityQuery { CityId = cityId }));
+ [HttpPost] public async Task<IActionResult> Create([FromBody] CreateDistrictCommand c)
+ => Ok(await _mediator.Send(c));
+ [HttpGet] public async Task<IActionResult> GetByCity([FromQuery] long cityId)
+ => Ok(await _mediator.Send(new GetDistrictsByCityQuery { CityId = cityId }));
 }
 ```
 
@@ -177,7 +177,7 @@ Her kişiye bir "zor" alan + dengeli CRUD verildi. Ayarlanabilir.
 
 ## 3. Fazlar
 
-### Faz 1 — Auth Altyapısı (Ömer) + Konum & Sinema (Berke)  *(paralel)*
+### Faz 1 — Auth Altyapısı (Ömer) + Konum & Sinema (Berke) *(paralel)*
 
 **Ömer — Auth (kritik yol):**
 - [x] Arayüzler `Application`'da: `ITokenService`, `IPasswordHasher`, `ICurrentUserService`
@@ -227,7 +227,7 @@ Her kişiye bir "zor" alan + dengeli CRUD verildi. Ayarlanabilir.
 
 **Hedef:** uçtan uca rezervasyon + sosyal özellikler.
 
-### Faz 4 — Kalite, Güvenlik, Bitiş  *(birlikte)*
+### Faz 4 — Kalite, Güvenlik, Bitiş *(birlikte)*
 
 - [~] Tüm command'lara validator; tüm liste endpoint'lerine **pagination** (`PagedResult<T>`) — kritik olanlar tamam
 - [x] `[Authorize]` rolleri her endpoint'e doğru uygulanmış mı gözden geçir — yazma uçları Admin, kullanıcıya özel uçlar `[Authorize]`; sahiplik kontrolleri handler'larda
@@ -251,7 +251,7 @@ Her kişiye bir "zor" alan + dengeli CRUD verildi. Ayarlanabilir.
 ## 5. Karara Bağlanacak Açık Noktalar
 
 1. ~~**Soft-delete vs hard-delete:**~~ **KARAR: hard delete korundu** (mevcut kodun davranışı). Aşağıdaki gerekçe hâlâ geçerli, Faz 4'te yeniden değerlendirilebilir.
-    `WriteRepository.Remove/RemoveAsync` şu an **hard delete** yapıyor, ama global filter + `IsDeleted` **soft-delete** ima ediyor. Karar gerek. *Öneri: soft-delete* (Remove yerine `IsDeleted=true` + `Update`) — filter zaten hazır.
+ `WriteRepository.Remove/RemoveAsync` şu an **hard delete** yapıyor, ama global filter + `IsDeleted` **soft-delete** ima ediyor. Karar gerek. *Öneri: soft-delete* (Remove yerine `IsDeleted=true` + `Update`) — filter zaten hazır.
 2. **Dış servislerin yeri:** JWT/hashing → `CineSeat.Infrastructure` (boş proje bunun için). Arayüz Application'da, impl Infrastructure'da, DI Infrastructure'da.
 3. **`ICurrentUserService`:** arayüz Application, impl WebAPI (`IHttpContextAccessor`).
 4. **Pagination standardı:** liste endpoint'leri `List<Dto>` mı `PagedResult<Dto>` mı? *Öneri: büyük listeler `PagedResult`.*
@@ -270,7 +270,7 @@ main (korumalı)
 - Ortak dosyalar (`ServiceRegistration.cs` repo kaydı, `Program.cs`) küçük ve dikkatli düzenlenir; sık `main` çek.
 - PR → en az 1 review → main.
 
-**Definition of Done (her feature):** Command/Query + Handler ✔ · (write ise) Validator ✔ · read/write repo + register ✔ · DTO ✔ · Controller endpoint ✔ · `IAsyncQueryExecutor` kullanıldı (query'de EF yok) ✔ · Swagger'dan test ✔ · PR review ✔
+**Definition of Done (her feature):** Command/Query + Handler [x] · (write ise) Validator [x] · read/write repo + register [x] · DTO [x] · Controller endpoint [x] · `IAsyncQueryExecutor` kullanıldı (query'de EF yok) [x] · Swagger'dan test [x] · PR review [x]
 
 ---
 

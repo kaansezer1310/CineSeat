@@ -98,7 +98,7 @@ function AdminCitiesPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="🏙️ Şehir ve İlçeler"
+        title="Şehir ve İlçeler"
         description="Sinema kayıtları ilçeye bağlıdır; önce şehir ve ilçe tanımlanmalıdır."
         actions={
           <button
@@ -153,7 +153,6 @@ function AdminCitiesPage() {
               initialSort={{ key: "name", direction: "asc" }}
               emptyState={
                 <EmptyState
-                  icon="🏙️"
                   title="Henüz şehir yok"
                   description="İlk şehri ekleyerek başlayın."
                 />
@@ -181,7 +180,6 @@ function AdminCitiesPage() {
 
           {selectedCityId === null ? (
             <EmptyState
-              icon="👈"
               title="Soldan bir şehir seçin"
               description="İlçeler seçilen şehre göre listelenir."
             />
@@ -206,7 +204,6 @@ function AdminCitiesPage() {
                 initialSort={{ key: "name", direction: "asc" }}
                 emptyState={
                   <EmptyState
-                    icon="🗺️"
                     title="Bu şehirde ilçe yok"
                     description="Sinema ekleyebilmek için en az bir ilçe gerekir."
                   />

@@ -6,32 +6,32 @@
 ## Tamamlanan Görev
 - **Görev Kodu:** 1.2.3 (Sprint 1)
 - **Görev Adı:** Auth context ve oturum yönetimi (REQ-21)
-- **Durum:** ✅ Tamamlandı ve Pushlandı
+- **Durum:** [x] Tamamlandı ve Pushlandı
 
 ## Yapılan Değişikliklerin Özeti
 
 1. **Mock Data Oluşturuldu:**
-   - `src/data/users.js` dosyası yaratıldı. İçerisine test için kullanılabilecek 4 adet mock kullanıcı eklendi (`admin` ve `member` rolleri dahil).
+ - `src/data/users.js` dosyası yaratıldı. İçerisine test için kullanılabilecek 4 adet mock kullanıcı eklendi (`admin` ve `member` rolleri dahil).
 
 2. **Auth Service Yazıldı:**
-   - `src/services/authService.js` dosyası eklendi.
-   - `login(email, password)` metodunda simüle edilmiş bir ağ gecikmesi (500ms) kuruldu.
-   - Yanlış bilgilerle girişte REQ-21'e uygun olarak "E-posta veya şifre hatalı" şeklinde genel bir hata mesajı döndürüldü.
-   - Şifre bilgisinin frontend state'ine sızmaması için `password` alanı filtrelenerek sadece güvenli kullanıcı verisi gönderildi.
+ - `src/services/authService.js` dosyası eklendi.
+ - `login(email, password)` metodunda simüle edilmiş bir ağ gecikmesi (500ms) kuruldu.
+ - Yanlış bilgilerle girişte REQ-21'e uygun olarak "E-posta veya şifre hatalı" şeklinde genel bir hata mesajı döndürüldü.
+ - Şifre bilgisinin frontend state'ine sızmaması için `password` alanı filtrelenerek sadece güvenli kullanıcı verisi gönderildi.
 
 3. **State Management (Context & Hook):**
-   - `src/context/AuthContext.js` ile Context oluşturuldu.
-   - `src/context/AuthProvider.jsx` ile Provider mantığı kuruldu.
-   - Oturum bilgilerinin kalıcı olması adına `sessionStorage` kullanıldı (sayfa yenilendiğinde kullanıcı çıkış yapmış olmaz).
-   - `src/hooks/useAuth.js` hook'u ile Context'in kullanımı pratikleştirildi.
+ - `src/context/AuthContext.js` ile Context oluşturuldu.
+ - `src/context/AuthProvider.jsx` ile Provider mantığı kuruldu.
+ - Oturum bilgilerinin kalıcı olması adına `sessionStorage` kullanıldı (sayfa yenilendiğinde kullanıcı çıkış yapmış olmaz).
+ - `src/hooks/useAuth.js` hook'u ile Context'in kullanımı pratikleştirildi.
 
 4. **Sepet (Cart) Entegrasyonu:**
-   - `AuthProvider.jsx` içerisine `useCart` hook'u import edildi. Çıkış yapıldığında (`logout`), `CLEAR_CART` action'ı tetiklenerek aktif sepetin sıfırlanması sağlandı.
+ - `AuthProvider.jsx` içerisine `useCart` hook'u import edildi. Çıkış yapıldığında (`logout`), `CLEAR_CART` action'ı tetiklenerek aktif sepetin sıfırlanması sağlandı.
 
 5. **Arayüz (Layout) Güncellemeleri:**
-   - `src/main.jsx` dosyasında `<App />` bileşeni `<AuthProvider>` ile sarmalandı. Sepet entegrasyonu için `<AuthProvider>`'ın `<CartProvider>` içerisinde yer almasına dikkat edildi.
-   - `src/components/layout/Layout.jsx` güncellenerek Header alanı dinamikleştirildi.
-   - Kullanıcı giriş yapmamışsa **"Giriş Yap"** ve **"Kayıt Ol"** bağlantıları (Sprint 2'de kodlanacak sayfalar için), giriş yapmışsa **"Hoşgeldin [İsim]"**, **"Profilim"** ve **"Çıkış"** butonları gösterildi. Tasarım tutarlılığı adına `index.css`'teki `var(--color-yellow)` gibi tema değişkenleri korundu.
+ - `src/main.jsx` dosyasında `<App />` bileşeni `<AuthProvider>` ile sarmalandı. Sepet entegrasyonu için `<AuthProvider>`'ın `<CartProvider>` içerisinde yer almasına dikkat edildi.
+ - `src/components/layout/Layout.jsx` güncellenerek Header alanı dinamikleştirildi.
+ - Kullanıcı giriş yapmamışsa **"Giriş Yap"** ve **"Kayıt Ol"** bağlantıları (Sprint 2'de kodlanacak sayfalar için), giriş yapmışsa **"Hoşgeldin [İsim]"**, **"Profilim"** ve **"Çıkış"** butonları gösterildi. Tasarım tutarlılığı adına `index.css`'teki `var(--color-yellow)` gibi tema değişkenleri korundu.
 
 ## Sırada Ne Var? (Sprint 1 anındaki not — artık tarihsel)
 Şu an Ömer'in Sprint 1 kapsamındaki görevleri başarıyla bitmiş durumda. Ekibin diğer üyelerinin (Kaan, Alptuğ, Berke) Sprint 1 görevleri olan:
@@ -49,8 +49,8 @@ işlerine geçilebilir. Hazır olduğunuzda bu task'lerden birisini seçip talim
 
 **Görev:** 1.2.1 — Login / Register sayfaları (REQ-16, REQ-21)
 **Sprint:** Sprint 2
-**Durum:** ✅ Tamamlandı
-**Bağımlılık:** 1.2.3 (Sprint 1 — Auth Context) ✅ Hazır
+**Durum:** [x] Tamamlandı
+**Bağımlılık:** 1.2.3 (Sprint 1 — Auth Context) [x] Hazır
 
 ## 1. Yapılan Değişikliklerin Özeti
 
@@ -81,9 +81,9 @@ Context'e `register` eklendi; kayıt sonrası **otomatik oturum açma** yapılı
 
 ## 2. Doğrulama (Ömer'in kendi kontrolü)
 ```
-npm run lint      → 0 hata, 0 uyarı ✅
-npm run test:run  → 14 dosya / 100 test PASS ✅
-npm run build     → başarılı (561ms) ✅
+npm run lint → 0 hata, 0 uyarı [x]
+npm run test:run → 14 dosya / 100 test PASS [x]
+npm run build → başarılı (561ms) [x]
 ```
 
 ## 3. Kapsam Dışı Bırakılanlar (bilinçli kararlar)
@@ -128,4 +128,4 @@ Bu bölüm Ömer'in orijinal raporunun parçası değildi; ekip geneli bir Sprin
 
 **Ek düzeltmeler (lint/kod kalitesi):** `ThemeContext.jsx` ve `WatchlistContext.jsx` tek dosyada hem context hem provider hem hook export ediyordu (`react-refresh/only-export-components` hatası) — projenin `AuthContext.js`/`AuthProvider.jsx`/`useAuth.js` deseniyle tutarlı olacak şekilde 3'er dosyaya ayrıldı. `MovieCard.jsx`/`ProfilePage.jsx`'te kullanılmayan değişkenler (`watchlist`, `login`) temizlendi. `seatService.js`'teki artık üretimde kullanılmayan `reserveSeats` fonksiyonundaki kullanılmayan değişken ve yanıltıcı/eski yorum düzeltildi (fonksiyonun kendisi, hâlâ geçerli test kapsamı olduğu için silinmedi). Kök dizinde yanlışlıkla commit edilmiş 4 adet `test_output*.txt` dosyası silindi.
 
-**Doğrulama:** `npm run test:run` → 23 dosya / 182 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+**Doğrulama:** `npm run test:run` → 23 dosya / 182 test [x] · `npm run lint` → 0 hata [x] · `npm run build` → başarılı [x].

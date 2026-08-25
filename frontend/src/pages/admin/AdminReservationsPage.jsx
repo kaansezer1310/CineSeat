@@ -82,7 +82,7 @@ function AdminReservationsPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="🎫 Rezervasyonlar"
+        title="Rezervasyonlar"
         description="Filtreler sunucuya gönderilir; özet aşağıdaki filtrelenmiş kümeyi anlatır."
       />
 
@@ -217,7 +217,6 @@ function AdminReservationsPage() {
           initialSort={{ key: "startDatetime", direction: "desc" }}
           emptyState={
             <EmptyState
-              icon="🎫"
               title="Bu filtrelerle rezervasyon yok"
               description="Filtreleri gevşetip tekrar deneyin."
             />

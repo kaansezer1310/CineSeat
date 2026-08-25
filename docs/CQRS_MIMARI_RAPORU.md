@@ -60,39 +60,39 @@ hepsi **olduğu gibi korundu**. Movies feature'ı Cities'in yazıldığı desene
 ```
 backend/
 ├─ Core/CineSeat.Application/
-│  ├─ Common/                             ← YENİ: ortak altyapı
-│  │  ├─ Behaviors/
-│  │  │  ├─ LoggingBehavior.cs            ← pipeline halkası 1
-│  │  │  └─ ValidationBehavior.cs         ← pipeline halkası 2
-│  │  ├─ Models/
-│  │  │  ├─ Result.cs
-│  │  │  └─ PagedResult.cs
-│  │  └─ Exceptions/
-│  │     ├─ ValidationException.cs
-│  │     └─ NotFoundException.cs
-│  ├─ Repositories/Movie/                 ← Cities deseniyle aynı
-│  │  ├─ IMovieReadRepository.cs
-│  │  └─ IMovieWriteRepository.cs
-│  └─ Features/Movies/                    ← YENİ dikey dilim
-│     ├─ DTOs/MovieDto.cs
-│     ├─ Commands/CreateMovie/
-│     │  ├─ CreateMovieCommand.cs
-│     │  ├─ CreateMovieCommandHandler.cs
-│     │  └─ CreateMovieCommandValidator.cs
-│     └─ Queries/GetMovies/
-│        ├─ GetMoviesQuery.cs
-│        └─ GetMoviesQueryHandler.cs
+│ ├─ Common/ ← YENİ: ortak altyapı
+│ │ ├─ Behaviors/
+│ │ │ ├─ LoggingBehavior.cs ← pipeline halkası 1
+│ │ │ └─ ValidationBehavior.cs ← pipeline halkası 2
+│ │ ├─ Models/
+│ │ │ ├─ Result.cs
+│ │ │ └─ PagedResult.cs
+│ │ └─ Exceptions/
+│ │ ├─ ValidationException.cs
+│ │ └─ NotFoundException.cs
+│ ├─ Repositories/Movie/ ← Cities deseniyle aynı
+│ │ ├─ IMovieReadRepository.cs
+│ │ └─ IMovieWriteRepository.cs
+│ └─ Features/Movies/ ← YENİ dikey dilim
+│ ├─ DTOs/MovieDto.cs
+│ ├─ Commands/CreateMovie/
+│ │ ├─ CreateMovieCommand.cs
+│ │ ├─ CreateMovieCommandHandler.cs
+│ │ └─ CreateMovieCommandValidator.cs
+│ └─ Queries/GetMovies/
+│ ├─ GetMoviesQuery.cs
+│ └─ GetMoviesQueryHandler.cs
 │
 ├─ Infrastructure/CineSeat.Persistence/
-│  ├─ Data/Interceptors/
-│  │  └─ AuditableEntityInterceptor.cs
-│  └─ Repositories/Movie/
-│     ├─ MovieReadRepository.cs
-│     └─ MovieWriteRepository.cs
+│ ├─ Data/Interceptors/
+│ │ └─ AuditableEntityInterceptor.cs
+│ └─ Repositories/Movie/
+│ ├─ MovieReadRepository.cs
+│ └─ MovieWriteRepository.cs
 │
 └─ Presentation/CineSeat.WebAPI/
-   ├─ Controllers/MoviesController.cs
-   └─ Middleware/ExceptionHandlingMiddleware.cs
+ ├─ Controllers/MoviesController.cs
+ └─ Middleware/ExceptionHandlingMiddleware.cs
 ```
 
 ---
@@ -104,60 +104,60 @@ backend/
 **`POST /api/movies`** isteği geldiğinde sırasıyla:
 
 ```
-  HTTP isteği
-     │
-     ▼
+ HTTP isteği
+ │
+ ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 1. ExceptionHandlingMiddleware        [CineSeat.WebAPI]      │
-│    Tüm boru hattını try/catch içine alır.                    │
-│    Uygulamadaki TEK try/catch burasıdır.                     │
+│ 1. ExceptionHandlingMiddleware [CineSeat.WebAPI] │
+│ Tüm boru hattını try/catch içine alır. │
+│ Uygulamadaki TEK try/catch burasıdır. │
 └──────────────────────────────────────────────────────────────┘
-     │
-     ▼
+ │
+ ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 2. MoviesController.Create()          [CineSeat.WebAPI]      │
-│    JSON gövdesi CreateMovieCommand nesnesine bağlanır.       │
-│    Controller'ın tek işi: _mediator.Send(command)            │
-│    → Burada ne DbContext var, ne repository, ne iş kuralı.   │
+│ 2. MoviesController.Create() [CineSeat.WebAPI] │
+│ JSON gövdesi CreateMovieCommand nesnesine bağlanır. │
+│ Controller'ın tek işi: _mediator.Send(command) │
+│ → Burada ne DbContext var, ne repository, ne iş kuralı. │
 └──────────────────────────────────────────────────────────────┘
-     │  ← MediatR devreye giriyor
-     ▼
+ │ ← MediatR devreye giriyor
+ ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 3. LoggingBehavior                    [CineSeat.Application] │
-│    "[CQRS] CreateMovieCommand başladı" loglar, kronometre    │
-│    başlatır, sonraki halkaya devreder: await next()          │
+│ 3. LoggingBehavior [CineSeat.Application] │
+│ "[CQRS] CreateMovieCommand başladı" loglar, kronometre │
+│ başlatır, sonraki halkaya devreder: await next() │
 └──────────────────────────────────────────────────────────────┘
-     │
-     ▼
+ │
+ ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 4. ValidationBehavior                 [CineSeat.Application] │
-│    Bu komut için kayıtlı TÜM validator'ları çalıştırır.      │
-│    Hata varsa → ValidationException fırlatır ve              │
-│    HANDLER HİÇ ÇAĞRILMAZ.                                    │
-│    ↑ CreateMovieCommandValidator burada devreye girer.       │
+│ 4. ValidationBehavior [CineSeat.Application] │
+│ Bu komut için kayıtlı TÜM validator'ları çalıştırır. │
+│ Hata varsa → ValidationException fırlatır ve │
+│ HANDLER HİÇ ÇAĞRILMAZ. │
+│ ↑ CreateMovieCommandValidator burada devreye girer. │
 └──────────────────────────────────────────────────────────────┘
-     │  (doğrulama geçtiyse)
-     ▼
+ │ (doğrulama geçtiyse)
+ ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 5. CreateMovieCommandHandler          [CineSeat.Application] │
-│    Geriye sadece İŞ KURALI kalır:                            │
-│      • aynı isim+tarihte film var mı? → Result.Failure       │
-│      • Movie entity'si oluştur                               │
-│      • _movieWriteRepository.AddAsync(movie)                 │
-│      • _movieWriteRepository.SaveAsync()                     │
-│    Repository ARAYÜZÜ üzerinden gider —                      │
-│    ApplicationDbContext'i HİÇ görmez.                        │
+│ 5. CreateMovieCommandHandler [CineSeat.Application] │
+│ Geriye sadece İŞ KURALI kalır: │
+│ • aynı isim+tarihte film var mı? → Result.Failure │
+│ • Movie entity'si oluştur │
+│ • _movieWriteRepository.AddAsync(movie) │
+│ • _movieWriteRepository.SaveAsync() │
+│ Repository ARAYÜZÜ üzerinden gider — │
+│ ApplicationDbContext'i HİÇ görmez. │
 └──────────────────────────────────────────────────────────────┘
-     │
-     ▼
+ │
+ ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ 6. AuditableEntityInterceptor         [CineSeat.Persistence] │
-│    SaveChanges'in hemen öncesinde CreatedAt / UpdatedAt       │
-│    alanlarını otomatik doldurur.                             │
+│ 6. AuditableEntityInterceptor [CineSeat.Persistence] │
+│ SaveChanges'in hemen öncesinde CreatedAt / UpdatedAt │
+│ alanlarını otomatik doldurur. │
 └──────────────────────────────────────────────────────────────┘
-     │
-     ▼
-   PostgreSQL          →  Result<long>  →  201 Created { "id": 3 }
+ │
+ ▼
+ PostgreSQL → Result<long> → 201 Created { "id": 3 }
 ```
 
 **Anlatım cümlesi:**
@@ -182,17 +182,17 @@ POST /api/movies
 ```json
 HTTP 400
 {
-  "title": "Doğrulama hatası",
-  "status": 400,
-  "errors": {
-    "Title":       ["Film adı boş olamaz."],
-    "Duration":    ["Süre 0'dan büyük olmalıdır."],
-    "Description": ["Açıklama boş olamaz."],
-    "AgeLimit":    ["Yaş sınırı 0 ile 21 arasında olmalıdır."],
-    "Language":    ["Dil bilgisi boş olamaz."],
-    "Poster":      ["Poster adresi boş olamaz."],
-    "EndDate":     ["Vizyon bitiş tarihi, başlangıç tarihinden sonra olmalıdır."]
-  }
+ "title": "Doğrulama hatası",
+ "status": 400,
+ "errors": {
+ "Title": ["Film adı boş olamaz."],
+ "Duration": ["Süre 0'dan büyük olmalıdır."],
+ "Description": ["Açıklama boş olamaz."],
+ "AgeLimit": ["Yaş sınırı 0 ile 21 arasında olmalıdır."],
+ "Language": ["Dil bilgisi boş olamaz."],
+ "Poster": ["Poster adresi boş olamaz."],
+ "EndDate": ["Vizyon bitiş tarihi, başlangıç tarihinden sonra olmalıdır."]
+ }
 }
 ```
 > **Vurgu:** Handler hiç çalışmadı. Bu cevabı üreten kodun tamamı `ValidationBehavior` +
@@ -225,10 +225,10 @@ HTTP 409
 
 ```
 GET /api/movies?page=1&pageSize=5
-  → { "items": [...], "totalCount": 3, "page": 1, "pageSize": 5, "totalPages": 1 }
+ → { "items": [...], "totalCount": 3, "page": 1, "pageSize": 5, "totalPages": 1 }
 
 GET /api/movies?search=kesis
-  → 1 sonuç ("Kesisme")  ← küçük harfle arandı, büyük harfli kayıt bulundu
+ → 1 sonuç ("Kesisme") ← küçük harfle arandı, büyük harfli kayıt bulundu
 ```
 
 ### 5.5 Audit alanları otomatik dolmuş — **Cities dahil**
@@ -237,9 +237,9 @@ GET /api/movies?search=kesis
 SELECT id, city_name, created_at FROM cities;
 ```
 ```
- id | city_name |          created_at
+ id | city_name | created_at
 ----+-----------+-------------------------------
-  1 | Eskisehir | 2026-08-13 17:20:12.852517+03
+ 1 | Eskisehir | 2026-08-13 17:20:12.852517+03
 ```
 > **Önemli:** `CreateCityCommandHandler` (Alptuğ'un kodu) hiç değiştirilmedi, ama artık
 > `CreatedAt` alanı otomatik doluyor. Interceptor `BaseEntity`'den türeyen **her entity** için
@@ -250,8 +250,8 @@ SELECT id, city_name, created_at FROM cities;
 `movies` tablosunda `id=3` için `is_deleted = true` yapıldığında:
 
 ```
-GET /api/movies      →  dönen id'ler: [1, 2]  ·  totalCount: 2
-GET /api/movies/3    →  HTTP 404
+GET /api/movies → dönen id'ler: [1, 2] · totalCount: 2
+GET /api/movies/3 → HTTP 404
 ```
 > Sorgu handler'ında tek satır `IsDeleted` filtresi yok. `ApplicationDbContext` içindeki
 > **global query filter** `BaseEntity`'den türeyen 21 entity'nin hepsine otomatik uyguluyor.
@@ -261,9 +261,9 @@ GET /api/movies/3    →  HTTP 404
 ```
 info: [CQRS] CreateMovieCommand başladı
 info: [CQRS] CreateMovieCommand bitti (42 ms)
-info: [CQRS] CreateCityCommand başladı      ← Alptuğ'un feature'ı
+info: [CQRS] CreateCityCommand başladı ← Alptuğ'un feature'ı
 info: [CQRS] CreateCityCommand bitti (16 ms)
-info: [CQRS] GetAllCitiesQuery başladı      ← Alptuğ'un feature'ı
+info: [CQRS] GetAllCitiesQuery başladı ← Alptuğ'un feature'ı
 info: [CQRS] GetAllCitiesQuery bitti (5 ms)
 ```
 > **Sunumda bunu mutlaka söyle:** Cities feature'ının kodunda **tek karakter değişmedi**,
@@ -273,17 +273,17 @@ info: [CQRS] GetAllCitiesQuery bitti (5 ms)
 ### 5.8 Regresyon kontrolü
 
 ```
-POST /api/cities  {"cityName":"Eskisehir"}   →  HTTP 200
-GET  /api/cities                             →  HTTP 200  [{"id":1,"cityName":"Eskisehir"}]
+POST /api/cities {"cityName":"Eskisehir"} → HTTP 200
+GET /api/cities → HTTP 200 [{"id":1,"cityName":"Eskisehir"}]
 ```
 > Alptuğ'un Cities feature'ı bozulmadan çalışmaya devam ediyor.
 
 ### 5.9 Derleme ve migration durumu
 
 ```
-dotnet build --no-incremental   →  0 Hata, 80 Uyarı
+dotnet build --no-incremental → 0 Hata, 80 Uyarı
 dotnet ef migrations has-pending-model-changes
-  →  "No changes have been made to the model since the last migration."
+ → "No changes have been made to the model since the last migration."
 ```
 > Soft delete query filter şemayı **değiştirmez**, yeni migration gerekmiyor.
 > Mevcut 3 migration olduğu gibi korundu.
@@ -303,35 +303,35 @@ NetArchTest ile 20 kural, derlenmiş 4 assembly üzerinde koşuldu.
 | `CineSeat.WebAPI` | 5 |
 
 ```
-D-01  GEÇTİ  27  Domain → Application/Persistence/WebAPI bağımlılığı olmamalı
-D-02  GEÇTİ  27  Domain → EF Core / Npgsql bağımlılığı olmamalı
-D-03  GEÇTİ  27  Domain SADECE System.* ve kendine bağlı olmalı (saf çekirdek)
-D-04  GEÇTİ   5  Domain.Enums → Domain.Entities bağımlılığı olmamalı
-A-01  GEÇTİ  26  Application → Persistence/WebAPI bağımlılığı olmamalı
-A-02  GEÇTİ  26  Application → Npgsql (DB sağlayıcısı) bağımlılığı olmamalı
-A-03  GEÇTİ  26  Application → ASP.NET Core bağımlılığı olmamalı
-P-01  GEÇTİ  13  Persistence → WebAPI bağımlılığı olmamalı
-C-01  GEÇTİ   2  Controller'lar Persistence'a doğrudan bağımlı olmamalı
-C-02  GEÇTİ   2  Controller'lar Domain.Entities'e doğrudan bağımlı olmamalı (DTO dönmeli)
-N-01  GEÇTİ  21  Domain.Entities altındaki class'lar BaseEntity'den türemeli
-N-02  GEÇTİ  21  BaseEntity türevleri Domain.Entities'te olmalı
-N-03  GEÇTİ   1  DbContext türevleri sadece Persistence'da olmalı
-N-04  GEÇTİ   2  WebAPI.Controllers altındaki tipler 'Controller' ile bitmeli
-Q-01  GEÇTİ   4  IRequestHandler implementasyonları 'Handler' ile bitmeli
-Q-02  GEÇTİ   4  Handler'lar Application.Features altında olmalı
-Q-03  GEÇTİ   4  Command/Query tipleri Application.Features altında olmalı
-Q-04  GEÇTİ   4  Repository ARAYÜZLERİ Application'da olmalı
-Q-05  GEÇTİ   4  Repository IMPLEMENTASYONLARI Persistence'da olmalı
-Q-06  GEÇTİ   2  Pipeline behavior'ları Application.Common.Behaviors altında olmalı
+D-01 GEÇTİ 27 Domain → Application/Persistence/WebAPI bağımlılığı olmamalı
+D-02 GEÇTİ 27 Domain → EF Core / Npgsql bağımlılığı olmamalı
+D-03 GEÇTİ 27 Domain SADECE System.* ve kendine bağlı olmalı (saf çekirdek)
+D-04 GEÇTİ 5 Domain.Enums → Domain.Entities bağımlılığı olmamalı
+A-01 GEÇTİ 26 Application → Persistence/WebAPI bağımlılığı olmamalı
+A-02 GEÇTİ 26 Application → Npgsql (DB sağlayıcısı) bağımlılığı olmamalı
+A-03 GEÇTİ 26 Application → ASP.NET Core bağımlılığı olmamalı
+P-01 GEÇTİ 13 Persistence → WebAPI bağımlılığı olmamalı
+C-01 GEÇTİ 2 Controller'lar Persistence'a doğrudan bağımlı olmamalı
+C-02 GEÇTİ 2 Controller'lar Domain.Entities'e doğrudan bağımlı olmamalı (DTO dönmeli)
+N-01 GEÇTİ 21 Domain.Entities altındaki class'lar BaseEntity'den türemeli
+N-02 GEÇTİ 21 BaseEntity türevleri Domain.Entities'te olmalı
+N-03 GEÇTİ 1 DbContext türevleri sadece Persistence'da olmalı
+N-04 GEÇTİ 2 WebAPI.Controllers altındaki tipler 'Controller' ile bitmeli
+Q-01 GEÇTİ 4 IRequestHandler implementasyonları 'Handler' ile bitmeli
+Q-02 GEÇTİ 4 Handler'lar Application.Features altında olmalı
+Q-03 GEÇTİ 4 Command/Query tipleri Application.Features altında olmalı
+Q-04 GEÇTİ 4 Repository ARAYÜZLERİ Application'da olmalı
+Q-05 GEÇTİ 4 Repository IMPLEMENTASYONLARI Persistence'da olmalı
+Q-06 GEÇTİ 2 Pipeline behavior'ları Application.Common.Behaviors altında olmalı
 ```
 
 ### Ölçülen gerçek assembly bağımlılıkları
 
 ```
-CineSeat.Domain       →  (hiçbir şey)
-CineSeat.Application  →  CineSeat.Domain, MediatR, FluentValidation, EntityFrameworkCore
-CineSeat.Persistence  →  CineSeat.Application, CineSeat.Domain, EntityFrameworkCore(+Npgsql)
-CineSeat.WebAPI       →  CineSeat.Application, CineSeat.Persistence, MediatR, AspNetCore
+CineSeat.Domain → (hiçbir şey)
+CineSeat.Application → CineSeat.Domain, MediatR, FluentValidation, EntityFrameworkCore
+CineSeat.Persistence → CineSeat.Application, CineSeat.Domain, EntityFrameworkCore(+Npgsql)
+CineSeat.WebAPI → CineSeat.Application, CineSeat.Persistence, MediatR, AspNetCore
 ```
 
 > Oklar **tamamen içeri doğru**. `CineSeat.Domain` hiçbir şeye bağlı değil.
@@ -457,7 +457,7 @@ tarayıcı otomatik `/swagger` adresine gider.
 ```bash
 cd backend
 dotnet ef migrations add Ad --project Infrastructure/CineSeat.Persistence --startup-project Presentation/CineSeat.WebAPI
-dotnet ef database update    --project Infrastructure/CineSeat.Persistence --startup-project Presentation/CineSeat.WebAPI
+dotnet ef database update --project Infrastructure/CineSeat.Persistence --startup-project Presentation/CineSeat.WebAPI
 ```
 
 ---
@@ -465,19 +465,19 @@ dotnet ef database update    --project Infrastructure/CineSeat.Persistence --sta
 ## 12. Demo senaryosu (önerilen sıra)
 
 1. **Solution Explorer'ı göster** — 5 proje, `Core / Infrastructure / Presentation` ayrımı.
-   `CineSeat.Domain`'in **hiçbir referansı olmadığını** göster.
+ `CineSeat.Domain`'in **hiçbir referansı olmadığını** göster.
 2. **`MoviesController.Create`'i aç** — "içinde tek satır iş mantığı yok, sadece `_mediator.Send`".
 3. **Swagger'dan boş bir istek gönder** → 400 ve 7 doğrulama hatası.
-   → *"Bu cevabı Handler üretmedi, `ValidationBehavior` üretti. Handler hiç çalışmadı."*
+ → *"Bu cevabı Handler üretmedi, `ValidationBehavior` üretti. Handler hiç çalışmadı."*
 4. **Geçerli istek gönder** → 201 Created.
 5. **Aynı isteği tekrar gönder** → 409.
-   → *"Bu doğrulama değil, iş kuralı. Handler `Result.Failure` döndürdü."*
+ → *"Bu doğrulama değil, iş kuralı. Handler `Result.Failure` döndürdü."*
 6. **`GET /api/movies`** → listeyi göster, entity değil DTO döndüğünü vurgula.
 7. **`POST /api/cities` gönder, konsol loglarını göster** →
-   → *"Cities feature'ının kodunda tek karakter değiştirmedik, ama pipeline'a girdiği için
-   otomatik loglanıyor. Cross-cutting concern budur."*
+ → *"Cities feature'ının kodunda tek karakter değiştirmedik, ama pipeline'a girdiği için
+ otomatik loglanıyor. Cross-cutting concern budur."*
 8. **`ApplicationDbContext`'i aç** → soft delete global filter.
-   → *"21 entity'nin hepsi için tek yerden. Handler'larda tek satır `IsDeleted` yok."*
+ → *"21 entity'nin hepsi için tek yerden. Handler'larda tek satır `IsDeleted` yok."*
 9. *(Vakit varsa)* **§7'deki `ILike` hikâyesini anlat** — derleyicinin katman ihlalini yakalaması.
 
 **Kapanış cümlesi:**

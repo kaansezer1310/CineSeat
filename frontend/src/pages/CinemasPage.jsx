@@ -155,7 +155,6 @@ export default function CinemasPage() {
         ))}
         {!isLoading && !error && filteredCinemas.length === 0 && (
           <EmptyState
-            icon="🎦"
             title="Bu şehirde henüz sinemamız bulunmuyor."
             description="Başka bir şehir seçerek yakınınızdaki salonlara bakabilirsiniz."
           />

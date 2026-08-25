@@ -2164,7 +2164,11 @@
 .theme-toggle-button {
   background: transparent;
   border: none;
-  font-size: 1.2rem;
+
+  /* Butonlar renk mirasi almaz; ikon SVG'si currentColor kullandigi icin
+     rengi acikca baglamak gerekiyor. */
+  color: inherit;
+
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
@@ -2172,6 +2176,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.theme-toggle-icon {
+  display: block;
 }
 
 .theme-toggle-button:hover {
@@ -2319,7 +2327,9 @@
   display: grid;
   place-items: center;
   height: 100%;
-  font-size: 2rem;
+
+  /* Onceden buyuk bir emoji glifi vardi; artik metin, dolayisiyla kucuk. */
+  font-size: 0.85rem;
   color: var(--color-text-muted);
 }
 

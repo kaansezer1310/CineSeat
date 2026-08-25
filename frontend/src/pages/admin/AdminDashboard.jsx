@@ -85,7 +85,7 @@ export default function AdminDashboard() {
   return (
     <div className="admin-dashboard">
       <PageHeader
-        title="📊 İstatistikler & Raporlar"
+        title="İstatistikler & Raporlar"
         description="Tamamlanmış rezervasyonlardan üretilen film bazlı satış raporu."
         actions={
           <CSVLink
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
             filename="cineseat-satis-raporu.csv"
             className="admin-btn admin-btn-export"
           >
-            📥 CSV Olarak İndir
+            CSV Olarak İndir
           </CSVLink>
         }
       />

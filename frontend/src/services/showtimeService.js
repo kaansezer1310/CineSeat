@@ -1,4 +1,5 @@
 import apiClient from "./apiClient.js";
+import { fetchAllPages } from "./adminResource.js";
 
 // Gösterim formatı — backend `ScreeningFormat` enum'u (ad olarak taşınır).
 export const SCREENING_FORMATS = [
@@ -33,12 +34,14 @@ function mapShowtimeDto(dto) {
  * yöneticinin bakması gereken doğal küme.
  */
 const showtimeService = {
-  async listByCinema(cinemaId, { pageSize = 200 } = {}) {
-    const result = await apiClient.get(
-      `/showtimes/by-cinema/${cinemaId}?pageNumber=1&pageSize=${pageSize}`
-    );
+  async listByCinema(cinemaId) {
+    // Sayfa boyutunu elle 200 veriyordu; sunucu en fazla 100 kabul ettigi icin
+    // istek 400 ile donuyor, yonetim ekrani "Seanslar yukleniyor"da kaliyordu.
+    // Bir sinemanin seanslari 100'u rahatlikla asabildigi icin cozum sinira
+    // inmek degil, sayfalari dolasmak.
+    const items = await fetchAllPages(`/showtimes/by-cinema/${cinemaId}`);
 
-    return (result?.items ?? []).map(mapShowtimeDto);
+    return items.map(mapShowtimeDto);
   },
 
   async create(values) {

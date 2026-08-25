@@ -79,7 +79,7 @@ function AdminCommentsPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="💬 Yorum Moderasyonu"
+        title="Yorum Moderasyonu"
         description="Kaldırılan yorum geri getirilemez ve filmin puan ortalaması yeniden hesaplanır."
       />
 
@@ -156,7 +156,6 @@ function AdminCommentsPage() {
           initialSort={{ key: "createdAt", direction: "desc" }}
           emptyState={
             <EmptyState
-              icon="💬"
               title="Yorum yok"
               description="Kullanıcılar puan verdikçe burada listelenir."
             />

@@ -14,8 +14,8 @@
  */
 const VARIANT_DEFAULTS = {
   loading: { icon: "", title: "Yükleniyor…", role: "status" },
-  error: { icon: "⚠️", title: "Bir şeyler ters gitti", role: "alert" },
-  forbidden: { icon: "🔒", title: "Bu içeriği görme yetkiniz yok", role: "alert" },
+  error: { icon: "", title: "Bir şeyler ters gitti", role: "alert" },
+  forbidden: { icon: "", title: "Bu içeriği görme yetkiniz yok", role: "alert" },
 };
 
 function StatusPanel({

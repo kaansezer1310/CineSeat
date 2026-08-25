@@ -36,7 +36,7 @@ function AdminCampaignsPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="🎟️ Kampanyalar"
+        title="Kampanyalar"
         description="İndirim tutarı sunucuda hesaplanır; rezervasyon başına yalnızca bir kampanya uygulanır."
         actions={
           <button
@@ -129,7 +129,6 @@ function AdminCampaignsPage() {
           initialSort={{ key: "name", direction: "asc" }}
           emptyState={
             <EmptyState
-              icon="🎟️"
               title="Tanımlı kampanya yok"
               description="Yüzde ya da sabit tutarlı indirimleri buradan tanımlayın."
             />

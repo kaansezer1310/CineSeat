@@ -83,7 +83,6 @@ function SeatGridEditor({ hallId, hallName }) {
     return (
       <div className="seat-editor">
         <EmptyState
-          icon="🪑"
           title={`${hallName} salonunda koltuk yok`}
           description="Satır ve sütun sayısını girip planı tek seferde oluşturun."
         />

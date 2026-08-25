@@ -359,7 +359,7 @@ function ProfilePage() {
                       {movie.poster ? (
                         <img src={movie.poster} alt={movie.title} />
                       ) : (
-                        <div className="profile-watchlist-no-poster">🎬</div>
+                        <div className="profile-watchlist-no-poster">Afis yok</div>
                       )}
                     </div>
                     <div className="profile-watchlist-info">

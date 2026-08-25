@@ -10,6 +10,72 @@ export const MAX_PAGE_SIZE = 100;
 // Bozuk bir cevabın döngüyü sonsuza sürüklemesini engelleyen üst sınır.
 const MAX_PAGES = 50;
 
+function buildQuery(params) {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+
+  return query;
+}
+
+/**
+ * Bir listeleme ucunun TAMAMINI çeker ve düz dizi döndürür.
+ *
+ * Açılır listeler ve yönetim tabloları eksiksiz veri bekliyor, backend ise
+ * sayfa başına en fazla MAX_PAGE_SIZE kayıt veriyor. Çağıran kendi sayfasını
+ * belirtmediyse sayfalar burada tek tek dolaşılıp birleştirilir; böylece
+ * 100'ü aşan kayıt sessizce kırpılmaz.
+ *
+ * Hem createAdminResource hem de kendi yolunu kuran servisler (örn. sinemaya
+ * göre seanslar) bunu kullanıyor ki sunucudaki sayfa sınırı tek yerden
+ * takip edilsin.
+ */
+export async function fetchAllPages(basePath, params = {}) {
+  const query = buildQuery(params);
+
+  const request = () => {
+    const suffix = query.toString() ? `?${query}` : "";
+    return apiClient.get(`${basePath}${suffix}`);
+  };
+
+  // Çağıran belirli bir sayfa istediyse ona karışılmaz.
+  if (query.has("pageNumber") || query.has("pageSize")) {
+    const result = await request();
+    return Array.isArray(result) ? result : (result?.items ?? []);
+  }
+
+  const collected = [];
+  query.set("pageSize", String(MAX_PAGE_SIZE));
+
+  for (let pageNumber = 1; pageNumber <= MAX_PAGES; pageNumber += 1) {
+    query.set("pageNumber", String(pageNumber));
+
+    const result = await request();
+
+    // Sayfalamayan uçlar düz dizi döner; tek turda biter.
+    if (Array.isArray(result)) {
+      return result;
+    }
+
+    const items = result?.items ?? [];
+    collected.push(...items);
+
+    const totalPages = Number(result?.totalPages) || 0;
+
+    // Son sayfaya gelindiyse ya da sayfa boş döndüyse dur. Boşluk kontrolü,
+    // totalPages tutarsız gelse bile döngünün kapanmasını garanti eder.
+    if (pageNumber >= totalPages || items.length === 0) {
+      break;
+    }
+  }
+
+  return collected;
+}
+
 /**
  * Tek biçimli CRUD uçları için servis üreteci.
  *
@@ -32,23 +98,6 @@ export function createAdminResource({
   mapDto = (dto) => dto,
   toCommand = (values) => values,
 }) {
-  function buildQuery(params) {
-    const query = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        query.set(key, String(value));
-      }
-    });
-
-    return query;
-  }
-
-  async function fetchPage(query) {
-    const suffix = query.toString() ? `?${query}` : "";
-    return apiClient.get(`${basePath}${suffix}`);
-  }
-
   return {
     /**
      * Kaynağın tamamını düz dizi olarak döndürür.
@@ -59,41 +108,7 @@ export function createAdminResource({
      * birleştirilir.
      */
     async list(params = {}) {
-      const query = buildQuery(params);
-
-      // Çağıran belirli bir sayfa istediyse ona karışılmaz.
-      if (query.has("pageNumber") || query.has("pageSize")) {
-        const result = await fetchPage(query);
-        const items = Array.isArray(result) ? result : (result?.items ?? []);
-        return items.map(mapDto);
-      }
-
-      const collected = [];
-      query.set("pageSize", String(MAX_PAGE_SIZE));
-
-      for (let pageNumber = 1; pageNumber <= MAX_PAGES; pageNumber += 1) {
-        query.set("pageNumber", String(pageNumber));
-
-        const result = await fetchPage(query);
-
-        // Sayfalamayan uçlar düz dizi döner; tek turda biter.
-        if (Array.isArray(result)) {
-          return result.map(mapDto);
-        }
-
-        const items = result?.items ?? [];
-        collected.push(...items);
-
-        const totalPages = Number(result?.totalPages) || 0;
-
-        // Son sayfaya gelindiyse ya da sayfa boş döndüyse dur. Boşluk kontrolü,
-        // totalPages tutarsız gelse bile döngünün kapanmasını garanti eder.
-        if (pageNumber >= totalPages || items.length === 0) {
-          break;
-        }
-      }
-
-      return collected.map(mapDto);
+      return (await fetchAllPages(basePath, params)).map(mapDto);
     },
 
     async create(values) {
