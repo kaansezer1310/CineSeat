@@ -2165,9 +2165,11 @@
   background: transparent;
   border: none;
 
-  /* Butonlar renk mirasi almaz; ikon SVG'si currentColor kullandigi icin
-     rengi acikca baglamak gerekiyor. */
-  color: inherit;
+  /* Ikon SVG'si currentColor kullaniyor, bu yuzden renk acikca baglanmali.
+     `inherit` YANLIS olurdu: header arka plani her iki temada da koyu ama
+     govde metni acik temada koyu, dolayisiyla ikon koyu zemin uzerinde
+     koyu kalip gorunmez oluyordu. Menu baglantilariyla ayni degisken. */
+  color: var(--color-header-text-muted);
 
   cursor: pointer;
   padding: 4px;
@@ -2184,6 +2186,7 @@
 
 .theme-toggle-button:hover {
   background: var(--color-header-hover-surface);
+  color: var(--color-header-accent);
   transform: scale(1.1);
 }
 
@@ -2616,12 +2619,6 @@
 
 .data-table {
   width: 100%;
-
-  /* Sarmalayicidaki overflow-x'in ise yaramasi icin tablonun bir taban
-     genisligi olmali. Aksi halde tablo her zaman kapsayicisina sikisir ve
-     360 px'te sutunlar okunmaz hale gelirdi; simdi sikismak yerine kayiyor. */
-  min-width: 560px;
-
   border-collapse: collapse;
 
   border: 1px solid var(--color-border);
@@ -2632,6 +2629,17 @@
 
   /* Rakamlar sütun içinde hizalı dursun (plan §3.3). */
   font-variant-numeric: tabular-nums;
+}
+
+/* Dar ekranda tablo sikismak yerine kendi icinde kaysin: 360 px'te sutunlar
+   aksi halde okunmaz hale geliyor.
+   Genis ekranda taban genisligi VERILMIYOR — sehir/ilce gibi yan yana iki
+   panelli duzenlerde sabit bir min-width panelleri tasirip istenmeyen yatay
+   kaydirma uretiyordu. */
+@media (max-width: 640px) {
+  .data-table {
+    min-width: 560px;
+  }
 }
 
 .data-table-caption {

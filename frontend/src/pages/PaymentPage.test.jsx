@@ -30,13 +30,16 @@ vi.mock("../services/reservationService.js", () => ({
   default: { createReservation: vi.fn() },
 }));
 
-vi.mock("../services/campaignService.js", () => ({
-  default: {
-    getActiveCampaigns: vi.fn(),
-    pickBestCampaign: vi.fn(() => null),
-    calculateDiscount: vi.fn(() => 0),
-  },
-}));
+// Kampanya hesabinin kendisi saf; yalnizca ag cagrisi taklit ediliyor.
+// Boylece indirimin kalem bazinda dogru hesaplandigi da olculur.
+vi.mock("../services/campaignService.js", async () => {
+  const actual = await vi.importActual("../services/campaignService.js");
+
+  return {
+    ...actual,
+    default: { ...actual.default, getActiveCampaigns: vi.fn() },
+  };
+});
 
 vi.mock("../services/paymentAdapter.js", async () => {
   const actual = await vi.importActual("../services/paymentAdapter.js");

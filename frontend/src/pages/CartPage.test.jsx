@@ -185,10 +185,12 @@ describe("CartPage", () => {
       within(summary).getByText("3")
     ).toBeInTheDocument();
     
-    // (220 * 1.0) + (220 * 0.75) + (220 * 0.60) = 220 + 165 + 132 = 517
-    // locale tr-TR ile 517,00 TL formatlanır
+    // (220 * 1.0) + (220 * 0.75) + (220 * 0.50) = 220 + 165 + 110 = 495
+    // Cocuk carpani backend ile ayni olmali (0.50); onceden on yuz 0.60
+    // uyguluyordu ve kullanici gordugu fiyattan farkli tutar oduyordu.
+    // locale tr-TR ile 495,00 TL formatlanır
     expect(
-      within(summary).getByText("517,00 TL")
+      within(summary).getByText("495,00 TL")
     ).toBeInTheDocument();
   });
 

@@ -1,9 +1,19 @@
 import { TICKET_TYPE } from "../domain/ticketType.js";
 
+/**
+ * Bilet tipi carpanlari.
+ *
+ * BAGLAYICI DEGER BACKEND'DE: CreateReservationCommandHandler.TicketTypeMultiplier.
+ * Buradaki kopya yalnizca on izleme icin var (her tusa basista sunucuya
+ * sormak mumkun degil), bu yuzden ikisi birebir ayni olmak ZORUNDA.
+ *
+ * Cocuk carpani 0.60 yaziliydi, backend ise 0.50 uyguluyordu: kullanici
+ * bir fiyat gorup baska tutar oduyordu.
+ */
 const TICKET_MULTIPLIERS = {
   [TICKET_TYPE.ADULT]: 1.0,
   [TICKET_TYPE.STUDENT]: 0.75,
-  [TICKET_TYPE.CHILD]: 0.60,
+  [TICKET_TYPE.CHILD]: 0.5,
 };
 
 export function calcItemTotal(item) {

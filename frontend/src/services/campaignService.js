@@ -72,6 +72,40 @@ export function pickBestCampaign(campaigns, subtotal, user) {
   );
 }
 
+/**
+ * Sepetteki HER KALEM icin ayri ayri kampanya secer ve indirimi hesaplar.
+ *
+ * NEDEN KALEM BAZINDA: backend sepet diye bir sey bilmiyor; her seans icin
+ * ayri bir rezervasyon olusuyor ve kampanya kosullari (ozellikle
+ * MinCartTotal) O REZERVASYONUN ara toplamina gore dogrulaniyor.
+ *
+ * Onceden secim sepetin tamamina gore yapiliyordu. Sonuc: 250 + 250 TL'lik
+ * iki seans iceren bir sepette "500 TL uzeri" kampanyasi uygulanabilir
+ * gorunuyor, ancak backend her rezervasyonu 250 TL olarak degerlendirip
+ * ConflictException firlatiyordu — indirim uygulanmamakla kalmiyor, odeme
+ * tumden reddediliyordu.
+ *
+ * @returns {{ lines: Array<{ item, campaign, subtotal, discount }>, discountTotal: number }}
+ */
+export function planCampaignsPerItem(campaigns, items, user, calcItemSubtotal) {
+  const lines = (items ?? []).map((item) => {
+    const subtotal = calcItemSubtotal(item);
+    const campaign = pickBestCampaign(campaigns, subtotal, user);
+
+    return {
+      item,
+      campaign,
+      subtotal,
+      discount: calculateDiscount(campaign, subtotal),
+    };
+  });
+
+  return {
+    lines,
+    discountTotal: lines.reduce((sum, line) => sum + line.discount, 0),
+  };
+}
+
 // --- Yönetim tarafı -------------------------------------------------------
 // Müşteri tarafı yalnızca aktif kampanyaları görür (`/campaigns/active`);
 // yönetim pasifleri de görmek zorunda, o yüzden ayrı uç.
@@ -130,6 +164,7 @@ const campaignService = {
   isCampaignApplicable,
   calculateDiscount,
   pickBestCampaign,
+  planCampaignsPerItem,
 };
 
 export default campaignService;

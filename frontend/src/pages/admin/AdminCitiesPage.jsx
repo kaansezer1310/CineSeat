@@ -113,7 +113,11 @@ function AdminCitiesPage() {
 
       <div className="admin-split">
         <section className="admin-split-pane">
-          <h2 className="admin-split-title">Şehirler</h2>
+          {/* Sag panelin basligi buton tasiyor; iki panelin icerigi ayni
+              hizada baslasin diye sol panel de ayni sarmalayiciyi kullaniyor. */}
+          <div className="admin-split-header">
+            <h2 className="admin-split-title">Şehirler</h2>
+          </div>
 
           <QueryState
             isLoading={cities.isLoading}

@@ -12,8 +12,8 @@
 |---|---|---|
 | `dotnet build CineSeat.slnx` | 0 hata | **0 hata** |
 | `npm run lint` | 0 hata | **0 hata** |
-| `npm run test:run` | 223 / 223 (28 dosya) | **381 / 381 (45 dosya)** |
-| `dotnet test` | (test projesi yoktu) | **104 / 104** entegrasyon testi |
+| `npm run test:run` | 223 / 223 (28 dosya) | **400 / 400 (47 dosya)** |
+| `dotnet test` | (test projesi yoktu) | **107 / 107** entegrasyon testi |
 | `npm run build` | 351,90 kB (gzip 107,31) | **351,51 kB (gzip 107,18)** + ekran başına ayrı parça |
 | Mock veride çalışan servis | 7 | **0** |
 
@@ -937,4 +937,104 @@ dotnet build     → 0 hata
 npm run lint     → 0 hata
 npm run test:run → 381 / 381 (45 dosya)
 npm run build    → başarılı
+```
+
+---
+
+## 15. Ödeme akışındaki üç hata ve iki arayüz düzeltmesi
+
+### 15.1 Kampanya sepete göre seçiliyordu, backend rezervasyona göre bakıyor
+
+**Ödemeyi kıran asıl hata buydu.** Belirti "indirim uygulanmıyor" değil,
+**rezervasyon tümden reddediliyor** idi.
+
+`createReservation` sepetteki her seans için **ayrı bir rezervasyon**
+oluşturuyor. Backend kampanya koşullarını o rezervasyonun ara toplamına göre
+doğruluyor:
+
+```csharp
+if (subtotal < campaign.MinCartTotal)
+    throw new ConflictException(...);   // 409
+```
+
+Ön yüz ise uygunluğu **sepetin tamamına** göre değerlendiriyordu. Seed'deki
+"500 TL Üzeri 75 TL İndirim" kampanyasıyla:
+
+| | Görülen | Sonuç |
+|---|---|---|
+| Ön yüz | sepet 500 ≥ 500 → indirim göster | önizleme indirimli |
+| Backend | rezervasyon 250 < 500 | **409, ödeme düşer** |
+
+Kampanya seçimi `planCampaignsPerItem` ile **kalem bazına** taşındı; her
+rezervasyon kendi `campaignId`'siyle gidiyor. Önizlemede gösterilen indirim
+artık backend'in uyguladığı hesabın aynısı.
+
+### 15.2 Çocuk bileti çarpanı iki tarafta farklıydı
+
+| | Yetişkin | Öğrenci | Çocuk |
+|---|---|---|---|
+| Ön yüz | 1.0 | 0.75 | **0.60** |
+| Backend | 1.0 | 0.75 | **0.50** |
+
+Kullanıcı bir fiyat görüp başka tutar ödüyordu. Bağlayıcı olan backend olduğu
+için ön yüz 0.50'ye hizalandı. `pricing.test.js` (11 test) çarpanları
+sabitliyor ve kaynağın backend olduğunu yazıyor.
+
+### 15.3 Kilit bırakma idempotent değildi
+
+`ReleaseSeatCommandHandler`, var olmayan bir kilit için `NotFoundException`
+fırlatıyordu. Ancak rezervasyon oluştuğunda kilit satırları **aynı transaction
+içinde siliniyor**; ödeme sonrası temizlik yapan istemci artık var olmayan
+kimlikleri bıraktığı için her seferinde 404 alıyordu.
+
+İstemci hatayı yutuyordu (`.catch(() => null)`), ama **hata ayıklayıcı
+istisnada duraklayınca tüm süreç donuyor** ve sonraki her istek asılı
+kalıyordu — ekrandaki "koltuklar ayrılıyor" takılmasının sebebi buydu.
+
+DELETE idempotenttir: "bu kilit gitmiş olsun". Üç durum da 204 dönüyor, ancak
+**silme yalnızca sahibi için** yapılıyor:
+
+| Durum | Cevap | Eylem |
+|---|---|---|
+| Kilit yok | 204 | — |
+| Kilit senin | 204 | silinir |
+| Kilit başkasının | 204 | **dokunulmaz** |
+
+Başkasının kilidi için de 204 dönmek bilinçli: 404 döndürmek "bu kilit var ama
+senin değil" bilgisini sızdırır ve id deneyen biri geçerli kilitleri
+haritalayabilirdi. Kilide dokunulmadığı için saldırgan hiçbir şey elde etmiyor.
+Üç entegrasyon testi bunu ölçüyor.
+
+### 15.4 Tema simgesi açık temada görünmüyordu
+
+§14.2'de emojiyi SVG'ye çevirirken `color: inherit` yazmıştım. Emoji kendi
+renkleriyle çizildiği için bu fark edilmiyordu, ama SVG `currentColor`
+kullanıyor.
+
+Header arka planı **her iki temada da koyu** (`--color-header-*` açık temada
+override edilmiyor), gövde metni ise açık temada koyu. Sonuç: koyu zemin
+üzerinde koyu ikon. Menü bağlantılarıyla aynı değişkene
+(`--color-header-text-muted`) bağlandı.
+
+### 15.5 Şehir/ilçe panelleri hizasızdı ve yana kayıyordu
+
+**Hizasızlık:** "+ Şehir Ekle" sayfa başlığında, "+ İlçe Ekle" ise panelin
+kendi başlığında duruyordu. Sağ panelin başlığı buton taşıdığı için daha uzun
+oluyor, üstelik şehir seçili olup olmamasına göre değişiyordu. Sol panel de
+aynı sarmalayıcıya alındı ve `.admin-split-header`'a `min-height` verildi;
+artık buton olsa da olmasa da iki panel aynı hizada başlıyor.
+
+**Yana kayma:** §13.4'te 360 px için eklediğim `.data-table { min-width: 560px }`
+bir gerileme üretmişti — yan yana iki dar panelde tabloyu taşırıp yatay
+kaydırma çıkarıyordu. Kural `@media (max-width: 640px)` içine alındı: dar
+ekranda tablo kayıyor, geniş ekranda panele sığıyor.
+
+### 15.6 Doğrulama
+
+```
+dotnet build --no-incremental → 0 uyarı, 0 hata
+dotnet test                   → 107 / 107
+npm run lint                  → 0 hata
+npm run test:run              → 400 / 400 (47 dosya)
+npm run build                 → başarılı
 ```

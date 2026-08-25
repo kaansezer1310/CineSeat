@@ -6,7 +6,7 @@ import useAuth from "../hooks/useAuth.js";
 import useCountdown from "../hooks/useCountdown.js";
 import seatService from "../services/seatService.js";
 import reservationService from "../services/reservationService.js";
-import { calcSubtotal, formatPrice } from "../services/pricing.js";
+import { calcItemTotal, calcSubtotal, formatPrice } from "../services/pricing.js";
 import campaignService from "../services/campaignService.js";
 import {
   forgetStoredLocks,
@@ -159,16 +159,29 @@ function PaymentPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const bestCampaign = campaignService.pickBestCampaign(
+  // Kampanya KALEM BAZINDA secilir: backend her seans icin ayri rezervasyon
+  // olusturuyor ve kosullari o rezervasyonun ara toplamina gore dogruluyor.
+  // Sepetin tamamina bakmak, esigi sepette asan ama kalemde asmayan
+  // durumlarda hem yanlis onizleme hem de 409 uretiyordu.
+  const campaignPlan = campaignService.planCampaignsPerItem(
     campaigns,
-    subtotal,
-    user
+    state.items,
+    user,
+    calcItemTotal
   );
-  const discountAmount = campaignService.calculateDiscount(
-    bestCampaign,
-    subtotal
-  );
+
+  const discountAmount = campaignPlan.discountTotal;
   const cartTotal = subtotal - discountAmount;
+
+  // Ozette gosterilecek kampanyalar (ayni kampanya birden fazla kalemde
+  // secilmis olabilir; tekilleniyor).
+  const appliedCampaigns = [
+    ...new Map(
+      campaignPlan.lines
+        .filter((line) => line.campaign)
+        .map((line) => [line.campaign.id, line.campaign])
+    ).values(),
+  ];
 
   const reservationMutation = useMutation({
     mutationFn: reservationService.createReservation,
@@ -248,13 +261,17 @@ function PaymentPage() {
       }));
 
       reservationMutation.mutate({
-        cartItems: cartSnapshot,
+        // Her kalem kendi kampanyasiyla gidiyor; onizlemede gosterilen
+        // indirimle backend'in uyguladigi indirim ayni hesaptan cikiyor.
+        cartItems: cartSnapshot.map((item, index) => ({
+          ...item,
+          campaignId: campaignPlan.lines[index]?.campaign?.id ?? null,
+        })),
         buyer: {
           firstName: buyerForm.firstName.trim(),
           lastName: buyerForm.lastName.trim(),
           email: buyerForm.email.trim(),
         },
-        campaignId: bestCampaign?.id ?? null,
       });
     } catch (error) {
       // Teknik hata: aynı kartla tekrar denemek mantıklı, sayfada kalıyoruz.
@@ -553,9 +570,11 @@ function PaymentPage() {
               <strong>{formatPrice(subtotal)} TL</strong>
             </div>
 
-            {bestCampaign && (
+            {appliedCampaigns.length > 0 && (
               <div className="cart-summary-row cart-summary-row--discount">
-                <span>{bestCampaign.name}</span>
+                <span>
+                  {appliedCampaigns.map((campaign) => campaign.name).join(", ")}
+                </span>
                 <strong>-{formatPrice(discountAmount)} TL</strong>
               </div>
             )}

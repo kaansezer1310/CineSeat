@@ -62,13 +62,48 @@ describe("reservationService.createReservation", () => {
     vi.clearAllMocks();
   });
 
-  it("bilet tipini backend adlandırmasına çevirir ve toplam GÖNDERMEZ", async () => {
+  it("her kaleme KENDİ kampanyasını gönderir", async () => {
+    apiClient.post.mockResolvedValue(reservationDto());
+
+    await reservationService.createReservation({
+      cartItems: [
+        cartItem({ sessionId: 7, campaignId: 3 }),
+        cartItem({ sessionId: 8, campaignId: null }),
+      ],
+      buyer: BUYER,
+    });
+
+    // Tum sepete tek kampanya gecirmek, esigi sepet toplaminda asan ama
+    // kalem bazinda asmayan durumlarda backend'den 409 aldiriyordu.
+    expect(apiClient.post.mock.calls[0][1]).toMatchObject({
+      showtimeId: 7,
+      campaignId: 3,
+    });
+    expect(apiClient.post.mock.calls[1][1]).toMatchObject({
+      showtimeId: 8,
+      campaignId: null,
+    });
+  });
+
+  it("kampanya verilmemiş kaleme null gönderir", async () => {
     apiClient.post.mockResolvedValue(reservationDto());
 
     await reservationService.createReservation({
       cartItems: [cartItem()],
       buyer: BUYER,
-      campaignId: 3,
+    });
+
+    expect(apiClient.post.mock.calls[0][1].campaignId).toBeNull();
+  });
+
+  it("bilet tipini backend adlandırmasına çevirir ve toplam GÖNDERMEZ", async () => {
+    apiClient.post.mockResolvedValue(reservationDto());
+
+    await reservationService.createReservation({
+      // Kampanya artik KALEM uzerinde: backend her seans icin ayri rezervasyon
+      // olusturuyor ve kosullari o rezervasyonun ara toplamina gore dogruluyor.
+      cartItems: [cartItem({ campaignId: 3 })],
+      buyer: BUYER,
     });
 
     expect(apiClient.post).toHaveBeenCalledWith("/reservations", {

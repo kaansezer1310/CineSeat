@@ -1,5 +1,4 @@
 using CineSeat.Application.Common.Constants;
-using CineSeat.Application.Common.Exceptions;
 using CineSeat.Application.Common.Interfaces;
 using CineSeat.Application.Repositories;
 using MediatR;
@@ -29,11 +28,25 @@ public class ReleaseSeatCommandHandler : IRequestHandler<ReleaseSeatCommand, Uni
 
         var seatLock = await _read.GetByIdAsync(request.Id, tracking: true, cancellationToken);
 
-        // Sahiplik kontrolü ŞART: id ile silinebilseydi herkes başkasının koltuk
-        // kilidini açıp o koltuğu kapabilirdi. Başkasının kilidinin varlığını
-        // sızdırmamak için yetkisiz erişim de NotFound olarak döner.
-        if (seatLock is null || (seatLock.UserId != userId && !canManageShowtimes))
-            throw new NotFoundException("Koltuk kilidi", request.Id);
+        // Birakma islemi IDEMPOTENT: "bu kilit gitmis olsun" demek. Kilit
+        // zaten yoksa amac gerceklesmis demektir, hata degil.
+        //
+        // Bu onemli: rezervasyon olustugunda kilit satirlari ayni transaction
+        // icinde siliniyor. Odeme akisi sonrasinda temizlik yapan istemci,
+        // artik var olmayan kimlikleri biraktigi icin her seferinde 404
+        // aliyordu.
+        if (seatLock is null)
+            return Unit.Value;
+
+        // Sahiplik kontrolu SART: id ile silinebilseydi herkes baskasinin
+        // koltuk kilidini acip o koltugu kapabilirdi.
+        //
+        // Reddedilen istek de sessizce basarili doner: 404 dondurmek
+        // "bu kilit var ama senin degil" bilgisini sizdirirdi ve id deneyen
+        // biri gecerli kilitleri haritalayabilirdi. Kilide DOKUNULMUYOR;
+        // saldirgan hicbir sey elde etmiyor.
+        if (seatLock.UserId != userId && !canManageShowtimes)
+            return Unit.Value;
 
         _write.HardDelete(seatLock);
         await _write.SaveAsync(cancellationToken);
