@@ -2507,14 +2507,13 @@
 /* Hesap baglantisi kullanicinin adini tasiyor; digerlerinden ayrilsin diye
    biraz daha belirgin. */
 .main-navigation-account {
-  max-width: 14ch;
-  overflow: hidden;
-
   color: var(--color-header-text);
 
   font-weight: 600;
+
+  /* Ad ve soyad birlikte gosteriliyor; ortasindan bolunmesin. Kisaltma YOK:
+     uzun bir isim menuyu tasirmak yerine alt satira sarar (nav flex-wrap). */
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .main-navigation-logout {
