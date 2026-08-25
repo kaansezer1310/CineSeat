@@ -5,9 +5,9 @@ namespace CineSeat.Domain.Entities
     public class MovieGenre : BaseEntity
     {
         public long MovieId { get; set; }
-        public Movie Movie { get; set; }
+        public Movie Movie { get; set; } = null!;
 
         public long GenreId { get; set; }
-        public Genre Genre { get; set; }
+        public Genre Genre { get; set; } = null!;
     }
 }

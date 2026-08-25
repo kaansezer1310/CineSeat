@@ -72,6 +72,59 @@ export function pickBestCampaign(campaigns, subtotal, user) {
   );
 }
 
+// --- Yönetim tarafı -------------------------------------------------------
+// Müşteri tarafı yalnızca aktif kampanyaları görür (`/campaigns/active`);
+// yönetim pasifleri de görmek zorunda, o yüzden ayrı uç.
+
+export const CAMPAIGN_TYPES = [
+  { value: "Percentage", label: "Yüzde indirim", suffix: "%" },
+  { value: "FixedAmount", label: "Sabit tutar", suffix: "TL" },
+];
+
+export function getCampaignTypeLabel(value) {
+  return CAMPAIGN_TYPES.find((type) => type.value === value)?.label ?? value;
+}
+
+/** İndirimin okunabilir hâli: "%10" ya da "75,00 TL". */
+export function formatCampaignValue(campaign) {
+  return campaign.type === "Percentage"
+    ? `%${campaign.value}`
+    : `${campaign.value.toFixed(2)} TL`;
+}
+
+function toCommand(values) {
+  return {
+    name: values.name.trim(),
+    type: values.type,
+    value: Number(values.value),
+    minCartTotal: Number(values.minCartTotal) || 0,
+    membersOnly: Boolean(values.membersOnly),
+    isActive: Boolean(values.isActive),
+  };
+}
+
+export const campaignAdmin = {
+  async list() {
+    const dtos = await apiClient.get("/campaigns");
+    return (dtos?.items ?? dtos ?? []).map(mapCampaignDto);
+  },
+
+  async create(values) {
+    return apiClient.post("/campaigns", toCommand(values));
+  },
+
+  async update(id, values) {
+    return apiClient.put(`/campaigns/${id}`, {
+      id: Number(id),
+      ...toCommand(values),
+    });
+  },
+
+  async remove(id) {
+    return apiClient.del(`/campaigns/${id}`);
+  },
+};
+
 const campaignService = {
   getActiveCampaigns,
   isCampaignApplicable,

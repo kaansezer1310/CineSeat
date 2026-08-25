@@ -5,5 +5,8 @@ namespace CineSeat.Application.Features.Districts.Queries.GetDistrictsByCity;
 
 public class GetDistrictsByCityQuery : IRequest<List<DistrictDto>>
 {
-    public long CityId { get; set; }
+    /// <summary>
+    /// Şehir süzgeci. Boş bırakılırsa tüm ilçeler döner.
+    /// </summary>
+    public long? CityId { get; set; }
 }

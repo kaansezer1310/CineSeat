@@ -6,7 +6,11 @@ public class GetCinemasByCityQueryValidator : AbstractValidator<GetCinemasByCity
 {
     public GetCinemasByCityQueryValidator()
     {
-        RuleFor(x => x.CityId).GreaterThan(0);
+        // CityId isteğe bağlı; verildiyse gerçek bir kaydı işaret etmeli.
+        RuleFor(x => x.CityId)
+            .GreaterThan(0).When(x => x.CityId.HasValue)
+            .WithMessage("Geçerli bir şehir seçilmelidir.");
+
         RuleFor(x => x.PageNumber).GreaterThan(0);
         RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
     }

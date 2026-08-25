@@ -5,21 +5,23 @@ namespace CineSeat.Domain.Entities
 {
     public class User : BaseEntity
     {
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string PasswordSalt { get; set; }
+        public required string Name { get; set; }
+        public required string Surname { get; set; }
+        public required string Username { get; set; }
+        public required string Email { get; set; }
+        public required string PasswordHash { get; set; }
+        public required string PasswordSalt { get; set; }
         public string? PhoneNum { get; set; }
         public string? Gender { get; set; }
 
         public long RoleId { get; set; }
-        public Role Role { get; set; }
 
-        public ICollection<UserFavorite> UserFavorites { get; set; }
-        public ICollection<Comment> Comments { get; set; }
-        public ICollection<SeatLock> SeatLocks { get; set; }
-        public ICollection<Reservation> Reservations { get; set; }
+        // Zorunlu ilişki: EF Include ile doldurur.
+        public Role Role { get; set; } = null!;
+
+        public ICollection<UserFavorite> UserFavorites { get; set; } = new List<UserFavorite>();
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public ICollection<SeatLock> SeatLocks { get; set; } = new List<SeatLock>();
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

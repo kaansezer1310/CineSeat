@@ -23,7 +23,7 @@ public class CinemasController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetByCity(
-        [FromQuery] long cityId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        [FromQuery] long? cityId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
         => Ok(await _mediator.Send(
             new GetCinemasByCityQuery { CityId = cityId, PageNumber = pageNumber, PageSize = pageSize }));
 

@@ -38,6 +38,30 @@ const AdminMovieForm = lazy(() =>
 const AdminNotFoundPage = lazy(() =>
   import("./pages/admin/AdminNotFoundPage.jsx")
 );
+const AdminCitiesPage = lazy(() =>
+  import("./pages/admin/AdminCitiesPage.jsx")
+);
+const AdminCinemasPage = lazy(() =>
+  import("./pages/admin/AdminCinemasPage.jsx")
+);
+const AdminHallsPage = lazy(() =>
+  import("./pages/admin/AdminHallsPage.jsx")
+);
+const AdminShowtimesPage = lazy(() =>
+  import("./pages/admin/AdminShowtimesPage.jsx")
+);
+const AdminCampaignsPage = lazy(() =>
+  import("./pages/admin/AdminCampaignsPage.jsx")
+);
+const AdminReservationsPage = lazy(() =>
+  import("./pages/admin/AdminReservationsPage.jsx")
+);
+const AdminCommentsPage = lazy(() =>
+  import("./pages/admin/AdminCommentsPage.jsx")
+);
+const AdminUsersPage = lazy(() =>
+  import("./pages/admin/AdminUsersPage.jsx")
+);
 
 function App() {
   return (
@@ -135,6 +159,68 @@ function App() {
             <Route path="movies" element={<AdminMoviesPage />} />
             <Route path="movies/new" element={<AdminMovieForm />} />
             <Route path="movies/:id" element={<AdminMovieForm />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.CINEMA_MANAGE]}
+              />
+            }
+          >
+            <Route path="cities" element={<AdminCitiesPage />} />
+            <Route path="cinemas" element={<AdminCinemasPage />} />
+            <Route path="halls" element={<AdminHallsPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.SHOWTIME_MANAGE]}
+              />
+            }
+          >
+            <Route path="showtimes" element={<AdminShowtimesPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.CAMPAIGN_MANAGE]}
+              />
+            }
+          >
+            <Route path="campaigns" element={<AdminCampaignsPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.RESERVATION_READ]}
+              />
+            }
+          >
+            <Route path="reservations" element={<AdminReservationsPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.COMMENT_MODERATE]}
+              />
+            }
+          >
+            <Route path="comments" element={<AdminCommentsPage />} />
+          </Route>
+
+          <Route
+            element={
+              <ProtectedRoute
+                requiredPermissions={[PERMISSIONS.USER_MANAGE]}
+              />
+            }
+          >
+            <Route path="users" element={<AdminUsersPage />} />
           </Route>
 
           {/* O5: admin ağacının kendi 404'ü */}

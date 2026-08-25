@@ -1,4 +1,6 @@
 using CineSeat.Application.Common.Exceptions;
+using CineSeat.Application.Common.Interfaces;
+using CineSeat.Application.Features.Showtimes.Common;
 using CineSeat.Application.Repositories;
 using CineSeat.Domain.Entities;
 using MediatR;
@@ -10,15 +12,21 @@ public class CreateShowtimeCommandHandler : IRequestHandler<CreateShowtimeComman
     private readonly IShowtimeWriteRepository _write;
     private readonly IMovieReadRepository _movieRead;
     private readonly IHallReadRepository _hallRead;
+    private readonly IShowtimeReadRepository _showtimeRead;
+    private readonly IAsyncQueryExecutor _executor;
 
     public CreateShowtimeCommandHandler(
         IShowtimeWriteRepository write,
         IMovieReadRepository movieRead,
-        IHallReadRepository hallRead)
+        IHallReadRepository hallRead,
+        IShowtimeReadRepository showtimeRead,
+        IAsyncQueryExecutor executor)
     {
         _write = write;
         _movieRead = movieRead;
         _hallRead = hallRead;
+        _showtimeRead = showtimeRead;
+        _executor = executor;
     }
 
     public async Task<long> Handle(CreateShowtimeCommand request, CancellationToken cancellationToken)
@@ -30,6 +38,18 @@ public class CreateShowtimeCommandHandler : IRequestHandler<CreateShowtimeComman
         var hall = await _hallRead.GetByIdAsync(request.HallId, tracking: false, cancellationToken);
         if (hall is null)
             throw new NotFoundException("Salon", request.HallId);
+
+        ShowtimeConflictChecker.EnsureNotInPast(request.StartDatetime);
+
+        await ShowtimeConflictChecker.EnsureNoConflictAsync(
+            _showtimeRead,
+            _movieRead,
+            _executor,
+            request.HallId,
+            request.StartDatetime,
+            movie.Duration,
+            excludedShowtimeId: null,
+            cancellationToken);
 
         var showtime = new Showtime
         {

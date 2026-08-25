@@ -22,7 +22,7 @@ public class DistrictsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetByCity([FromQuery] long cityId)
+    public async Task<IActionResult> GetByCity([FromQuery] long? cityId)
         => Ok(await _mediator.Send(new GetDistrictsByCityQuery { CityId = cityId }));
 
     [HttpGet("{id:long}")]

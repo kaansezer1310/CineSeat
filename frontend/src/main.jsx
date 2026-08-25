@@ -11,6 +11,7 @@ import CartProvider from "./context/CartProvider.jsx";
 import AuthProvider from "./context/AuthProvider.jsx";
 import ThemeProvider from "./context/ThemeProvider.jsx";
 import WatchlistProvider from "./context/WatchlistProvider.jsx";
+import ToastProvider from "./context/ToastProvider.jsx";
 import { shouldRetryQuery } from "./services/errors.js";
 
 import "./index.css";
@@ -31,7 +32,9 @@ createRoot(document.getElementById("root")).render(
           <CartProvider>
             <AuthProvider>
               <WatchlistProvider>
-                <App />
+                <ToastProvider>
+                  <App />
+                </ToastProvider>
               </WatchlistProvider>
             </AuthProvider>
           </CartProvider>

@@ -12,6 +12,17 @@ import {
   forgetStoredLocks,
   storeLockIds,
 } from "../services/seatLockStorage.js";
+import paymentAdapter, {
+  PAYMENT_STATUS,
+} from "../services/paymentAdapter.js";
+import {
+  detectCardBrand,
+  formatCardNumber,
+  getExpectedCvvLength,
+  normalizeCardNumber,
+  validateCardForm,
+  CARD_BRANDS,
+} from "../domain/card.js";
 
 function secondsUntil(isoDate) {
   const expiresAt = new Date(isoDate).getTime();
@@ -29,11 +40,20 @@ function PaymentPage() {
   const queryClient = useQueryClient();
 
   const [paymentForm, setPaymentForm] = useState({
-    cardName: "",
+    cardHolder: "",
     cardNumber: "",
-    expiryDate: "",
+    expiry: "",
     cvv: "",
   });
+
+  const [cardErrors, setCardErrors] = useState({});
+  const [paymentError, setPaymentError] = useState("");
+  const [isCharging, setIsCharging] = useState(false);
+
+  // Çift gönderim kilidi. `isCharging` state'i bir sonraki render'da güncellenir;
+  // arka arkaya iki tıklama arasında henüz güncellenmemiş olabilir. Ref anında
+  // değiştiği için ikinci tıklama kesin olarak elenir.
+  const isSubmittingRef = useRef(false);
 
   // Backend alıcı bilgisini zorunlu tutuyor (BuyerFname/Lname/Email).
   // Oturumdaki kullanıcıdan ön doldurulur, kullanıcı değiştirebilir.
@@ -169,35 +189,109 @@ function PaymentPage() {
       navigate("/success", { state: { reservations } });
     },
     onError: () => {
+      // Ödeme onaylandı ama rezervasyon oluşmadı: kullanıcı hata sayfasına
+      // gider, kilit orada çözülür.
+      releaseSubmitLock();
       isNavigatingToNextStep.current = true;
       navigate("/payment-error");
     },
   });
 
-  function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
 
-    // Demo ödeme: 0000 ile başlayan kart reddedilmiş sayılır.
-    if (paymentForm.cardNumber.startsWith("0000")) {
-      isNavigatingToNextStep.current = true;
-      navigate("/payment-error");
+    // Çift gönderim: kullanıcı butona iki kez basarsa ikinci istek atılmaz.
+    if (isSubmittingRef.current) {
       return;
     }
 
-    const cartSnapshot = state.items.map((item) => ({
-      ...item,
-      seats: item.seats.map((seat) => ({ ...seat })),
-    }));
+    setPaymentError("");
 
-    reservationMutation.mutate({
-      cartItems: cartSnapshot,
-      buyer: {
-        firstName: buyerForm.firstName.trim(),
-        lastName: buyerForm.lastName.trim(),
-        email: buyerForm.email.trim(),
-      },
-      campaignId: bestCampaign?.id ?? null,
+    const errors = validateCardForm(paymentForm);
+    setCardErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      // İlk hatalı alana odaklan: kullanıcı hangi alanı düzelteceğini
+      // aramak zorunda kalmasın.
+      const firstField = Object.keys(errors)[0];
+      document.getElementById(`payment-${firstField}`)?.focus();
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setIsCharging(true);
+
+    try {
+      // Kart verisi YALNIZCA buraya girer. Rezervasyon isteğine eklenmez,
+      // hiçbir yere kaydedilmez, loglanmaz.
+      const result = await paymentAdapter.charge({
+        amount: cartTotal,
+        currency: "TRY",
+        description: "CineSeat bilet",
+        card: {
+          number: normalizeCardNumber(paymentForm.cardNumber),
+          holder: paymentForm.cardHolder.trim(),
+          expiry: paymentForm.expiry,
+          cvv: paymentForm.cvv,
+        },
+      });
+
+      if (result.status === PAYMENT_STATUS.DECLINED) {
+        isNavigatingToNextStep.current = true;
+        navigate("/payment-error", { state: { reason: result.reason } });
+        return;
+      }
+
+      const cartSnapshot = state.items.map((item) => ({
+        ...item,
+        seats: item.seats.map((seat) => ({ ...seat })),
+      }));
+
+      reservationMutation.mutate({
+        cartItems: cartSnapshot,
+        buyer: {
+          firstName: buyerForm.firstName.trim(),
+          lastName: buyerForm.lastName.trim(),
+          email: buyerForm.email.trim(),
+        },
+        campaignId: bestCampaign?.id ?? null,
+      });
+    } catch (error) {
+      // Teknik hata: aynı kartla tekrar denemek mantıklı, sayfada kalıyoruz.
+      setPaymentError(
+        error.message || "Ödeme alınamadı. Lütfen tekrar deneyin."
+      );
+      isSubmittingRef.current = false;
+      setIsCharging(false);
+    }
+  }
+
+  /** Alan değişince o alanın hatası silinir — kullanıcı yazarken uyarı kalmaz. */
+  function updateCardField(field, value) {
+    setPaymentForm((current) => ({ ...current, [field]: value }));
+
+    setCardErrors((current) => {
+      if (!current[field]) return current;
+
+      const next = { ...current };
+      delete next[field];
+      return next;
     });
+  }
+
+  /** "1226" → "12/26"; kullanıcı eğik çizgiyi kendi yazmak zorunda kalmasın. */
+  function formatExpiry(value) {
+    const digits = value.replace(/\D/g, "").slice(0, 4);
+
+    return digits.length <= 2
+      ? digits
+      : `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  }
+
+  // Rezervasyon adımı bittiğinde (başarılı ya da hatalı) kilidi çöz.
+  function releaseSubmitLock() {
+    isSubmittingRef.current = false;
+    setIsCharging(false);
   }
 
   if (state.items.length === 0) {
@@ -228,6 +322,10 @@ function PaymentPage() {
   }
 
   const isLocking = lockExpiresAt === null;
+
+  const cardBrand = detectCardBrand(paymentForm.cardNumber);
+  const cardBrandLabel = cardBrand ? CARD_BRANDS[cardBrand].label : null;
+  const expectedCvvLength = getExpectedCvvLength(paymentForm.cardNumber);
 
   return (
     <section>
@@ -304,49 +402,131 @@ function PaymentPage() {
           <div className="form-group-section">
             <h2>Kart Bilgileri</h2>
 
+            {paymentError && (
+              <p className="auth-error" role="alert">
+                {paymentError}
+              </p>
+            )}
+
             <div className="auth-field">
-              <label htmlFor="payment-card-name">Kart Sahibinin Adı</label>
+              <label htmlFor="payment-cardHolder">Kart Sahibinin Adı</label>
               <input
-                id="payment-card-name"
+                id="payment-cardHolder"
                 type="text"
-                required
-                value={paymentForm.cardName}
-                onChange={(e) => setPaymentForm({ ...paymentForm, cardName: e.target.value })}
+                autoComplete="cc-name"
+                value={paymentForm.cardHolder}
+                aria-invalid={cardErrors.cardHolder ? true : undefined}
+                aria-describedby={
+                  cardErrors.cardHolder ? "payment-cardHolder-error" : undefined
+                }
+                onChange={(event) =>
+                  updateCardField("cardHolder", event.target.value)
+                }
               />
+              {cardErrors.cardHolder && (
+                <span
+                  className="auth-field-error"
+                  id="payment-cardHolder-error"
+                >
+                  {cardErrors.cardHolder}
+                </span>
+              )}
             </div>
 
             <div className="auth-field">
-              <label htmlFor="payment-card-number">Kart Numarası (Hata için 0000 ile başlayın)</label>
+              <label htmlFor="payment-cardNumber">
+                Kart Numarası
+                {cardBrandLabel && (
+                  <span className="payment-card-brand"> · {cardBrandLabel}</span>
+                )}
+              </label>
               <input
-                id="payment-card-number"
+                id="payment-cardNumber"
                 type="text"
-                required
+                inputMode="numeric"
+                autoComplete="cc-number"
+                placeholder="0000 0000 0000 0000"
                 value={paymentForm.cardNumber}
-                onChange={(e) => setPaymentForm({ ...paymentForm, cardNumber: e.target.value })}
+                aria-invalid={cardErrors.cardNumber ? true : undefined}
+                aria-describedby={
+                  cardErrors.cardNumber
+                    ? "payment-cardNumber-error"
+                    : "payment-cardNumber-hint"
+                }
+                onChange={(event) =>
+                  // Boşluklar girilirken eklenir; doğrulama her zaman ham
+                  // rakamlar üzerinden yapılır.
+                  updateCardField(
+                    "cardNumber",
+                    formatCardNumber(event.target.value)
+                  )
+                }
               />
+              {cardErrors.cardNumber ? (
+                <span className="auth-field-error" id="payment-cardNumber-error">
+                  {cardErrors.cardNumber}
+                </span>
+              ) : (
+                <small id="payment-cardNumber-hint">
+                  Demo: 0000 ile başlayan kart reddedilir, 9999 ile başlayan
+                  teknik hata verir.
+                </small>
+              )}
             </div>
 
             <div className="auth-row">
               <div className="auth-field">
-                <label htmlFor="payment-card-expiry">Son Kullanma (AA/YY)</label>
+                <label htmlFor="payment-expiry">Son Kullanma (AA/YY)</label>
                 <input
-                  id="payment-card-expiry"
+                  id="payment-expiry"
                   type="text"
-                  required
-                  value={paymentForm.expiryDate}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, expiryDate: e.target.value })}
+                  inputMode="numeric"
+                  autoComplete="cc-exp"
+                  placeholder="AA/YY"
+                  maxLength={5}
+                  value={paymentForm.expiry}
+                  aria-invalid={cardErrors.expiry ? true : undefined}
+                  aria-describedby={
+                    cardErrors.expiry ? "payment-expiry-error" : undefined
+                  }
+                  onChange={(event) =>
+                    updateCardField("expiry", formatExpiry(event.target.value))
+                  }
                 />
+                {cardErrors.expiry && (
+                  <span className="auth-field-error" id="payment-expiry-error">
+                    {cardErrors.expiry}
+                  </span>
+                )}
               </div>
 
               <div className="auth-field">
-                <label htmlFor="payment-card-cvv">CVV</label>
+                <label htmlFor="payment-cvv">
+                  CVV ({expectedCvvLength} hane)
+                </label>
                 <input
-                  id="payment-card-cvv"
+                  id="payment-cvv"
                   type="text"
-                  required
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
+                  maxLength={expectedCvvLength}
                   value={paymentForm.cvv}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, cvv: e.target.value })}
+                  aria-invalid={cardErrors.cvv ? true : undefined}
+                  aria-describedby={
+                    cardErrors.cvv ? "payment-cvv-error" : undefined
+                  }
+                  onChange={(event) =>
+                    updateCardField(
+                      "cvv",
+                      event.target.value.replace(/\D/g, "")
+                    )
+                  }
                 />
+                {cardErrors.cvv && (
+                  <span className="auth-field-error" id="payment-cvv-error">
+                    {cardErrors.cvv}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -354,10 +534,10 @@ function PaymentPage() {
           <button
             className="primary-button auth-submit"
             type="submit"
-            disabled={reservationMutation.isPending || isLocking}
+            disabled={isCharging || reservationMutation.isPending || isLocking}
           >
-            {reservationMutation.isPending
-              ? "İşleniyor..."
+            {isCharging || reservationMutation.isPending
+              ? "İşleniyor…"
               : isLocking
                 ? "Koltuklar ayrılıyor…"
                 : `${formatPrice(cartTotal)} TL Öde`}

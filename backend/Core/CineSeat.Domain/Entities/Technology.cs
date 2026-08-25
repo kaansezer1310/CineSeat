@@ -5,8 +5,8 @@ namespace CineSeat.Domain.Entities
 {
     public class Technology : BaseEntity
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public ICollection<HallTech> HallTechs { get; set; }
+        public ICollection<HallTech> HallTechs { get; set; } = new List<HallTech>();
     }
 }

@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 
 import SeatMap from "../components/seats/SeatMap.jsx";
+import StatusPanel from "../components/ui/StatusPanel.jsx";
 import { SEAT_STATUS, isSeatSelectable } from "../domain/seatStatus.js";
 import {
     DEFAULT_TICKET_TYPE,
@@ -340,9 +341,10 @@ function BookingPage() {
         areSeatsLoading
     ) {
         return (
-            <div className="temporary-panel">
-                Salon ve koltuk bilgileri yükleniyor.
-            </div>
+            <StatusPanel
+                variant="loading"
+                title="Salon ve koltuk bilgileri yükleniyor…"
+            />
         );
     }
 
@@ -353,12 +355,26 @@ function BookingPage() {
             seatsError?.message ||
             "Koltuk bilgileri alınamadı.";
 
-                return (
+        return (
             <section>
-                <div className="page-heading">
-                    <h1>Koltuk planı açılamadı</h1>
-                    <p>{errorMessage}</p>
-                </div>
+                <StatusPanel
+                    variant={
+                        (sessionError ?? movieError ?? seatsError)?.status === 403
+                            ? "forbidden"
+                            : "error"
+                    }
+                    title="Koltuk planı açılamadı"
+                    description={errorMessage}
+                    action={
+                        <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() => refetchSeats()}
+                        >
+                            Tekrar Dene
+                        </button>
+                    }
+                />
             </section>
         );
     }

@@ -23,6 +23,11 @@ const NAVIGATION_SECTIONS = [
         label: 'İstatistikler',
         permissions: [PERMISSIONS.RESERVATION_READ],
       },
+      {
+        to: '/admin/reservations',
+        label: 'Rezervasyonlar',
+        permissions: [PERMISSIONS.RESERVATION_READ],
+      },
     ],
   },
   {
@@ -32,6 +37,56 @@ const NAVIGATION_SECTIONS = [
         to: '/admin/movies',
         label: 'Filmler',
         permissions: [PERMISSIONS.MOVIE_MANAGE],
+      },
+      {
+        to: '/admin/campaigns',
+        label: 'Kampanyalar',
+        permissions: [PERMISSIONS.CAMPAIGN_MANAGE],
+      },
+      {
+        to: '/admin/comments',
+        label: 'Yorumlar',
+        permissions: [PERMISSIONS.COMMENT_MODERATE],
+      },
+    ],
+  },
+  {
+    title: 'Salonlar',
+    items: [
+      {
+        to: '/admin/cinemas',
+        label: 'Sinemalar',
+        permissions: [PERMISSIONS.CINEMA_MANAGE],
+      },
+      {
+        to: '/admin/halls',
+        label: 'Salonlar ve Koltuklar',
+        permissions: [PERMISSIONS.CINEMA_MANAGE],
+      },
+      {
+        to: '/admin/cities',
+        label: 'Şehir ve İlçeler',
+        permissions: [PERMISSIONS.CINEMA_MANAGE],
+      },
+    ],
+  },
+  {
+    title: 'Program',
+    items: [
+      {
+        to: '/admin/showtimes',
+        label: 'Seanslar',
+        permissions: [PERMISSIONS.SHOWTIME_MANAGE],
+      },
+    ],
+  },
+  {
+    title: 'Kullanıcılar',
+    items: [
+      {
+        to: '/admin/users',
+        label: 'Kullanıcı Yönetimi',
+        permissions: [PERMISSIONS.USER_MANAGE],
       },
     ],
   },

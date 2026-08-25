@@ -105,6 +105,14 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     await DbInitializer.SeedAsync(context, passwordHasher);
+
+    // Örnek katalog (film, sinema, salon, koltuk, seans, kampanya) YALNIZCA
+    // geliştirme ortamında eklenir. Canlıda demo film/sinema kaydı istemiyoruz;
+    // ayrıca ekipteki herkesin aynı veriyle çalışmasını sağlar.
+    if (app.Environment.IsDevelopment())
+    {
+        await DemoDataSeeder.SeedAsync(context);
+    }
 }
 
 // Uygulamadaki tek hata yakalama noktası — pipeline'ın en dışında olmalı.
@@ -143,3 +151,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Entegrasyon testleri WebApplicationFactory<Program> ile bu uygulamayı ayağa
+// kaldırıyor. Top-level statement'lar Program sınıfını `internal` ürettiği için
+// test projesinden görünür olması adına burada açıkça public yapılıyor.
+public partial class Program;

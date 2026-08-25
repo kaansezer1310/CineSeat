@@ -3,61 +3,150 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import AuthProvider from "../../context/AuthProvider.jsx";
 import CartProvider from "../../context/CartProvider.jsx";
+import { PERMISSIONS } from "../../constants/permissions.js";
 import PermissionGate from "./PermissionGate.jsx";
 
-function renderGate(props = {}) {
-  render(
+/**
+ * Yetkiye göre arayüz gösterme/gizleme. Planın kabul testi dört profili
+ * istiyor: misafir, sıradan kullanıcı, kısıtlı yetkili, tam yetkili yönetici.
+ * Buradaki testler dördünü de tek tek kuruyor.
+ *
+ * Not: bu bir gizleme katmanı, güvenlik sınırı değil. Asıl kontrol backend'de;
+ * izin matrisi entegrasyon testleriyle ayrıca ölçülüyor.
+ */
+function signIn(permissions) {
+  sessionStorage.setItem(
+    "cineseat_user",
+    JSON.stringify({
+      id: 1,
+      username: "test",
+      role: "Admin",
+      permissions,
+      token: "test-token",
+    })
+  );
+}
+
+function renderGate(props) {
+  return render(
+    // AuthProvider cikista sepeti temizledigi icin CartProvider'a bagli.
     <CartProvider>
       <AuthProvider>
-        <PermissionGate permissions={["movie.manage"]} {...props}>
-          <button type="button">Film düzenle</button>
+        <PermissionGate {...props}>
+          <p>Yönetim içeriği</p>
         </PermissionGate>
       </AuthProvider>
     </CartProvider>
   );
 }
 
-describe("PermissionGate", () => {
-  beforeEach(() => {
-    sessionStorage.clear();
+const gorunur = () => screen.queryByText("Yönetim içeriği") !== null;
+
+beforeEach(() => {
+  sessionStorage.clear();
+});
+
+describe("PermissionGate — rol profilleri", () => {
+  it("misafire hiçbir yönetim içeriği göstermez", () => {
+    // Oturum yok: izin listesi bos.
+    renderGate({ permissions: [PERMISSIONS.MOVIE_MANAGE] });
+
+    expect(gorunur()).toBe(false);
   });
 
-  it("izni olmayan kullanıcıdan eylemi gizler", () => {
-    renderGate();
+  it("izinsiz kullanıcıya göstermez", () => {
+    signIn([]);
 
-    expect(screen.queryByRole("button", { name: "Film düzenle" })).not.toBeInTheDocument();
+    renderGate({ permissions: [PERMISSIONS.MOVIE_MANAGE] });
+
+    expect(gorunur()).toBe(false);
   });
 
-  it("izni olan kullanıcıya eylemi gösterir", () => {
-    sessionStorage.setItem(
-      "cineseat_user",
-      JSON.stringify({
-        id: 1,
-        role: "member",
-        permissions: ["movie.manage"],
-      })
-    );
+  it("kısıtlı yetkiliye yalnızca sahip olduğu bölümü gösterir", () => {
+    // Yalnizca film yonetimi olan bir yetkili.
+    signIn([PERMISSIONS.MOVIE_MANAGE]);
 
-    renderGate();
+    const { unmount } = renderGate({ permissions: [PERMISSIONS.MOVIE_MANAGE] });
+    expect(gorunur()).toBe(true);
+    unmount();
 
-    expect(screen.getByRole("button", { name: "Film düzenle" })).toBeInTheDocument();
+    renderGate({ permissions: [PERMISSIONS.USER_MANAGE] });
+    expect(gorunur()).toBe(false);
   });
 
-  it("any modunda izinlerden biri varsa eylemi gösterir", () => {
-    sessionStorage.setItem(
-      "cineseat_user",
-      JSON.stringify({
-        id: 1,
-        role: "member",
-        permissions: ["reservation.read"],
-      })
-    );
+  it("tam yetkili yöneticiye gösterir", () => {
+    signIn(Object.values(PERMISSIONS));
+
+    renderGate({ permissions: [PERMISSIONS.USER_MANAGE] });
+
+    expect(gorunur()).toBe(true);
+  });
+});
+
+describe("PermissionGate — mod davranışı", () => {
+  it("varsayılan modda izinlerin TAMAMINI ister", () => {
+    signIn([PERMISSIONS.MOVIE_MANAGE]);
 
     renderGate({
-      permissions: ["movie.manage", "reservation.read"],
+      permissions: [PERMISSIONS.MOVIE_MANAGE, PERMISSIONS.USER_MANAGE],
+    });
+
+    // Ikisinden yalnizca biri var; "all" modu reddetmeli.
+    expect(gorunur()).toBe(false);
+  });
+
+  it("any modunda izinlerden BİRİ yeter", () => {
+    signIn([PERMISSIONS.MOVIE_MANAGE]);
+
+    renderGate({
+      permissions: [PERMISSIONS.MOVIE_MANAGE, PERMISSIONS.USER_MANAGE],
       mode: "any",
     });
 
-    expect(screen.getByRole("button", { name: "Film düzenle" })).toBeInTheDocument();
+    expect(gorunur()).toBe(true);
+  });
+
+  it("any modunda hiçbiri yoksa göstermez", () => {
+    signIn([PERMISSIONS.CINEMA_MANAGE]);
+
+    renderGate({
+      permissions: [PERMISSIONS.MOVIE_MANAGE, PERMISSIONS.USER_MANAGE],
+      mode: "any",
+    });
+
+    expect(gorunur()).toBe(false);
+  });
+});
+
+describe("PermissionGate — yedek içerik", () => {
+  it("izin yoksa verilen yedeği gösterir", () => {
+    signIn([]);
+
+    render(
+      <CartProvider>
+        <AuthProvider>
+          <PermissionGate
+            permissions={[PERMISSIONS.MOVIE_MANAGE]}
+            fallback={<p>Bu bölüme erişiminiz yok.</p>}
+          >
+            <p>Yönetim içeriği</p>
+          </PermissionGate>
+        </AuthProvider>
+      </CartProvider>
+    );
+
+    expect(screen.getByText("Bu bölüme erişiminiz yok.")).toBeInTheDocument();
+    expect(gorunur()).toBe(false);
+  });
+
+  it("yedek verilmediğinde hiçbir şey çizmez", () => {
+    signIn([]);
+
+    const { container } = renderGate({
+      permissions: [PERMISSIONS.MOVIE_MANAGE],
+    });
+
+    // Bos bir kapsayici degil, hic dugum birakmamali.
+    expect(container).toBeEmptyDOMElement();
   });
 });

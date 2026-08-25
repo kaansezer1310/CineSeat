@@ -1,4 +1,6 @@
 using CineSeat.Application.Common.Exceptions;
+using CineSeat.Application.Common.Interfaces;
+using CineSeat.Application.Features.Showtimes.Common;
 using CineSeat.Application.Repositories;
 using MediatR;
 
@@ -10,17 +12,20 @@ public class UpdateShowtimeCommandHandler : IRequestHandler<UpdateShowtimeComman
     private readonly IShowtimeWriteRepository _write;
     private readonly IMovieReadRepository _movieRead;
     private readonly IHallReadRepository _hallRead;
+    private readonly IAsyncQueryExecutor _executor;
 
     public UpdateShowtimeCommandHandler(
         IShowtimeReadRepository read,
         IShowtimeWriteRepository write,
         IMovieReadRepository movieRead,
-        IHallReadRepository hallRead)
+        IHallReadRepository hallRead,
+        IAsyncQueryExecutor executor)
     {
         _read = read;
         _write = write;
         _movieRead = movieRead;
         _hallRead = hallRead;
+        _executor = executor;
     }
 
     public async Task<Unit> Handle(UpdateShowtimeCommand request, CancellationToken cancellationToken)
@@ -36,6 +41,23 @@ public class UpdateShowtimeCommandHandler : IRequestHandler<UpdateShowtimeComman
         var hall = await _hallRead.GetByIdAsync(request.HallId, tracking: false, cancellationToken);
         if (hall is null)
             throw new NotFoundException("Salon", request.HallId);
+
+        // Saati/salonu degismeyen bir duzenleme (or. yalnizca fiyat) gecmis
+        // seanslarda da yapilabilmeli; bu yuzden "gecmiste olamaz" kurali
+        // sadece baslangic degistiginde uygulanir.
+        if (showtime.StartDatetime != request.StartDatetime)
+            ShowtimeConflictChecker.EnsureNotInPast(request.StartDatetime);
+
+        await ShowtimeConflictChecker.EnsureNoConflictAsync(
+            _read,
+            _movieRead,
+            _executor,
+            request.HallId,
+            request.StartDatetime,
+            movie.Duration,
+            // Seansin kendisi kendisiyle cakisiyor sayilmamali.
+            excludedShowtimeId: showtime.Id,
+            cancellationToken);
 
         showtime.MovieId = request.MovieId;
         showtime.HallId = request.HallId;

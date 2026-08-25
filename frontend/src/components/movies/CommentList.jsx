@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useAuth from "../../hooks/useAuth.js";
 import commentService from "../../services/commentService.js";
 import { PERMISSIONS } from "../../constants/permissions.js";
+import StatusPanel from "../ui/StatusPanel.jsx";
 
 const dateFormatter = new Intl.DateTimeFormat("tr-TR", {
   day: "numeric",
@@ -59,14 +60,18 @@ function CommentList({ movieId }) {
   }
 
   if (isLoading) {
-    return <p className="comment-list-status">Yorumlar yükleniyor...</p>;
+    return (
+      <StatusPanel variant="loading" title="Yorumlar yükleniyor…" />
+    );
   }
 
   if (error) {
     return (
-      <p className="comment-list-status">
-        Yorumlar alınamadı: {error.message}
-      </p>
+      <StatusPanel
+        variant="error"
+        title="Yorumlar alınamadı"
+        description={error.message}
+      />
     );
   }
 

@@ -5,8 +5,8 @@ namespace CineSeat.Domain.Entities
 {
     public class Genre : BaseEntity
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public ICollection<MovieGenre> MovieGenres { get; set; }
+        public ICollection<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
     }
 }

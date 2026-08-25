@@ -1,7 +1,9 @@
+using CineSeat.Application.Common.Exceptions;
 using CineSeat.Application.Repositories;
 using CineSeat.Domain.Entities.Common;
 using CineSeat.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace CineSeat.Persistence.Repositories;
 
@@ -100,6 +102,30 @@ public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
         return entityEntry.State == EntityState.Modified;
     }
 
+    // PostgreSQL'in benzersiz kisit ihlali icin kullandigi SQLSTATE kodu.
+    private const string UniqueViolation = "23505";
+
+    /// <summary>
+    /// Degisiklikleri yazar. Benzersiz kisit ihlali <see cref="ConflictException"/>
+    /// olarak yeniden firlatilir.
+    ///
+    /// Handler'lar yazmadan once "bu kayit var mi" diye bakiyor, ancak okuma ile
+    /// yazma arasinda baska bir istek ayni satiri ekleyebiliyor. O yaris
+    /// kaybedildiginde veritabani dogru davranip islemi reddediyordu, fakat
+    /// cagirana 500 donuyordu; oysa bu beklenen bir durum ve 409'un ta kendisi.
+    /// Ceviri burada yapiliyor: EF'i yalnizca bu katman taniyor.
+    /// </summary>
     public async Task<int> SaveAsync(CancellationToken cancellationToken = default)
-        => await _context.SaveChangesAsync(cancellationToken);
+    {
+        try
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception)
+            when (exception.InnerException is PostgresException { SqlState: UniqueViolation })
+        {
+            throw new ConflictException(
+                "Bu kayit baska bir islem tarafindan olusturulmus. Lutfen tekrar deneyin.");
+        }
+    }
 }

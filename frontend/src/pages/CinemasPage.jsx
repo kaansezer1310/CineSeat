@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import PageHeader from '../components/ui/PageHeader.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import StatusPanel from '../components/ui/StatusPanel.jsx';
 import cinemaService from '../services/cinemaService.js';
 import './cinemas.css';
 
@@ -108,9 +109,11 @@ export default function CinemasPage() {
       <p className="cinemas-location-status">{locationStatus}</p>
 
       {error && (
-        <div className="temporary-panel" role="alert">
-          Sinemalar alınamadı: {error.message}
-        </div>
+        <StatusPanel
+          variant="error"
+          title="Sinemalar alınamadı"
+          description={error.message}
+        />
       )}
 
       <div className="cinemas-filter">
@@ -129,7 +132,7 @@ export default function CinemasPage() {
 
       <div className="cinemas-grid">
         {isLoading && (
-          <p className="cinemas-location-status">Sinemalar yükleniyor…</p>
+          <StatusPanel variant="loading" title="Sinemalar yükleniyor…" />
         )}
 
         {filteredCinemas.map(cinema => (

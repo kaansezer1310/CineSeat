@@ -21,7 +21,11 @@ public class GetCinemasByCityQueryHandler : IRequestHandler<GetCinemasByCityQuer
         GetCinemasByCityQuery request, CancellationToken cancellationToken)
     {
         // Sinema → İlçe → Şehir: navigation üzerinden filtre (EF SQL'e JOIN olarak çevirir).
-        var baseQuery = _read.GetWhere(c => c.District.CityId == request.CityId, tracking: false);
+        // Şehir verilmediyse süzgeç hiç uygulanmaz; katalogun tamamı döner.
+        var cityId = request.CityId;
+        var baseQuery = cityId.HasValue
+            ? _read.GetWhere(c => c.District.CityId == cityId.Value, tracking: false)
+            : _read.GetAll(tracking: false);
 
         var totalCount = await _executor.CountAsync(baseQuery, cancellationToken);
 

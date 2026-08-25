@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import movieService from '../../services/movieService';
 import PageHeader from '../../components/ui/PageHeader.jsx';
+import StatusPanel from '../../components/ui/StatusPanel.jsx';
+import useToast from '../../hooks/useToast.js';
 
 const NUMERIC_FIELDS = new Set(["duration", "releaseYear"]);
 
@@ -24,6 +26,8 @@ export default function AdminMovieForm() {
 
   const [loading, setLoading] = useState(false);
 
+  const { showSuccess, showError } = useToast();
+
   useEffect(() => {
     if (!isEditMode) {
       return;
@@ -45,8 +49,7 @@ export default function AdminMovieForm() {
           description: data.description
         });
       } catch (error) {
-        console.error("Film bulunamadı:", error);
-        alert("Film bulunamadı!");
+        showError(error.message || "Film bulunamadı.");
         navigate('/admin/movies');
       } finally {
         setLoading(false);
@@ -54,6 +57,9 @@ export default function AdminMovieForm() {
     };
 
     loadMovie(id);
+    // showError referansı ToastProvider'da memolu; bağımlılığa girmesi
+    // effect'i yeniden tetiklemez.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isEditMode, navigate]);
 
   const handleChange = (e) => {
@@ -69,22 +75,21 @@ export default function AdminMovieForm() {
     try {
       if (isEditMode) {
         await movieService.updateMovie(id, formData);
-        alert("Film başarıyla güncellendi!");
+        showSuccess("Film güncellendi.");
       } else {
         await movieService.addMovie(formData);
-        alert("Film başarıyla eklendi!");
+        showSuccess("Film eklendi.");
       }
       navigate('/admin/movies');
     } catch (error) {
-      console.error("İşlem sırasında bir hata oluştu:", error);
-      alert("İşlem sırasında bir hata oluştu.");
+      showError(error.message || "İşlem sırasında bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   };
 
   if (loading && isEditMode) {
-    return <p className="admin-empty-text">Yükleniyor...</p>;
+    return <StatusPanel variant="loading" title="Film bilgileri yükleniyor…" />;
   }
 
   return (

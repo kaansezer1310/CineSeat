@@ -314,8 +314,15 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  outline: none;
   border-color: var(--color-yellow);
+}
+
+/* Yonetim formlari uzun; odagin nerede oldugu gorunur olmali. */
+.form-group input:focus-visible,
+.form-group select:focus-visible,
+.form-group textarea:focus-visible {
+  outline: 2px solid var(--color-yellow);
+  outline-offset: 2px;
 }
 
 .form-actions {
@@ -492,4 +499,437 @@
   .admin-form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ==========================================================================
+   Yönetim CRUD ekranları — bölünmüş düzen, form diyaloğu, satır içi eylemler
+   ========================================================================== */
+.admin-crud-page {
+  display: flex;
+  flex-direction: column;
+
+  max-width: 1180px;
+}
+
+/* İki bağlı liste yan yana (şehir → ilçe gibi). */
+.admin-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 28px;
+
+  align-items: start;
+}
+
+.admin-split-pane {
+  min-width: 0;
+}
+
+.admin-split-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  margin-bottom: 14px;
+}
+
+.admin-split-title {
+  margin: 0 0 14px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-split-header .admin-split-title {
+  margin-bottom: 0;
+}
+
+/* Tablo içinde seçim yapan bağlantı görünümlü buton. */
+.admin-link-button {
+  padding: 0;
+
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-link-button:hover {
+  color: var(--color-yellow-text);
+  text-decoration: underline;
+}
+
+.admin-link-button-active {
+  color: var(--color-yellow-text);
+  font-weight: 700;
+}
+
+.admin-link-button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* Form diyaloğu — ConfirmDialog'dan daha geniş, alanlar için yer gerekir. */
+.dialog-form {
+  width: min(560px, 100%);
+
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.dialog-form-fields {
+  margin-top: 20px;
+}
+
+.dialog-form-error {
+  margin: 4px 0 0;
+
+  color: var(--color-error-text);
+
+  font-size: 0.88rem;
+}
+
+.form-field-error {
+  display: block;
+  margin-top: 6px;
+
+  color: var(--color-error-text);
+
+  font-size: 0.82rem;
+}
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+@media (max-width: 900px) {
+  .admin-split {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .admin-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Salon / koltuk düzenleyici
+   ========================================================================== */
+.admin-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  margin-bottom: 24px;
+  padding: 16px 20px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: var(--color-surface);
+}
+
+.admin-filter-bar label {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.admin-filter-bar select,
+.admin-filter-bar input {
+  min-width: 200px;
+  padding: 10px 12px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background: var(--color-background);
+  color: var(--color-text);
+
+  font-size: 0.95rem;
+}
+
+.admin-hall-detail {
+  margin-top: 36px;
+  padding-top: 28px;
+
+  border-top: 1px solid var(--color-border);
+}
+
+/* --- Teknoloji rozetleri --- */
+.hall-tech-title {
+  margin: 0 0 12px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hall-tech-chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  margin-bottom: 26px;
+}
+
+.tech-chip {
+  padding: 7px 15px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.tech-chip:hover {
+  border-color: var(--color-yellow);
+  color: var(--color-text);
+}
+
+/* Atanmış teknoloji: altın yalnızca "açık/seçili" durumda kullanılır. */
+.tech-chip-on {
+  border-color: var(--color-yellow);
+  background: var(--color-yellow);
+  color: var(--color-on-accent);
+}
+
+.tech-chip:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* --- Koltuk ızgarası düzenleyici --- */
+.seat-editor-hint {
+  margin: 0 0 16px;
+
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.seat-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--seat-columns), minmax(0, 1fr));
+  gap: 6px;
+
+  width: min(100%, 720px);
+  margin-bottom: 22px;
+}
+
+.seat-editor-seat {
+  grid-row: var(--seat-row);
+  grid-column: var(--seat-column);
+
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px 4px 7px 7px;
+
+  background: var(--color-surface-light);
+  color: var(--color-text-muted);
+
+  font-size: 0.62rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: transform 120ms ease;
+}
+
+.seat-editor-seat:hover {
+  transform: translateY(-2px);
+}
+
+.seat-editor-seat:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.seat-editor-seat-vip {
+  border-color: var(--color-yellow);
+  color: var(--color-yellow-text);
+}
+
+.seat-editor-seat-disabled {
+  border-color: var(--color-purple);
+  color: var(--color-purple-light);
+}
+
+.seat-editor-seat-loveseat {
+  border-color: var(--color-error);
+  color: var(--color-error-text);
+}
+
+/* Kullanım dışı koltuk: satışa açılmaz, planda yeri görünür kalır. */
+.seat-editor-seat-inactive {
+  border-style: dashed;
+  background: transparent;
+  color: var(--color-disabled-text);
+  opacity: 0.5;
+}
+
+.seat-editor-seat-selected {
+  box-shadow: 0 0 0 2px var(--color-yellow);
+}
+
+.seat-editor-grid-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  margin-top: 20px;
+}
+
+.seat-editor-grid-form input {
+  width: 90px;
+  padding: 9px 11px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.seat-editor-grid-form label {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.seat-editor-panel {
+  padding: 18px 20px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+
+  background: var(--color-surface);
+}
+
+.seat-editor-panel h4 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+}
+
+.seat-editor-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.seat-editor-panel-controls select {
+  padding: 9px 12px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+@media (max-width: 650px) {
+  .seat-editor-grid {
+    gap: 4px;
+  }
+
+  .seat-editor-seat {
+    font-size: 0.5rem;
+  }
+}
+
+/* --- Durum rozeti ve onay kutusu --- */
+.status-badge {
+  display: inline-block;
+  padding: 4px 11px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-badge-on {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.admin-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 12px;
+
+  color: var(--color-text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.admin-checkbox input {
+  width: auto;
+  margin: 0;
+}
+
+.status-badge-off {
+  border-color: var(--color-error);
+  color: var(--color-error-text);
+}
+
+/* Yorum hücresi: uzun metin tabloyu taşırmasın. */
+.comment-cell {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  max-width: 380px;
+}
+
+.comment-cell-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Tablo içindeki küçük seçim kutusu (rol değiştirme). */
+.admin-inline-select {
+  padding: 6px 10px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+
+  background: var(--color-background);
+  color: var(--color-text);
+
+  font-size: 0.85rem;
+}
+
+.admin-inline-select:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }

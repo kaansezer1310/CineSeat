@@ -5,6 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import movieService from '../../services/movieService';
 import MoviePoster from '../../components/movies/MoviePoster.jsx';
 import PageHeader from '../../components/ui/PageHeader.jsx';
+import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
+import useToast from '../../hooks/useToast.js';
 import DataTable from '../../components/ui/DataTable.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 
@@ -26,33 +28,35 @@ export default function AdminMoviesPage() {
       : movieService.getMovies,
   });
 
-  // NOT (Kişi 2 · Faz 2): confirm()/alert() çağrıları ConfirmDialog ve Toast
-  // bileşenleriyle değiştirilecek.
-  const handleArchive = async (id, title) => {
-    const isConfirmed = window.confirm(
-      `"${title}" filmini arşivlemek istediğinize emin misiniz? Kayıt silinmez, arşivden geri alınabilir.`
-    );
+  // Arşivlenecek film; null ise diyalog kapalı. `confirm()` yerine
+  // ConfirmDialog, `alert()` yerine Toast kullanılıyor.
+  const [movieToArchive, setMovieToArchive] = useState(null);
+  const [isArchiving, setIsArchiving] = useState(false);
 
-    if (isConfirmed) {
-      try {
-        await movieService.archiveMovie(id);
-        alert("Film arşivlendi.");
-        refetch();
-      } catch (error) {
-        console.error("Arşivleme başarısız oldu:", error);
-        alert("Arşivleme başarısız oldu.");
-      }
+  const { showSuccess, showError } = useToast();
+
+  const handleArchiveConfirmed = async () => {
+    setIsArchiving(true);
+
+    try {
+      await movieService.archiveMovie(movieToArchive.id);
+      showSuccess(`"${movieToArchive.title}" arşivlendi.`);
+      setMovieToArchive(null);
+      refetch();
+    } catch (error) {
+      showError(error.message || "Arşivleme başarısız oldu.");
+    } finally {
+      setIsArchiving(false);
     }
   };
 
-  const handleRestore = async (id) => {
+  const handleRestore = async (movie) => {
     try {
-      await movieService.restoreMovie(id);
-      alert("Film arşivden geri alındı.");
+      await movieService.restoreMovie(movie.id);
+      showSuccess(`"${movie.title}" arşivden geri alındı.`);
       refetch();
     } catch (error) {
-      console.error("Geri alma başarısız oldu:", error);
-      alert("Geri alma başarısız oldu.");
+      showError(error.message || "Geri alma başarısız oldu.");
     }
   };
 
@@ -100,7 +104,7 @@ export default function AdminMoviesPage() {
           <div className="admin-table-actions">
             <button
               type="button"
-              onClick={() => handleRestore(movie.id)}
+              onClick={() => handleRestore(movie)}
               className="admin-btn admin-btn-primary"
             >
               Geri Al
@@ -118,7 +122,7 @@ export default function AdminMoviesPage() {
 
             <button
               type="button"
-              onClick={() => handleArchive(movie.id, movie.title)}
+              onClick={() => setMovieToArchive(movie)}
               className="admin-btn admin-btn-delete"
             >
               Arşivle
@@ -190,6 +194,21 @@ export default function AdminMoviesPage() {
             />
           )
         }
+      />
+
+      <ConfirmDialog
+        isOpen={movieToArchive !== null}
+        title="Filmi arşivle"
+        description={
+          movieToArchive
+            ? `"${movieToArchive.title}" arşivlenecek. Kayıt silinmez; arşiv sekmesinden geri alabilirsiniz.`
+            : ""
+        }
+        confirmLabel="Arşivle"
+        variant="danger"
+        isPending={isArchiving}
+        onConfirm={handleArchiveConfirmed}
+        onCancel={() => setMovieToArchive(null)}
       />
     </div>
   );

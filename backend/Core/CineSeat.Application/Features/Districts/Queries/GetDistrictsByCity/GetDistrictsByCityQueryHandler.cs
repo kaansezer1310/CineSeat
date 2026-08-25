@@ -18,7 +18,14 @@ public class GetDistrictsByCityQueryHandler : IRequestHandler<GetDistrictsByCity
 
     public async Task<List<DistrictDto>> Handle(GetDistrictsByCityQuery request, CancellationToken cancellationToken)
     {
-        var query = _read.GetWhere(d => d.CityId == request.CityId, tracking: false)
+        // Şehir verilmediyse süzgeç uygulanmaz; ilerideki şehir seçimi olmadan da
+        // ilçe listesi çekilebilsin diye isteğe bağlı tutuluyor.
+        var cityId = request.CityId;
+        var source = cityId.HasValue
+            ? _read.GetWhere(d => d.CityId == cityId.Value, tracking: false)
+            : _read.GetAll(tracking: false);
+
+        var query = source
             .Select(d => new DistrictDto
             {
                 Id = d.Id,

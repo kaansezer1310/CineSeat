@@ -1676,8 +1676,16 @@
 
 .auth-field input:focus,
 .auth-field select:focus {
-  outline: none;
   border-color: var(--color-yellow);
+}
+
+/* Klavyeyle gezinen kullanicinin nerede oldugunu gormesi sart. Yalnizca
+   kenarlik rengi degistirmek 1 px'lik ve dusuk kontrastli bir ipucu birakiyordu;
+   proje genelindeki halka desenine hizalandi. */
+.auth-field input:focus-visible,
+.auth-field select:focus-visible {
+  outline: 2px solid var(--color-yellow);
+  outline-offset: 2px;
 }
 
 .auth-field input:disabled,
@@ -2598,6 +2606,12 @@
 
 .data-table {
   width: 100%;
+
+  /* Sarmalayicidaki overflow-x'in ise yaramasi icin tablonun bir taban
+     genisligi olmali. Aksi halde tablo her zaman kapsayicisina sikisir ve
+     360 px'te sutunlar okunmaz hale gelirdi; simdi sikismak yerine kayiyor. */
+  min-width: 560px;
+
   border-collapse: collapse;
 
   border: 1px solid var(--color-border);
@@ -2917,4 +2931,318 @@
 .comment-item-text-empty {
   color: var(--color-text-muted);
   font-style: italic;
+}
+
+/* ==========================================================================
+   Ortak bileşenler — ConfirmDialog, Toast, StatCard, StatusPanel
+   (`alert()` / `confirm()` yerine geçen katman)
+   ========================================================================== */
+
+/* --- ConfirmDialog ------------------------------------------------------- */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: grid;
+  place-items: center;
+
+  padding: 20px;
+
+  background: var(--color-overlay-scrim);
+}
+
+.dialog {
+  width: min(440px, 100%);
+  padding: 24px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 14px;
+
+  background: var(--color-surface);
+  box-shadow: 0 18px 48px var(--color-shadow-strong);
+}
+
+.dialog-title {
+  margin: 0 0 10px;
+
+  font-size: 1.2rem;
+}
+
+.dialog-description {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  margin-top: 24px;
+}
+
+@media (max-width: 480px) {
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-actions .admin-btn {
+    width: 100%;
+  }
+}
+
+/* --- Toast --------------------------------------------------------------- */
+.toast-region {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 200;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  width: min(360px, calc(100vw - 40px));
+
+  /* Bölge boşken tıklamayı engellemesin. */
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  border: 1px solid var(--color-border-strong);
+  border-left-width: 4px;
+  border-radius: 10px;
+
+  background: var(--color-surface);
+  box-shadow: 0 10px 28px var(--color-shadow);
+
+  font-size: 0.92rem;
+  pointer-events: auto;
+}
+
+.toast-success {
+  border-left-color: var(--color-success);
+}
+
+.toast-error {
+  border-left-color: var(--color-error);
+}
+
+.toast-info {
+  border-left-color: var(--color-purple);
+}
+
+.toast-message {
+  flex: 1;
+  color: var(--color-text);
+}
+
+.toast-dismiss {
+  padding: 0 2px;
+
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.toast-dismiss:hover {
+  color: var(--color-text);
+}
+
+.toast-dismiss:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .toast-region {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+
+    width: auto;
+  }
+}
+
+/* --- StatCard ------------------------------------------------------------ */
+.stat-card {
+  padding: 22px 24px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: var(--color-surface);
+
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card-label {
+  margin: 0 0 10px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.stat-card-value {
+  margin: 0;
+
+  color: var(--color-yellow-text);
+
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-card-suffix {
+  color: var(--color-text-muted);
+
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.stat-card-skeleton {
+  display: block;
+
+  width: 60%;
+  height: 30px;
+  border-radius: 6px;
+
+  background: var(--color-surface-light);
+}
+
+.stat-card-change {
+  margin: 10px 0 0;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.stat-card-change-up {
+  color: var(--color-success);
+}
+
+.stat-card-change-down {
+  color: var(--color-error);
+}
+
+.stat-card-change-label {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+/* --- StatusPanel --------------------------------------------------------- */
+.status-panel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+
+  padding: 40px 24px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.status-panel-error {
+  border-color: var(--color-error-border);
+  background: var(--color-error-bg);
+}
+
+.status-panel-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.status-panel-title {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.status-panel-description {
+  margin: 0;
+  max-width: 460px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.9rem;
+}
+
+.status-panel-action {
+  margin-top: 8px;
+}
+
+.status-panel-spinner {
+  width: 26px;
+  height: 26px;
+
+  border: 3px solid var(--color-border-strong);
+  border-top-color: var(--color-yellow);
+  border-radius: 50%;
+
+  animation: status-panel-spin 800ms linear infinite;
+}
+
+@keyframes status-panel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hareket hassasiyeti olan kullanıcıda dönme durur, halka sabit kalır. */
+@media (prefers-reduced-motion: reduce) {
+  .status-panel-spinner {
+    animation: none;
+  }
+}
+
+/* Ödeme ekranı — kart markası ve hata ipuçları */
+.payment-card-brand {
+  color: var(--color-yellow-text);
+  font-weight: 600;
+}
+
+.payment-error-hint,
+.payment-summary-note {
+  margin: 10px 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
+}
+
+.payment-demo-notice {
+  padding: 10px 14px;
+  margin-top: 12px;
+
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 8px;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.85rem;
 }

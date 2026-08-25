@@ -10,4 +10,7 @@
   <Folder Name="/Presentation/">
     <Project Path="Presentation/CineSeat.WebAPI/CineSeat.WebAPI.csproj" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/CineSeat.IntegrationTests/CineSeat.IntegrationTests.csproj" />
+  </Folder>
 </Solution>

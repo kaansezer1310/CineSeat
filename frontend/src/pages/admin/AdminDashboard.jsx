@@ -4,6 +4,8 @@ import { CSVLink } from "react-csv";
 
 import reservationService from "../../services/reservationService.js";
 import PageHeader from "../../components/ui/PageHeader.jsx";
+import StatCard from "../../components/ui/StatCard.jsx";
+import StatusPanel from "../../components/ui/StatusPanel.jsx";
 
 // Rapor artık gerçek rezervasyon verisinden üretiliyor
 // (GET /api/reservations, reservation.read izniyle korunuyor). Önceden bu
@@ -98,26 +100,33 @@ export default function AdminDashboard() {
       />
 
       {error && (
-        <p className="admin-empty-text" role="alert">
-          {error}
-        </p>
+        <StatusPanel
+          variant="error"
+          title="İstatistikler yüklenemedi"
+          description={error}
+        />
       )}
 
       <div className="admin-stats-cards">
-        <div className="admin-stat-card">
-          <h3>Toplam Satılan Bilet</h3>
-          <p>{totalTickets} Adet</p>
-        </div>
-        <div className="admin-stat-card">
-          <h3>Toplam Gelir</h3>
-          <p>{totalRevenue.toLocaleString("tr-TR")} TL</p>
-        </div>
+        <StatCard
+          label="Toplam Satılan Bilet"
+          value={totalTickets}
+          suffix="Adet"
+          isLoading={isLoading}
+        />
+
+        <StatCard
+          label="Toplam Gelir"
+          value={totalRevenue.toLocaleString("tr-TR")}
+          suffix="TL"
+          isLoading={isLoading}
+        />
       </div>
 
       <div className="admin-chart-container">
         <h2>Film Bazlı Satış Grafiği</h2>
         {isLoading ? (
-          <p>Yükleniyor...</p>
+          <StatusPanel variant="loading" title="Rapor hazırlanıyor…" />
         ) : stats.length === 0 ? (
           <p>Henüz tamamlanmış bir rezervasyon yok.</p>
         ) : (

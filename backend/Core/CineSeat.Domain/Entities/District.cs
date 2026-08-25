@@ -5,11 +5,11 @@ namespace CineSeat.Domain.Entities
 {
     public class District : BaseEntity
     {
-        public string DistrictName { get; set; }
+        public required string DistrictName { get; set; }
 
         public long CityId { get; set; }
-        public City City { get; set; }
+        public City City { get; set; } = null!;
 
-        public ICollection<Cinema> Cinemas { get; set; }
+        public ICollection<Cinema> Cinemas { get; set; } = new List<Cinema>();
     }
 }

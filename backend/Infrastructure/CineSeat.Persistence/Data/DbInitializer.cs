@@ -144,33 +144,74 @@ public static class DbInitializer
         await context.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Şehir ve ilçeler.
+    ///
+    /// Kayıt kayıt idempotent: önceden "şehir tablosunda herhangi bir satır
+    /// varsa hiç dokunma" deniyordu. Elle tek bir şehir eklenmiş bir
+    /// veritabanında bu, İstanbul/Ankara/İzmir ve TÜM ilçelerin bir daha asla
+    /// oluşmaması demekti — sinema kaydı ilçeye bağlı olduğu için katalog
+    /// kurulamıyordu. Artık eksik olan ne varsa tamamlanır.
+    /// </summary>
     private static async Task SeedLocationsAsync(ApplicationDbContext context)
     {
-        if (await context.Cities.AnyAsync())
-            return;
-
-        var istanbul = new City { CityName = "İstanbul" };
-        var ankara = new City { CityName = "Ankara" };
-        var izmir = new City { CityName = "İzmir" };
-
-        istanbul.Districts = new List<District>
+        var definitions = new (string City, string[] Districts)[]
         {
-            new() { DistrictName = "Kadıköy" },
-            new() { DistrictName = "Beşiktaş" },
-            new() { DistrictName = "Şişli" }
-        };
-        ankara.Districts = new List<District>
-        {
-            new() { DistrictName = "Çankaya" },
-            new() { DistrictName = "Keçiören" }
-        };
-        izmir.Districts = new List<District>
-        {
-            new() { DistrictName = "Konak" },
-            new() { DistrictName = "Bornova" }
+            ("İstanbul", ["Kadıköy", "Beşiktaş", "Şişli"]),
+            ("Ankara", ["Çankaya", "Keçiören"]),
+            ("İzmir", ["Konak", "Bornova"])
         };
 
-        context.Cities.AddRange(istanbul, ankara, izmir);
+        var cities = await context.Cities.IgnoreQueryFilters().ToListAsync();
+
+        foreach (var definition in definitions)
+        {
+            var city = cities.FirstOrDefault(c => c.CityName == definition.City);
+
+            if (city is null)
+            {
+                city = new City { CityName = definition.City };
+                context.Cities.Add(city);
+                cities.Add(city);
+            }
+            else
+            {
+                city.IsDeleted = false;
+            }
+        }
+
+        // İlçeler şehir Id'sine bağlı; şehirler önce kaydedilmeli.
+        await context.SaveChangesAsync();
+
+        var districts = await context.Districts.IgnoreQueryFilters().ToListAsync();
+
+        foreach (var definition in definitions)
+        {
+            var city = cities.First(c => c.CityName == definition.City);
+
+            foreach (var districtName in definition.Districts)
+            {
+                var district = districts.FirstOrDefault(
+                    d => d.CityId == city.Id && d.DistrictName == districtName);
+
+                if (district is null)
+                {
+                    district = new District
+                    {
+                        CityId = city.Id,
+                        DistrictName = districtName
+                    };
+
+                    context.Districts.Add(district);
+                    districts.Add(district);
+                }
+                else
+                {
+                    district.IsDeleted = false;
+                }
+            }
+        }
+
         await context.SaveChangesAsync();
     }
 }
