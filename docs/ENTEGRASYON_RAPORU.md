@@ -13,7 +13,7 @@
 | `dotnet build CineSeat.slnx` | 0 hata | **0 hata** |
 | `npm run lint` | 0 hata | **0 hata** |
 | `npm run test:run` | 223 / 223 (28 dosya) | **407 / 407 (47 dosya)** |
-| `dotnet test` | (test projesi yoktu) | **109 / 109** entegrasyon testi |
+| `dotnet test` | (test projesi yoktu) | **126 / 126** entegrasyon testi |
 | `npm run build` | 351,90 kB (gzip 107,31) | **351,51 kB (gzip 107,18)** + ekran başına ayrı parça |
 | Mock veride çalışan servis | 7 | **0** |
 
