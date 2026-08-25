@@ -13,7 +13,7 @@
 | `dotnet build CineSeat.slnx` | 0 hata | **0 hata** |
 | `npm run lint` | 0 hata | **0 hata** |
 | `npm run test:run` | 223 / 223 (28 dosya) | **407 / 407 (47 dosya)** |
-| `dotnet test` | (test projesi yoktu) | **107 / 107** entegrasyon testi |
+| `dotnet test` | (test projesi yoktu) | **109 / 109** entegrasyon testi |
 | `npm run build` | 351,90 kB (gzip 107,31) | **351,51 kB (gzip 107,18)** + ekran başına ayrı parça |
 | Mock veride çalışan servis | 7 | **0** |
 
@@ -1114,3 +1114,72 @@ npm run build                 → başarılı
 
 Yeni testler: kart uzunluk sınırı için 5, kilit alınamama çıkmazı ve girdi
 sınırı için 2.
+
+---
+
+## 17. Eş zamanlı kilit yarışı ve panel hizalaması
+
+### 17.1 Aynı kullanıcının kendi kendiyle çakışması
+
+§16'da süreç yenilendikten sonra ödeme yine takıldı, ama **farklı bir
+istisnayla**: `WriteRepository.SaveAsync` içindeki benzersiz kısıt çevirisi
+(§13.3) `LockSeatCommandHandler`'dan tetikleniyordu.
+
+Handler "önce oku, sonra yaz" yapıyor:
+
+```
+istek A: kilit var mı? → hayır → INSERT
+istek B: kilit var mı? → hayır → INSERT   ← benzersiz dizin reddeder
+```
+
+Ama bu **gerçek bir çakışma değildi**: iki istek de aynı kullanıcıya aitti.
+Handler zaten "aynı kullanıcı aynı isteği yinelerse süreyi yeniler" diyor;
+yarış bu niyeti boşa çıkarıyordu.
+
+Tetikleyici React'in geliştirme modunda efektleri iki kez çalıştırması
+(`StrictMode`): `PaymentPage` kilitleri iki kez, eş zamanlı olarak istiyordu.
+
+**Düzeltme:** ekleme yarışı kaybedilirse satır yeniden okunuyor ve mevcut
+devralma mantığına bırakılıyor. Kilit bizimse ya da süresi dolmuşsa istek
+başarılı olur; yalnızca canlı ve başkasına ait bir kilit gerçek çakışmadır.
+
+Başarısız ekleme EF'in izleyicisinde `Added` olarak kaldığı için bir sonraki
+kayıtta tekrar denenirdi; bu yüzden `IWriteRepository`'ye `Detach` eklendi.
+
+Canlı doğrulama:
+
+| Senaryo | Sonuç |
+|---|---|
+| Aynı kullanıcı, aynı koltuk, eş zamanlı 2 istek | **200 + 200**, ikisi de kilit id 24 |
+| Farklı kullanıcı, aynı koltuk | **409** — "başka bir kullanıcı tarafından kilitli" |
+
+Düzeltme yalnızca yarışı tolere ediyor, gerçek çakışmayı değil. İki
+entegrasyon testi bunu ölçüyor (toplam 109).
+
+### 17.2 Şehir/ilçe panelleri
+
+§15.5'te başlıklar hizalanmıştı ama sorun devam ediyordu. Kalan iki sebep:
+
+**Tablo başlığı (`<caption>`) görünürdü ve metni tekrarlıyordu.** Her tablonun
+üstünde zaten aynı adı taşıyan bir `<h2>` var; caption ikinci kez "Şehirler"
+yazıyor ve fazladan bir satır yüksekliği ekliyordu. Sol panel her zaman tablo
+gösterirken sağ panel şehir seçilene kadar `EmptyState` gösteriyor — yani bu
+fazladan satır yalnızca solda oluşuyor, paneller kayıyordu.
+
+`<caption>` tabloya erişilebilir ad verdiği için silinmedi, **ekran okuyucuya
+bırakılıp görsel olarak gizlendi**. `AdminMoviesPage`'in dinamik caption'ı
+(arşiv/katalog) bilgi kaybetmiyor: aynı bilgi sayfa başlığı açıklamasında ve
+düğme metninde zaten görünür.
+
+**Paneller eşit genişlikte değildi.** `minmax(0, 1fr) minmax(0, 1.2fr)`
+sağdakini %20 geniş yapıyordu; `repeat(2, minmax(0, 1fr))` ile eşitlendi.
+
+### 17.3 Doğrulama
+
+```
+dotnet build --no-incremental → 0 uyarı, 0 hata
+dotnet test                   → 109 / 109
+npm run lint                  → 0 hata
+npm run test:run              → 407 / 407 (47 dosya)
+npm run build                 → başarılı
+```

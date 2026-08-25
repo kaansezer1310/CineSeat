@@ -90,9 +90,40 @@ public class LockSeatCommandHandler : IRequestHandler<LockSeatCommand, SeatLockD
                 UserId = userId,
                 LockExpiresAt = now.AddMinutes(request.LockMinutes)
             };
+
             await _lockWrite.AddAsync(newLock, cancellationToken);
-            await _lockWrite.SaveAsync(cancellationToken);
-            return ToDto(newLock);
+
+            try
+            {
+                await _lockWrite.SaveAsync(cancellationToken);
+                return ToDto(newLock);
+            }
+            catch (ConflictException)
+            {
+                // YARIS: okuma ile yazma arasinda baska bir istek ayni
+                // (ShowtimeId, SeatId) satirini ekledi ve benzersiz dizin
+                // bizimkini reddetti.
+                //
+                // Bu her zaman gercek bir cakisma DEGIL: ayni kullanici ayni
+                // koltugu es zamanli iki kez isteyebiliyor (React'in gelistirme
+                // modunda efekti iki kez calistirmasi bunu duzenli olarak
+                // tetikliyordu). Satiri yeniden okuyup asagidaki devralma
+                // mantigina birakiyoruz; kilit bizimse ya da suresi dolmussa
+                // istek basarili olmali.
+                //
+                // Basarisiz ekleme izleyicide "Added" olarak duruyor; bir
+                // sonraki kayitta tekrar denenmesin diye cikariliyor.
+                _lockWrite.Detach(newLock);
+
+                existingLock = await _lockRead.GetSingleAsync(
+                    sl => sl.ShowtimeId == request.ShowtimeId && sl.SeatId == request.SeatId,
+                    tracking: true,
+                    cancellationToken);
+
+                // Satir bu arada silindiyse elimizde telafi edecek bir sey yok.
+                if (existingLock is null)
+                    throw;
+            }
         }
 
         var isExpired = existingLock.LockExpiresAt < now;

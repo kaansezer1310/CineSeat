@@ -152,6 +152,56 @@ public class SeatLockConcurrencyTests
     }
 
     [Fact]
+    public async Task Ayni_kullanicinin_es_zamanli_iki_istegi_de_basarili_olur()
+    {
+        var admin = await _factory.AuthenticateAsAdminAsync();
+        var scenario = await TestScenarioBuilder.CreateShowtimeAsync(admin, _factory);
+
+        var uye = await _factory.AuthenticateAsNewMemberAsync();
+        var seatId = scenario.SeatIds[0];
+
+        // Ayni kullanici ayni koltugu es zamanli iki kez istiyor. Handler
+        // "once oku, sonra yaz" yaptigi icin iki istek de "kilit yok" gorup
+        // ekleme deniyor; benzersiz dizin ikincisini reddediyor.
+        //
+        // Bu GERCEK bir cakisma degil: koltuk zaten bu kullanicinin. React'in
+        // gelistirme modunda efekti iki kez calistirmasi bunu duzenli olarak
+        // tetikliyor ve odeme ekranini kilitliyordu.
+        var responses = await Task.WhenAll(
+            LockAsync(uye, scenario.ShowtimeId, seatId),
+            LockAsync(uye, scenario.ShowtimeId, seatId));
+
+        Assert.All(responses, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
+
+        // Iki istek de AYNI kilit satirini gostermeli.
+        var ids = new List<long>();
+        foreach (var response in responses)
+            ids.Add((await response.ReadJsonAsync()).GetProperty("id").GetInt64());
+
+        Assert.Equal(ids[0], ids[1]);
+    }
+
+    [Fact]
+    public async Task Ayni_kullanicinin_ardisik_istekleri_tek_kilit_birakir()
+    {
+        var admin = await _factory.AuthenticateAsAdminAsync();
+        var scenario = await TestScenarioBuilder.CreateShowtimeAsync(admin, _factory);
+
+        var uye = await _factory.AuthenticateAsNewMemberAsync();
+        var seatId = scenario.SeatIds[0];
+
+        for (var i = 0; i < 3; i++)
+            (await LockAsync(uye, scenario.ShowtimeId, seatId)).EnsureSuccessStatusCode();
+
+        var kilitler = await uye.GetAsync($"/api/seatlocks?showtimeId={scenario.ShowtimeId}");
+        kilitler.EnsureSuccessStatusCode();
+
+        Assert.Single(
+            (await kilitler.ReadJsonAsync()).EnumerateArray(),
+            k => k.GetProperty("seatId").GetInt64() == seatId);
+    }
+
+    [Fact]
     public async Task Zaten_silinmis_kilidi_birakmak_hata_vermez()
     {
         var admin = await _factory.AuthenticateAsAdminAsync();

@@ -514,7 +514,10 @@
 /* İki bağlı liste yan yana (şehir → ilçe gibi). */
 .admin-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+
+  /* Esit genislik: paneller ayni duzeyde iki kart gibi okunmali. Onceden
+     sagdaki %20 genisti ve ikisi birbirine denk gorunmuyordu. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 28px;
 
   align-items: start;
