@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>CineSeat — Teknik Rapor</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm; }
+
+  :root {
+    --ink: #1a1620;
+    --ink-soft: #4a4356;
+    --ink-faint: #7a7286;
+    --rule: #ded8e6;
+    --accent: #6b4790;
+    --accent-soft: #f2ecf8;
+    --code-bg: #f7f5fa;
+    --warn-bg: #fdf4e8;
+    --warn-edge: #d99b3a;
+    --ok-bg: #eef6f0;
+    --ok-edge: #3b734d;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font: 10.5pt/1.62 "Segoe UI", -apple-system, system-ui, sans-serif;
+    color: var(--ink);
+  }
+
+  h1 { font-size: 24pt; line-height: 1.2; margin: 0 0 6pt; letter-spacing: -0.4pt; }
+  h2 {
+    font-size: 15pt; margin: 26pt 0 10pt; padding-bottom: 5pt;
+    border-bottom: 1.5pt solid var(--accent); color: var(--accent);
+    break-after: avoid;
+  }
+  h3 { font-size: 11.5pt; margin: 18pt 0 6pt; color: var(--ink); break-after: avoid; }
+  h4 { font-size: 10.5pt; margin: 13pt 0 4pt; color: var(--ink-soft); break-after: avoid; }
+
+  p { margin: 0 0 9pt; }
+  ul, ol { margin: 0 0 9pt; padding-left: 16pt; }
+  li { margin-bottom: 3pt; }
+  strong { font-weight: 650; }
+  em { color: var(--ink-soft); }
+
+  code {
+    font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: 9pt;
+    background: var(--code-bg);
+    padding: 0.5pt 3pt;
+    border-radius: 2pt;
+  }
+
+  pre {
+    font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: 8.2pt; line-height: 1.5;
+    background: var(--code-bg);
+    border: 0.75pt solid var(--rule);
+    border-left: 2.5pt solid var(--accent);
+    border-radius: 3pt;
+    padding: 8pt 10pt;
+    margin: 0 0 9pt;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .file {
+    font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: 8pt;
+    color: var(--ink-faint);
+    margin: 0 0 3pt;
+    display: block;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 0 0 10pt; font-size: 9.3pt; break-inside: avoid; }
+  th, td { text-align: left; padding: 5pt 7pt; border-bottom: 0.75pt solid var(--rule); vertical-align: top; }
+  th { background: var(--accent-soft); font-weight: 650; color: var(--accent); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .note, .warn, .ok {
+    padding: 8pt 11pt; margin: 0 0 10pt; border-radius: 3pt;
+    border-left: 2.5pt solid var(--accent); background: var(--accent-soft);
+    break-inside: avoid;
+  }
+  .warn { border-left-color: var(--warn-edge); background: var(--warn-bg); }
+  .ok { border-left-color: var(--ok-edge); background: var(--ok-bg); }
+  .note p:last-child, .warn p:last-child, .ok p:last-child { margin-bottom: 0; }
+
+  .lead { font-size: 11.5pt; color: var(--ink-soft); margin-bottom: 14pt; }
+  .meta { font-size: 9pt; color: var(--ink-faint); border-top: 0.75pt solid var(--rule); padding-top: 7pt; }
+  .break { break-before: page; }
+
+  .flow { margin: 0 0 10pt; padding-left: 0; list-style: none; counter-reset: step; }
+  .flow li {
+    position: relative; padding-left: 22pt; margin-bottom: 7pt;
+    counter-increment: step; break-inside: avoid;
+  }
+  .flow li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 0.5pt;
+    width: 15pt; height: 15pt; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-size: 8pt; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>CineSeat — Teknik Rapor</h1>
+<p class="lead">
+  Frontend ile backend'in nasıl konuştuğu, sistemin nasıl kurulduğu ve bu süreçte
+  bulunup düzeltilen hatalar.
+</p>
+
+<div class="note">
+  <p>
+    <strong>Bu belge ne için:</strong> kodu açmadan, sistemin nasıl çalıştığını
+    ve nelerin neden değiştirildiğini anlamak için. Anlatılan her kod parçası
+    projeden birebir alınmıştır; hangi dosyadan geldiği üstünde yazılıdır.
+  </p>
+</div>
+
+<h2>1. Sistemin şekli</h2>
+
+<p>
+  CineSeat iki ayrı programdan oluşuyor. Bunlar aynı bilgisayarda çalışsalar bile
+  <strong>birbirinden tamamen bağımsız</strong> iki süreçtir ve yalnızca ağ üzerinden,
+  HTTP ile konuşurlar.
+</p>
+
+<table>
+  <tr><th>Parça</th><th>Teknoloji</th><th>Adres (geliştirme)</th><th>Görevi</th></tr>
+  <tr>
+    <td><strong>Frontend</strong></td><td>React + Vite</td><td>localhost:5173</td>
+    <td>Tarayıcıda çalışır, ekranı çizer, kullanıcıdan girdi alır</td>
+  </tr>
+  <tr>
+    <td><strong>Backend</strong></td><td>.NET 10 Web API</td><td>localhost:5207</td>
+    <td>İş kurallarını uygular, veritabanına yazar/okur</td>
+  </tr>
+  <tr>
+    <td><strong>Veritabanı</strong></td><td>PostgreSQL</td><td>localhost:5432</td>
+    <td>Kalıcı veri</td>
+  </tr>
+</table>
+
+<p>
+  Frontend'in veritabanıyla <em>hiçbir</em> teması yoktur. Tarayıcıda çalışan kod
+  hiçbir zaman doğrudan SQL çalıştırmaz; her şey backend'in açtığı HTTP uçlarından
+  geçer. Bu, güvenliğin temel taşıdır: tarayıcıdaki kod kullanıcının görebileceği
+  ve değiştirebileceği bir şeydir, dolayısıyla ona güvenilmez.
+</p>
+
+<h2>2. Bağlantıyı kuran kod</h2>
+
+<p>
+  "Frontend backend'e nasıl bağlanıyor" sorusunun cevabı tek bir satır değil,
+  <strong>dört ayrı parçanın birlikte çalışması</strong>. Biri eksik olursa bağlantı kurulmaz.
+</p>
+
+<h3>2.1 Adres — nereye istek atılacağı</h3>
+
+<p class="file">frontend/src/services/apiClient.js</p>
+<pre><code>const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5207/api";</code></pre>
+
+<p>
+  <strong>Bağlantının başladığı yer burasıdır.</strong> Frontend'in backend'i bulabilmesi
+  için adresini bilmesi gerekir. Bu adres tek bir yerde tanımlanmıştır; projedeki
+  hiçbir başka dosya <code>localhost:5207</code> yazmaz.
+</p>
+<p>
+  <code>import.meta.env.VITE_API_BASE_URL</code> bir kaçış kapısıdır: canlıya çıkarken
+  adres değişecektir ve o zaman kodu değil, yalnızca ortam değişkenini değiştirmek yeterli olur.
+</p>
+
+<h3>2.2 CORS — tarayıcının izin vermesi</h3>
+
+<p>
+  Frontend 5173, backend 5207 portunda. Tarayıcı için bunlar <strong>farklı köken</strong>
+  (origin) sayılır ve tarayıcı, bir sayfanın başka bir kökene istek atmasını
+  <strong>varsayılan olarak engeller</strong>. Bu bir güvenlik önlemidir.
+</p>
+
+<p class="file">backend/Presentation/CineSeat.WebAPI/Program.cs</p>
+<pre><code>const string FrontendCorsPolicy = "FrontendCorsPolicy";
+builder.Services.AddCors(options =&gt;
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =&gt;
+    {
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});</code></pre>
+
+<div class="warn">
+  <p>
+    <strong>Bu blok olmasaydı hiçbir şey çalışmazdı.</strong> Kod doğru, token doğru,
+    veritabanı dolu olsa bile tarayıcı isteği göndermeden iptal ederdi. Backend'in
+    "bu adresten gelen isteklere izin veriyorum" demesi şarttır.
+  </p>
+  <p>
+    Adres listesi sabit yazılmıştır. Vite başka bir porta düşerse (5173 doluysa 5174'e
+    geçer) uygulama sessizce çalışmaz hale gelir — bu rapor hazırlanırken de bir kez
+    yaşandı.
+  </p>
+</div>
+
+<h3>2.3 Tek giriş noktası — her isteğin geçtiği yer</h3>
+
+<p>
+  Projede <strong>hiçbir bileşen doğrudan <code>fetch</code> çağırmaz.</strong> Her istek
+  aşağıdaki fonksiyondan geçer:
+</p>
+
+<p class="file">frontend/src/services/apiClient.js</p>
+<pre><code>async function apiRequest(path, { method = "GET", body, headers } = {}) {
+  const token = getStoredToken();
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: {
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  }).catch(() =&gt; {
+    throw new ApiError(
+      "Sunucuya ulaşılamıyor. Backend çalışıyor mu kontrol edin.",
+      { status: 0, code: "NETWORK_ERROR" }
+    );
+  });
+
+  if (!response.ok) {
+    if (response.status === 401 &amp;&amp; token &amp;&amp; onUnauthorized) {
+      onUnauthorized();
+    }
+    throw await toApiError(response);
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json();
+}</code></pre>
+
+<p>Bu fonksiyon dört işi tek yerde yapar:</p>
+<ul>
+  <li><strong>Adresi tamamlar</strong> — çağıran <code>"/movies"</code> yazar, buraya
+      <code>http://localhost:5207/api/movies</code> olur.</li>
+  <li><strong>Token'ı ekler</strong> — oturum varsa <code>Authorization</code> başlığı
+      kendiliğinden eklenir. Hiçbir servis dosyası token'ın varlığını bilmez.</li>
+  <li><strong>Ağ hatasını çevirir</strong> — backend kapalıysa <code>fetch</code> ham bir
+      hata fırlatır; burada anlaşılır bir mesaja dönüşür.</li>
+  <li><strong>204 durumunu ayırır</strong> — silme işlemleri gövdesiz cevap döner;
+      <code>response.json()</code> çağrılsa çökerdi.</li>
+</ul>
+
+<p>
+  Dışarıya açılan yüzey dört satırdır; tüm servisler yalnızca bunları kullanır:
+</p>
+
+<pre><code>export const apiClient = {
+  get:  (path)       =&gt; apiRequest(path),
+  post: (path, body) =&gt; apiRequest(path, { method: "POST", body }),
+  put:  (path, body) =&gt; apiRequest(path, { method: "PUT",  body }),
+  del:  (path)       =&gt; apiRequest(path, { method: "DELETE" }),
+};</code></pre>
+
+<h3>2.4 Kimlik — token'ın hayat döngüsü</h3>
+
+<p>
+  HTTP <strong>durumsuzdur</strong>: backend, arka arkaya gelen iki isteğin aynı kişiden
+  geldiğini kendiliğinden bilmez. Bunu çözen şey her istekte taşınan imzalı bir
+  belgedir — JWT.
+</p>
+
+<h4>Üretim (backend)</h4>
+
+<p class="file">backend/Infrastructure/CineSeat.Infrastructure/Security/JwtTokenService.cs</p>
+<pre><code>var claims = new List&lt;Claim&gt;
+{
+    new(ClaimTypes.NameIdentifier, userId.ToString()),
+    new(ClaimTypes.Name, username),
+    new(ClaimTypes.Email, email),
+    new(ClaimTypes.Role, roleName),
+    new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+};
+
+claims.AddRange(
+    permissions.Select(p =&gt; new Claim(PermissionClaimTypes.Permission, p)));
+
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
+var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);</code></pre>
+
+<p>
+  Token'ın içine kullanıcının kimliği, rolü ve <strong>izinlerinin tamamı</strong> yazılır.
+  Sonra gizli anahtarla imzalanır. İmza sayesinde içerik kurcalanamaz: kullanıcı
+  token'ı açıp okuyabilir ama değiştiremez — değiştirirse imza tutmaz.
+</p>
+
+<div class="note">
+  <p>
+    <strong>Rol değil izin taşınıyor.</strong> "Bu kullanıcı Admin" demek yerine
+    "bu kullanıcı <code>movie.manage</code>, <code>user.manage</code>… yapabilir" deniyor.
+    Böylece yeni bir yetki eklendiğinde kod değil veri değişir ve kısıtlı yetkili
+    yönetici tanımlamak mümkün olur.
+  </p>
+</div>
+
+<h4>Saklama (frontend)</h4>
+
+<p class="file">frontend/src/context/AuthProvider.jsx</p>
+<pre><code>const login = async (email, password) =&gt; {
+  const loggedInUser = await authService.login(email, password);
+  setIsSessionExpired(false);
+  setUser(loggedInUser);
+  sessionStorage.setItem("cineseat_user", JSON.stringify(loggedInUser));
+  return loggedInUser;
+};</code></pre>
+
+<p>
+  Token, kullanıcı nesnesinin içinde <code>sessionStorage</code>'a yazılır.
+  <code>localStorage</code> değil: sekme kapanınca oturum düşsün diye.
+</p>
+
+<h4>Doğrulama (backend)</h4>
+
+<p class="file">backend/Presentation/CineSeat.WebAPI/Program.cs</p>
+<pre><code>options.TokenValidationParameters = new TokenValidationParameters
+{
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,
+    ValidIssuer = jwtSettings.Issuer,
+    ValidAudience = jwtSettings.Audience,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+    ClockSkew = TimeSpan.Zero
+};</code></pre>
+
+<p>
+  <code>ClockSkew = TimeSpan.Zero</code> bilinçli: varsayılan 5 dakikalık tolerans,
+  süresi dolmuş bir token'ı 5 dakika daha geçerli sayar. Sıfırlandı.
+</p>
+
+<h4>Okuma (handler'lar)</h4>
+
+<p class="file">backend/Infrastructure/CineSeat.Infrastructure/Services/CurrentUserService.cs</p>
+<pre><code>public long? UserId
+{
+    get
+    {
+        var raw = Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+        return long.TryParse(raw, out var id) ? id : null;
+    }
+}
+
+public bool HasPermission(string permission)
+    =&gt; Principal?.HasClaim(PermissionClaimTypes.Permission, permission) ?? false;</code></pre>
+
+<p>
+  <strong>Bu sınıf sahiplik kontrollerinin temelidir.</strong> "Bu rezervasyon senin mi"
+  sorusunun cevabı istemciden değil, token'dan gelir. İstemci kendi kullanıcı numarasını
+  gönderseydi, o numarayı değiştirip başkasının verisini okuyabilirdi.
+</p>
+
+<h3>2.5 Yetki kapısı</h3>
+
+<p class="file">backend/Presentation/CineSeat.WebAPI/Program.cs</p>
+<pre><code>builder.Services.AddAuthorization(options =&gt;
+{
+    foreach (var permission in PermissionNames.All)
+    {
+        options.AddPolicy(
+            permission,
+            policy =&gt; policy.RequireClaim(PermissionClaimTypes.Permission, permission));
+    }
+});</code></pre>
+
+<p>
+  Her izin adı için otomatik bir politika üretilir. Bir uca yetki koymak tek satıra iner:
+</p>
+
+<pre><code>[Authorize(Policy = PermissionNames.MovieManage)]
+[HttpPost]
+public async Task&lt;IActionResult&gt; Create([FromBody] CreateMovieCommand command)</code></pre>
+
+<h3>2.6 Hata sözleşmesi</h3>
+
+<p>
+  Backend her hatada <strong>aynı biçimde</strong> cevap verir; frontend de bu biçimi
+  kendi hata sınıflarına çevirir. İki taraf arasındaki bu anlaşma, sayfaların
+  HTTP kodlarıyla uğraşmasını gereksiz kılar.
+</p>
+
+<p class="file">backend/Presentation/CineSeat.WebAPI/Middleware/ExceptionHandlingMiddleware.cs</p>
+<pre><code>try
+{
+    await _next(context);
+}
+catch (ValidationException ex)
+{
+    await WriteAsync(context, StatusCodes.Status400BadRequest, new
+    {
+        title = "Doğrulama hatası",
+        status = StatusCodes.Status400BadRequest,
+        errors = ex.Errors
+    });
+}
+catch (NotFoundException ex) { /* 404 */ }
+catch (ConflictException ex) { /* 409 */ }</code></pre>
+
+<p>
+  Bu, uygulamadaki <strong>tek <code>try/catch</code></strong>. Hiçbir controller ve handler
+  hata yakalamaz; hepsi istisna fırlatır, çeviri burada yapılır.
+</p>
+
+<p class="file">frontend/src/services/apiClient.js</p>
+<pre><code>switch (response.status) {
+  case 400:
+  case 422: return new ValidationError(message);
+  case 401: return new ApiError(message, { status: 401, code: "UNAUTHORIZED" });
+  case 403: return new ForbiddenError(message);
+  case 404: return new NotFoundError(message);
+  case 409: return new ConflictError(message);
+  default:  return new ApiError(message, { status: response.status });
+}</code></pre>
+
+<h3>2.7 Oturum düştüğünde</h3>
+
+<p>
+  Token'ın süresi dolduğunda kullanıcı "giriş yapmış" görünmeye devam eder ama her
+  istek 401 döner. Bunu çözen bağ şu:
+</p>
+
+<p class="file">frontend/src/context/AuthProvider.jsx</p>
+<pre><code>useEffect(() =&gt; {
+  setUnauthorizedHandler(() =&gt; {
+    setIsSessionExpired(true);
+    clearSession();
+  });
+
+  return () =&gt; setUnauthorizedHandler(null);
+}, [clearSession]);</code></pre>
+
+<p>
+  <code>apiClient</code> React'i hiç tanımaz — hook, context, router bilmez. Buna rağmen
+  oturumun düştüğünü haber verebilir: <code>AuthProvider</code> açılırken kendi
+  fonksiyonunu <code>apiClient</code>'a kaydeder. Bu, iki katmanı birbirine bağımlı
+  yapmadan haberleşmelerini sağlar.
+</p>
+
+<h2 class="break">3. Bir isteğin uçtan uca yolculuğu</h2>
+
+<p>
+  Yönetim panelinde "yeni film ekle" düğmesine basıldığında olanlar, sırayla:
+</p>
+
+<ol class="flow">
+  <li>
+    <strong>Bileşen servisi çağırır.</strong> Ekran <code>fetch</code> bilmez, yalnızca
+    <code>movieService.create(values)</code> der.
+  </li>
+  <li>
+    <strong>Servis komutu hazırlar.</strong> Form değerleri backend'in beklediği alan
+    adlarına çevrilir, sonra <code>apiClient.post("/movies", command)</code>.
+  </li>
+  <li>
+    <strong><code>apiClient</code> isteği kurar.</strong> Adres tamamlanır, token
+    <code>Authorization</code> başlığına eklenir, gövde JSON'a çevrilir.
+  </li>
+  <li>
+    <strong>Tarayıcı CORS ön kontrolü yapar.</strong> Token taşıyan bir POST, "basit
+    istek" sayılmaz; tarayıcı önce <code>OPTIONS</code> gönderip izin sorar. Backend'in
+    CORS politikası izin verirse asıl istek yola çıkar.
+  </li>
+  <li>
+    <strong>Backend istisna sarmalayıcısına girer.</strong> Boru hattının en dışı
+    <code>UseExceptionHandling()</code>. Bundan sonrası ne fırlatırsa fırlatsın,
+    istemci tutarlı bir JSON alır.
+  </li>
+  <li>
+    <strong>Kimlik ve yetki.</strong> <code>UseAuthentication</code> token'ın imzasını ve
+    süresini doğrular, <code>UseAuthorization</code> <code>movie.manage</code> iznini arar.
+    Yoksa handler'a hiç ulaşılmaz — 401 ya da 403.
+  </li>
+  <li>
+    <strong>Controller komutu iletir.</strong> Controller iş kuralı içermez; komutu
+    aracıya verir.
+  </li>
+  <li>
+    <strong>Doğrulama davranışı devreye girer.</strong> Handler'dan <em>önce</em>
+    çalışır; kurallar tutmuyorsa handler hiç çağrılmaz.
+  </li>
+  <li>
+    <strong>Handler işi yapar.</strong> Repository üzerinden veritabanına yazar.
+  </li>
+  <li>
+    <strong>Cevap geri döner.</strong> <code>apiClient</code> JSON'u çözer, servis arayüz
+    şekline çevirir, ekran güncellenir.
+  </li>
+</ol>
+
+<h3>Boru hattının sırası neden önemli</h3>
+
+<p class="file">backend/Presentation/CineSeat.WebAPI/Program.cs</p>
+<pre><code>app.UseExceptionHandling();   // en dista: her seyi sarmali
+// ...
+app.UseCors(FrontendCorsPolicy);
+app.UseAuthentication();      // once: sen kimsin
+app.UseAuthorization();       // sonra: yetkin var mi
+app.MapControllers();</code></pre>
+
+<div class="warn">
+  <p>
+    <strong>CORS, kimlik doğrulamadan ÖNCE gelmek zorunda.</strong> Tarayıcının ön kontrol
+    isteği (<code>OPTIONS</code>) hiçbir token taşımaz. CORS sonra gelseydi, bu istek
+    kimlik doğrulamada 401 ile düşer ve tarayıcı asıl isteği hiç göndermezdi. Sonuç,
+    hata ayıklaması zor bir "CORS hatası" olurdu.
+  </p>
+</div>
+
+<h3>Doğrulama davranışı</h3>
+
+<p class="file">backend/Core/CineSeat.Application/Common/Behaviors/ValidationBehavior.cs</p>
+<pre><code>var results = await Task.WhenAll(
+    _validators.Select(v =&gt; v.ValidateAsync(context, cancellationToken)));
+
+var failures = results.SelectMany(r =&gt; r.Errors).Where(f =&gt; f is not null).ToList();
+
+if (failures.Count &gt; 0)
+{
+    // Handler hiç çağrılmaz; middleware bunu 400'e çevirir.
+    throw new ValidationException(failures);
+}
+
+return await next();</code></pre>
+
+<p>
+  Bu sayede handler'ların içi <strong>tamamen iş kuralıdır</strong>; "bu alan boş mu",
+  "bu sayı pozitif mi" gibi kontroller handler'lara hiç girmez.
+</p>
+
+<h2>4. Backend'in katmanları</h2>
+
+<p>
+  Backend dört katmana ayrılmış. Kural şudur: <strong>bağımlılık her zaman içe doğrudur.</strong>
+  Dış katman iç katmanı tanır, tersi olmaz.
+</p>
+
+<table>
+  <tr><th>Katman</th><th>İçindekiler</th><th>Neyi tanımaz</th></tr>
+  <tr>
+    <td><strong>Domain</strong></td>
+    <td>Varlıklar, enum'lar</td>
+    <td>Hiçbir şeyi — en içteki katman</td>
+  </tr>
+  <tr>
+    <td><strong>Application</strong></td>
+    <td>Komutlar, sorgular, handler'lar, doğrulayıcılar, repository arayüzleri</td>
+    <td><strong>Entity Framework'ü tanımaz</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Persistence</strong></td>
+    <td>DbContext, repository uygulamaları, migration'lar</td>
+    <td>HTTP'yi tanımaz</td>
+  </tr>
+  <tr>
+    <td><strong>WebAPI</strong></td>
+    <td>Controller'lar, middleware, kurulum</td>
+    <td>—</td>
+  </tr>
+</table>
+
+<p>
+  "Application EF'i tanımaz" kuralı somut bir sonuç doğurur: handler'lar
+  <code>ToListAsync</code> gibi EF metotlarını çağıramaz. Bunun için bir arayüz konmuş:
+</p>
+
+<p class="file">backend/Infrastructure/CineSeat.Persistence/Data/EfAsyncQueryExecutor.cs</p>
+<pre><code>public sealed class EfAsyncQueryExecutor : IAsyncQueryExecutor
+{
+    public Task&lt;List&lt;T&gt;&gt; ToListAsync&lt;T&gt;(IQueryable&lt;T&gt; query, CancellationToken ct = default)
+        =&gt; query.ToListAsync(ct);
+    // CountAsync, AnyAsync, FirstOrDefaultAsync...
+}</code></pre>
+
+<p>
+  Bu kuralın pratik faydası rapordaki hatalardan birinde görüldü: veritabanına özgü bir
+  hata kodunu (<code>SQLSTATE 23505</code>) yakalayıp anlamlı bir istisnaya çevirmek
+  gerektiğinde, bunun <em>nereye</em> yazılacağı tartışmasızdı — EF'i yalnızca
+  Persistence tanıdığı için oraya.
+</p>
+
+<h2 class="break">5. Bulunan ve düzeltilen hatalar</h2>
+
+<p>
+  Aşağıdakiler bu süreçte ortaya çıkan <strong>gerçek</strong> hatalardır. Her biri ya
+  canlı isteklerle ya da bir testle doğrulandı.
+</p>
+
+<h3>5.1 Ödemeye girer girmez sepetin temizlenmesi</h3>
+
+<p><strong>Belirti:</strong> Kullanıcı ödeme sayfasına giriyor, anında sepeti boşalıyor ve sepete geri atılıyor.</p>
+
+<p><strong>Sebep:</strong></p>
+<p class="file">frontend/src/hooks/useCountdown.js — düzeltmeden önce</p>
+<pre><code>const [seconds, setSeconds] = useState(initialSeconds);</code></pre>
+
+<p>
+  <code>useState</code> kendisine verilen değeri <strong>yalnızca ilk render'da</strong>
+  kullanır. Koltuk kilitleri asenkron alındığı için <code>initialSeconds</code> önce
+  <code>0</code>, kilitler gelince <code>600</code> oluyordu. Ama sayaç
+  <code>0</code>'da kalıyor, kilit gelir gelmez "süre doldu" tetikleniyordu.
+</p>
+
+<p><strong>Düzeltme:</strong></p>
+<pre><code>const [syncedInitial, setSyncedInitial] = useState(initialSeconds);
+
+if (initialSeconds !== syncedInitial) {
+  setSyncedInitial(initialSeconds);
+  setSeconds(initialSeconds);
+}</code></pre>
+
+<div class="note">
+  <p>
+    Bu hatayı <strong>bir test buldu</strong>, elle deneme değil. Yalnızca gerçek akışta
+    (asenkron kilit + sayaç birlikte) ortaya çıkıyordu.
+  </p>
+</div>
+
+<h3>5.2 Sayfa boyutu uyuşmazlığı — üç kez tekrarlandı</h3>
+
+<p>
+  Backend sayfa başına en fazla 100 kayıt veriyor:
+</p>
+<pre><code>RuleFor(x =&gt; x.PageSize).InclusiveBetween(1, 100);</code></pre>
+
+<p>
+  Ön yüz ise 200, hatta 500 gönderiyordu. Sunucu 400 dönüyor, ekran sonsuza kadar
+  "yükleniyor"da kalıyordu. Aynı hata <strong>üç ayrı yerde</strong> çıktı:
+</p>
+
+<table>
+  <tr><th>Nerede</th><th>Gönderilen</th><th>Sonuç</th></tr>
+  <tr><td>Sinema ve ilçe listeleri</td><td>200 / 500</td><td>400</td></tr>
+  <tr><td>Seans listesi (yönetim)</td><td>200</td><td>400</td></tr>
+  <tr><td>Film, yorum, favori, kullanıcı uçları</td><td>—</td><td><strong>sınır yoktu</strong>: 999999 kabul ediliyordu</td></tr>
+</table>
+
+<p>
+  <strong>Sınıra inmek yeterli değildi.</strong> Bir sinemanın seansları 100'ü rahatlıkla
+  aşabilir; <code>pageSize=100</code> yapmak veriyi <em>sessizce kırpardı</em>. Çözüm,
+  sayfaları tek tek dolaşmak oldu:
+</p>
+
+<p class="file">frontend/src/services/adminResource.js</p>
+<pre><code>export async function fetchAllPages(basePath, params = {}) {
+  const query = buildQuery(params);
+
+  // Çağıran belirli bir sayfa istediyse ona karışılmaz.
+  if (query.has("pageNumber") || query.has("pageSize")) {
+    const result = await request();
+    return Array.isArray(result) ? result : (result?.items ?? []);
+  }
+
+  const collected = [];
+  query.set("pageSize", String(MAX_PAGE_SIZE));
+
+  for (let pageNumber = 1; pageNumber &lt;= MAX_PAGES; pageNumber += 1) {
+    query.set("pageNumber", String(pageNumber));
+    const result = await request();
+
+    if (Array.isArray(result)) return result;   // sayfalamayan uçlar
+
+    const items = result?.items ?? [];
+    collected.push(...items);
+
+    const totalPages = Number(result?.totalPages) || 0;
+    if (pageNumber &gt;= totalPages || items.length === 0) break;
+  }
+
+  return collected;
+}</code></pre>
+
+<p>
+  <code>MAX_PAGES</code> üst sınırı bilinçli: sunucu tutarsız bir <code>totalPages</code>
+  bildirse bile döngü kapanır. Boş sayfa kontrolü ikinci güvencedir.
+</p>
+
+<h3>5.3 Kullanıcının gördüğü fiyattan farklı tutar ödemesi</h3>
+
+<p>Bilet tipi çarpanları iki tarafta ayrışmıştı:</p>
+
+<table>
+  <tr><th>Taraf</th><th class="num">Yetişkin</th><th class="num">Öğrenci</th><th class="num">Çocuk</th></tr>
+  <tr><td>Ön yüz</td><td class="num">1.00</td><td class="num">0.75</td><td class="num"><strong>0.60</strong></td></tr>
+  <tr><td>Backend (bağlayıcı)</td><td class="num">1.00</td><td class="num">0.75</td><td class="num"><strong>0.50</strong></td></tr>
+</table>
+
+<p>
+  Çocuk bileti ekranda 132 TL görünüp 110 TL tahsil ediliyordu. Bağlayıcı olan backend
+  olduğu için ön yüz hizalandı ve kaynağın hangisi olduğu koda yazıldı:
+</p>
+
+<p class="file">frontend/src/services/pricing.js</p>
+<pre><code>/**
+ * BAGLAYICI DEGER BACKEND'DE:
+ *   CreateReservationCommandHandler.TicketTypeMultiplier
+ *
+ * Buradaki kopya yalnizca on izleme icin var (her tusa basista sunucuya
+ * sormak mumkun degil), bu yuzden ikisi birebir ayni olmak ZORUNDA.
+ */
+const TICKET_MULTIPLIERS = {
+  [TICKET_TYPE.ADULT]: 1.0,
+  [TICKET_TYPE.STUDENT]: 0.75,
+  [TICKET_TYPE.CHILD]: 0.5,
+};</code></pre>
+
+<h3>5.4 Ödemenin tümden reddedilmesi — kampanya eşiği</h3>
+
+<p>
+  Bu, ödemeyi kıran asıl hataydı ve belirtisi yanıltıcıydı: "indirim uygulanmıyor" değil,
+  <strong>rezervasyon hiç oluşmuyordu</strong>.
+</p>
+
+<p>
+  Sepette N seans varsa <strong>N ayrı rezervasyon</strong> oluşuyor. Backend kampanya
+  koşulunu <em>her rezervasyonun kendi</em> ara toplamına göre doğruluyor:
+</p>
+
+<p class="file">backend/.../CreateReservationCommandHandler.cs</p>
+<pre><code>if (subtotal &lt; campaign.MinCartTotal)
+    throw new ConflictException(
+        $"Bu kampanya için sepet tutarı en az {campaign.MinCartTotal:0.00} olmalıdır.");</code></pre>
+
+<p>Ön yüz ise uygunluğu <strong>sepetin tamamına</strong> göre değerlendiriyordu:</p>
+
+<table>
+  <tr><th>Taraf</th><th>Gördüğü</th><th>Sonuç</th></tr>
+  <tr><td>Ön yüz</td><td>sepet 500 ≥ 500</td><td>indirim gösteriliyor</td></tr>
+  <tr><td>Backend</td><td>rezervasyon 250 &lt; 500</td><td><strong>409 — ödeme düşüyor</strong></td></tr>
+</table>
+
+<p>Kampanya seçimi kalem bazına taşındı:</p>
+
+<p class="file">frontend/src/services/campaignService.js</p>
+<pre><code>export function planCampaignsPerItem(campaigns, items, user, calcItemSubtotal) {
+  const lines = (items ?? []).map((item) =&gt; {
+    const subtotal = calcItemSubtotal(item);
+    const campaign = pickBestCampaign(campaigns, subtotal, user);
+
+    return { item, campaign, subtotal,
+             discount: calculateDiscount(campaign, subtotal) };
+  });
+
+  return {
+    lines,
+    discountTotal: lines.reduce((sum, line) =&gt; sum + line.discount, 0),
+  };
+}</code></pre>
+
+<div class="note">
+  <p>
+    <strong>Genel ders:</strong> istemci tarafındaki her uygunluk kontrolü, backend'in
+    doğruladığı <strong>aynı birim</strong> üzerinde yapılmalı. Backend "sepet" diye bir
+    şey bilmiyordu.
+  </p>
+</div>
+
+<h3>5.5 Beklenen durumların istisna sayılması</h3>
+
+<p>
+  Üç ayrı hata aynı kökten geldi: <strong>normal bir sonuç, hata gibi modellenmişti.</strong>
+  Bunun bedeli ağırdı — hata ayıklayıcı istisnada duraklayınca <em>tüm süreç donuyor</em>
+  ve belirti her seferinde "sonsuz yükleniyor" oluyordu.
+</p>
+
+<h4>a) Zaten silinmiş kilidi bırakmak</h4>
+
+<p>
+  Rezervasyon oluştuğunda kilit satırları aynı işlem içinde siliniyor. Ödeme sonrası
+  temizlik yapan istemci, artık var olmayan kimlikleri bırakmaya çalışıyor ve her
+  seferinde <code>NotFoundException</code> alıyordu.
+</p>
+
+<p>
+  Oysa DELETE <strong>idempotenttir</strong>: "bu kilit gitmiş olsun" demektir. Yoksa amaç
+  zaten gerçekleşmiştir.
+</p>
+
+<p class="file">backend/.../ReleaseSeatCommandHandler.cs</p>
+<pre><code>// Kilit zaten yoksa amac gerceklesmis demektir, hata degil.
+if (seatLock is null)
+    return Unit.Value;
+
+// Reddedilen istek de sessizce basarili doner: 404 dondurmek
+// "bu kilit var ama senin degil" bilgisini sizdirirdi ve id deneyen
+// biri gecerli kilitleri haritalayabilirdi. Kilide DOKUNULMUYOR.
+if (seatLock.UserId != userId &amp;&amp; !canManageShowtimes)
+    return Unit.Value;
+
+_write.HardDelete(seatLock);
+await _write.SaveAsync(cancellationToken);</code></pre>
+
+<table>
+  <tr><th>Durum</th><th>Cevap</th><th>Eylem</th></tr>
+  <tr><td>Kilit yok</td><td>204</td><td>—</td></tr>
+  <tr><td>Kilit senin</td><td>204</td><td>silinir</td></tr>
+  <tr><td>Kilit başkasının</td><td>204</td><td><strong>dokunulmaz</strong></td></tr>
+</table>
+
+<h4>b) Aynı kullanıcının kendi kendiyle çakışması</h4>
+
+<p>
+  Handler "önce oku, sonra yaz" yapıyor. React'in geliştirme modunda efektleri iki kez
+  çalıştırması (<code>StrictMode</code>) yüzünden aynı koltuk için <strong>eş zamanlı iki
+  istek</strong> gidiyordu:
+</p>
+
+<pre><code>istek A: kilit var mi? -&gt; hayir -&gt; INSERT
+istek B: kilit var mi? -&gt; hayir -&gt; INSERT   &lt;- benzersiz dizin reddeder</code></pre>
+
+<p>
+  Ama bu gerçek bir çakışma değildi — iki istek de aynı kullanıcıya aitti ve handler
+  zaten "aynı kullanıcı yinelerse süreyi yeniler" diyordu. Yarış bu niyeti boşa
+  çıkarıyordu.
+</p>
+
+<p class="file">backend/.../LockSeatCommandHandler.cs</p>
+<pre><code>try
+{
+    await _lockWrite.SaveAsync(cancellationToken);
+    return ToDto(newLock);
+}
+catch (ConflictException)
+{
+    // YARIS: okuma ile yazma arasinda baska bir istek ayni satiri ekledi.
+    // Bu her zaman gercek bir cakisma DEGIL.
+    //
+    // Basarisiz ekleme izleyicide "Added" olarak duruyor; bir sonraki
+    // kayitta tekrar denenmesin diye cikariliyor.
+    _lockWrite.Detach(newLock);
+
+    existingLock = await _lockRead.GetSingleAsync(
+        sl =&gt; sl.ShowtimeId == request.ShowtimeId &amp;&amp; sl.SeatId == request.SeatId,
+        tracking: true, cancellationToken);
+
+    if (existingLock is null) throw;
+}
+// ...asagidaki devralma mantigina dusuyor</code></pre>
+
+<div class="ok">
+  <p><strong>Canlı doğrulama:</strong></p>
+  <ul style="margin-bottom:0">
+    <li>Aynı kullanıcı, eş zamanlı 2 istek → <strong>200 + 200</strong>, ikisi de aynı kilit numarası</li>
+    <li>Farklı kullanıcı, aynı koltuk → <strong>409</strong></li>
+  </ul>
+  <p style="margin-top:6pt;margin-bottom:0">
+    Düzeltme yalnızca yarışı tolere ediyor, gerçek çakışmayı değil.
+  </p>
+</div>
+
+<h4>c) Benzersiz kısıt ihlalinin 500 dönmesi</h4>
+
+<p>
+  Veritabanı doğru davranıp ikinci eklemeyi reddediyordu, ama
+  <code>DbUpdateException</code> hiçbir yerde yakalanmadığı için kullanıcıya
+  <strong>"Sunucu hatası"</strong> dönüyordu. Oysa bu beklenen bir durum: kayıt kapılmış.
+</p>
+
+<p class="file">backend/Infrastructure/CineSeat.Persistence/Repositories/WriteRepository.cs</p>
+<pre><code>private const string UniqueViolation = "23505";
+
+public async Task&lt;int&gt; SaveAsync(CancellationToken cancellationToken = default)
+{
+    try
+    {
+        return await _context.SaveChangesAsync(cancellationToken);
+    }
+    catch (DbUpdateException exception)
+        when (exception.InnerException is PostgresException { SqlState: UniqueViolation })
+    {
+        throw new ConflictException(
+            "Bu kayit baska bir islem tarafindan olusturulmus. Lutfen tekrar deneyin.");
+    }
+}</code></pre>
+
+<p>
+  <strong>Konum bilinçli:</strong> Application katmanı EF'i tanımıyor, Persistence tanıyor.
+  Bu düzeltme yalnızca koltuk kilidini değil, benzersiz kısıtı olan <em>her</em> yolu
+  (kullanıcı adı, e-posta, tür adı, rezervasyon numarası) 500 yerine 409'a çeviriyor.
+</p>
+
+<h3>5.6 Seed'in tek kayıt yüzünden tümden durması</h3>
+
+<p class="file">backend/.../DbInitializer.cs — düzeltmeden önce</p>
+<pre><code>if (await context.Cities.AnyAsync()) return;</code></pre>
+
+<p>
+  Elle eklenmiş <strong>tek bir şehir</strong>, tüm ilçe ve sinema seed'ini kalıcı olarak
+  bloke ediyordu — üstelik sessizce. Kontrol kayıt bazına indirildi: her kayıt "var mı,
+  yoksa ekle" biçiminde ayrı değerlendiriliyor.
+</p>
+
+<h3>5.7 76 derleyici uyarısı</h3>
+
+<p>
+  Uyarıların hepsi entity'lerdeki <code>CS8618</code> idi. Hepsine körlemesine
+  <code>= null!</code> yazmak yerine dört duruma ayrıldı:
+</p>
+
+<table>
+  <tr><th>Durum</th><th>Çözüm</th><th>Gerekçe</th></tr>
+  <tr><td>Zorunlu skaler</td><td><code>required</code></td><td>Derleme anında "set etmeyi unuttun" hatası</td></tr>
+  <tr><td>Zorunlu ilişki</td><td><code>= null!</code></td><td>EF dolduruyor; <code>?.</code> gürültüsü eklemez</td></tr>
+  <tr><td>Koleksiyon</td><td><code>= new List&lt;T&gt;()</code></td><td>Boş liste doğru cevap, <code>null</code> değil</td></tr>
+  <tr><td>İsteğe bağlı ilişki</td><td><code>Campaign?</code></td><td>Gerçekten null olabilir</td></tr>
+</table>
+
+<p>
+  Son satır bir <strong>modelleme tutarsızlığını</strong> açığa çıkardı:
+  <code>Reservation.CampaignId</code> nullable'dı ama <code>Campaign</code> ilişkisi
+  değildi. Kampanyasız rezervasyon tamamen geçerli bir durum.
+</p>
+
+<p>
+  <code>required</code> uygulanırken <strong>tek bir derleme hatası çıkmadı</strong> — yani
+  her oluşturma noktası zaten tüm zorunlu alanları dolduruyormuş; artık bu derleyici
+  tarafından güvenceye alınmış durumda.
+</p>
+
+<h2 class="break">6. Arayüz düzeltmeleri</h2>
+
+<h3>6.1 İstatistik grafiği</h3>
+
+<p>
+  Grafikteki asıl sorun boyut değil <strong>biçimdi</strong>: bilet adedi (onlu sayılar) ile
+  gelir (binli sayılar) <strong>aynı eksende</strong> gruplu çubuklardı. Farklı ölçekteki
+  iki ölçü aynı eksende gösterildiğinde küçük olan görünmez kalır.
+</p>
+
+<p>İki ayrı tek serili grafiğe bölündü. Ayrıca:</p>
+
+<table>
+  <tr><th>Şikâyet</th><th>Sebep</th><th>Çözüm</th></tr>
+  <tr><td>Çok büyük</td><td>Çubuk genişliği sınırsızdı</td><td>24 px sınır, tepesi 4 px yuvarlak</td></tr>
+  <tr><td>Beyaza dönüyor</td><td>Grafik kütüphanesinin varsayılan imleci</td><td>Nötr saydam vurgu</td></tr>
+  <tr><td>—</td><td>Renkler kütüphane varsayılanı</td><td>Tema başına ayrı seçildi</td></tr>
+</table>
+
+<p>
+  Renkler göz kararıyla seçilmedi; bir doğrulayıcıdan geçirildi (açıklık bandı, kroma
+  tabanı, renk körlüğü ayrımı, kontrast):
+</p>
+
+<table>
+  <tr><th>Tema</th><th>Seri 1</th><th>Seri 2</th><th class="num">Renk körlüğü ayrımı</th></tr>
+  <tr><td>Açık</td><td><code>#6b4790</code></td><td><code>#b3852b</code></td><td class="num">ΔE 27.4</td></tr>
+  <tr><td>Koyu</td><td><code>#8765a3</code></td><td><code>#ad8838</code></td><td class="num">ΔE 27.1</td></tr>
+</table>
+
+<p>
+  Eşik 8; ikisi de rahat geçiyor. Koyu tema için ilk seçilen sarı açıklık bandının
+  dışında kaldı ve uygun ton bulunana kadar denendi.
+</p>
+
+<p class="file">frontend/src/components/admin/admin.css</p>
+<pre><code>/* Cubuk renkleri CSS'ten geliyor: grafik kutuphanesi fill'i oznitelik olarak
+   yaziyor, oznitelikte var() cozulmuyor. CSS fill ozelligi onu geciyor ve
+   tema degisince renk de degisiyor. */
+.chart-bar-1 path { fill: var(--chart-series-1); }
+.chart-bar-2 path { fill: var(--chart-series-2); }</code></pre>
+
+<h3>6.2 Başlık gezintisi</h3>
+
+<p>
+  "Hoşgeldin, X" tıklanmaz bir metindi ama bağlantıların arasında bağlantı gibi
+  duruyordu; üstelik yanındaki "Profilim" ile aynı şeyi iki kez söylüyordu.
+</p>
+
+<p>
+  <strong>Karar:</strong> kaldırmak yerine işlevsel hale getirmek. İsim artık profilin
+  kendi etiketi — kişisellik korundu, ölü metin gitti, tıklanabilir görünen şey
+  gerçekten tıklanabilir oldu.
+</p>
+
+<pre><code>önce:  … Yönetim  Hoşgeldin, Sistem Yöneticisi  Profilim  Çıkış  Sepet 4  🌙
+sonra: … Yönetim  │  Sistem Yöneticisi  Çıkış  Sepet 0  ☀</code></pre>
+
+<p>
+  Ayrıca site gezintisi ile hesap işlemleri tek düz sıradaydı ve peşi sıra yazılmış gibi
+  okunuyordu. İnce bir ayırıcıyla iki gruba bölündü; ayırıcının iki yanına grup içi
+  aralıktan belirgin şekilde geniş boşluk verildi.
+</p>
+
+<h2>7. Test altyapısı</h2>
+
+<p>
+  Süreç başında backend'de <strong>hiç test projesi yoktu</strong>. Eklendi.
+</p>
+
+<h3>Neden gerçek veritabanı</h3>
+
+<p>
+  Testler bellek içi sahte bir sağlayıcı yerine <strong>ayrı bir gerçek PostgreSQL
+  veritabanı</strong> kullanıyor. Sebebi somut: ölçülmek istenen şeylerin bir kısmı
+  (benzersiz kısıt, eş zamanlılık, <code>timestamptz</code> davranışı) bellek içi
+  sağlayıcıda zaten yok. Eş zamanlı kilit yarışı sahte bir veritabanında hiç ortaya
+  çıkmazdı.
+</p>
+
+<p class="file">backend/Tests/CineSeat.IntegrationTests/CineSeatApiFactory.cs</p>
+<pre><code>private const string TestDatabase = "CineSeatDb_IntegrationTests";
+
+protected override void ConfigureWebHost(IWebHostBuilder builder)
+{
+    builder.UseEnvironment("Testing");
+    builder.UseSetting("ConnectionStrings:DefaultConnection", TestConnectionString);
+}</code></pre>
+
+<p>
+  Geliştirme veritabanına <strong>dokunulmuyor</strong>. Ortam <code>"Testing"</code>
+  seçildi: referans verisi (rol, izin, admin) yüklenir ama demo katalog yüklenmez —
+  böylece testler seed içeriği değiştiğinde kırılmaz, ihtiyaç duydukları kaydı
+  kendileri kurar.
+</p>
+
+<h3>Kapsam</h3>
+
+<table>
+  <tr><th>Dosya</th><th class="num">Test</th><th>Ölçtüğü</th></tr>
+  <tr><td>PermissionMatrixTests</td><td class="num">85</td><td>21 korumalı uç × (kimliksiz / izinsiz üye / yönetici)</td></tr>
+  <tr><td>PaginationLimitTests</td><td class="num">17</td><td>Sekiz uçta sayfa boyutu sınırı</td></tr>
+  <tr><td>SeatLockConcurrencyTests</td><td class="num">11</td><td>Eş zamanlı kilit, yarış, idempotency</td></tr>
+  <tr><td>ShowtimeConflictTests</td><td class="num">7</td><td>Çakışma, temizlik payı sınırı</td></tr>
+  <tr><td>ReservationOwnershipTests</td><td class="num">7</td><td>Sahiplik, iptal yetkisi</td></tr>
+  <tr><td>MovieArchivingTests</td><td class="num">5</td><td>Arşivleme, geri alma</td></tr>
+</table>
+
+<div class="note">
+  <p>
+    İzin matrisinde yönetici için "200 bekle" <strong>denmedi</strong>: gövdesiz bir POST
+    400, olmayan kayda PUT 404 döndürür. Ölçülen şey iş kuralı değil, isteğin
+    <strong>yetki duvarını geçip geçmediği</strong> — dolayısıyla iddia "401 ve 403 değil".
+  </p>
+</div>
+
+<h2>8. Tekrar eden üç kalıp</h2>
+
+<p>
+  Bulunan hataların neredeyse tamamı üç kalıptan geldi. Yeni bir hata ararken önce
+  bunlara bakmak zaman kazandırır.
+</p>
+
+<h3>1 — Aynı kuralın iki yerde tutulması</h3>
+<p>
+  Sayfa boyutu sınırı, bilet tipi çarpanları, kampanya eşiği. Üçü de hem ön yüzde hem
+  backend'de tanımlıydı ve üçü de zamanla ayrıştı.
+</p>
+<p>
+  <em>Önlem:</em> kuralın <strong>bağlayıcı</strong> olduğu tarafı yorumda açıkça yazmak ve
+  bir testle sabitlemek. Kopya kaçınılmazsa (ön izleme için sunucuya sormak mümkün
+  değil), hangisinin doğru olduğu belgelenmeli.
+</p>
+
+<h3>2 — İki tarafın farklı birim düşünmesi</h3>
+<p>
+  Ön yüz "sepet" diye bir kavramla karar veriyordu; backend öyle bir şey bilmiyor, her
+  rezervasyonu ayrı değerlendiriyordu.
+</p>
+<p>
+  <em>Önlem:</em> istemcideki her uygunluk kontrolünü, backend'in doğruladığı
+  <strong>aynı birim</strong> üzerinde yapmak.
+</p>
+
+<h3>3 — Beklenen durumun istisna olarak modellenmesi</h3>
+<p>
+  Zaten silinmiş kilidi bırakmak, kendi kilidini yenilemek, benzersiz kısıt yarışını
+  kaybetmek. Üçü de normal akıştı ama istisna fırlatıyordu.
+</p>
+<p>
+  <em>Önlem:</em> istisna yazmadan önce "bu gerçekten bir hata mı, yoksa beklenen bir
+  sonuç mu" diye sormak. Bedeli yüksek: hata ayıklayıcı istisnada duraklayınca tüm
+  süreç donuyor ve belirti her seferinde "sonsuz yükleniyor" oluyordu — asıl sebeple
+  hiç ilgisi olmayan bir görüntü.
+</p>
+
+<div class="warn">
+  <p>
+    <strong>Hata ayıklama notu:</strong> uygulama "sonsuz yükleniyor"da kalıyorsa, önce
+    backend'in <em>yanıt verip vermediğine</em> bakın. Süreç hata ayıklayıcıda
+    duraklamışsa hiçbir istek dönmez ve her ekran aynı şekilde takılır. Duraklama
+    penceresindeki <strong>istisna tipi</strong> ve çağrı yığınının <strong>en alt
+    satırı</strong> doğrudan sebebi gösterir.
+  </p>
+</div>
+
+<h2>9. Sayılarla durum</h2>
+
+<table>
+  <tr><th>Ölçüm</th><th>Başlangıç</th><th>Şimdi</th></tr>
+  <tr><td>Derleme uyarısı (backend)</td><td class="num">76</td><td class="num"><strong>0</strong></td></tr>
+  <tr><td>Derleme hatası</td><td class="num">0</td><td class="num"><strong>0</strong></td></tr>
+  <tr><td>Backend entegrasyon testi</td><td>test projesi yoktu</td><td class="num"><strong>126</strong></td></tr>
+  <tr><td>Frontend testi</td><td class="num">223</td><td class="num"><strong>410</strong> (47 dosya)</td></tr>
+  <tr><td>Lint hatası</td><td class="num">0</td><td class="num"><strong>0</strong></td></tr>
+  <tr><td>Mock veriyle çalışan servis</td><td class="num">7</td><td class="num"><strong>0</strong></td></tr>
+</table>
+
+<h3>Doğrulama komutları</h3>
+
+<pre><code>cd backend
+dotnet build CineSeat.slnx --no-incremental    # 0 uyari, 0 hata
+dotnet test  CineSeat.slnx                     # 126 / 126
+
+cd frontend
+npm run lint                                   # 0 hata
+npm run test:run                               # 410 / 410
+npm run build                                  # basarili</code></pre>
+
+<div class="note">
+  <p>
+    <strong>Testler PostgreSQL ister.</strong> <code>dotnet test</code> çalıştırılırken
+    yerelde PostgreSQL ayakta olmalı. Bu bilinçli bir tercih: eş zamanlılık ve veritabanı
+    kısıtları sahte bir sağlayıcıda ölçülemez.
+  </p>
+</div>
+
+<h2>10. Bilinen açıklar</h2>
+
+<p>
+  Aşağıdakiler <strong>tespit edildi ama düzeltilmedi</strong>. Her biri için gerekçe var.
+</p>
+
+<table>
+  <tr><th>Konu</th><th>Durum</th><th>Neden bekletildi</th></tr>
+  <tr>
+    <td><code>CancellationToken</code> yaygınlığı</td>
+    <td>84 uçtan 48'i almıyor</td>
+    <td>İstemci bağlantıyı kesse bile sorgu sürüyor — kaynak israfı, doğruluk hatası
+        değil. 48 imzayı değiştirmek büyük ve mekanik bir tur.</td>
+  </tr>
+  <tr>
+    <td>Alan adı tutarsızlığı</td>
+    <td><code>GetMoviesQuery</code> <code>Page</code>, diğerleri <code>PageNumber</code></td>
+    <td>Ön yüz buna göre yazıldığı için çalışıyor; tek başına düzeltmek ön yüzü kırar.</td>
+  </tr>
+  <tr>
+    <td>Panel paket boyutu</td>
+    <td>356 kB</td>
+    <td>Grafik kütüphanesinden geliyor. Zaten ayrı bir parçada; ilk açılışı etkilemiyor.</td>
+  </tr>
+  <tr>
+    <td>Rezervasyonun dağıtık olması</td>
+    <td>N seans = N istek</td>
+    <td>Araya giren hatada istemci telafi ediyor, ama tarayıcı kapanırsa telafi çalışmaz.
+        Doğru çözüm çok seanslı tek uç — veri modelini etkiler.</td>
+  </tr>
+  <tr>
+    <td>CORS adresinin sabit olması</td>
+    <td>Yalnızca 5173</td>
+    <td>Vite başka porta düşerse uygulama sessizce çalışmaz. Geliştirme ortamıyla sınırlı.</td>
+  </tr>
+</table>
+
+<h2>11. Çalıştırma</h2>
+
+<pre><code># 1) Veritabani ayakta olmali (PostgreSQL, localhost:5432)
+
+# 2) Backend
+cd backend/Presentation/CineSeat.WebAPI
+dotnet run                      # http://localhost:5207
+                                # migration'lar ve seed baslangicta otomatik
+
+# 3) Frontend
+cd frontend
+npm install
+npm run dev                     # http://localhost:5173</code></pre>
+
+<div class="warn">
+  <p>
+    Frontend <strong>5173</strong> portunda açılmalı — backend'in CORS politikası bu adrese
+    izin veriyor. Port doluysa Vite 5174'e düşer ve uygulama "Sunucuya ulaşılamıyor"
+    hatası verir. Bu durumda 5173'ü boşaltın.
+  </p>
+</div>
+
+<p style="margin-top:14pt">
+  <strong>Yönetici hesabı (geliştirme):</strong>
+  kullanıcı adı <code>admin</code>, parola <code>Admin123!</code>
+</p>
+
+<p class="meta">
+  CineSeat teknik raporu · <code>omer-cqrs-port</code> dalı<br>
+  Ayrıntılı çalışma günlüğü: <code>docs/ENTEGRASYON_RAPORU.md</code> ·
+  Gözden geçirme: <code>docs/CODE_REVIEW_2.md</code>
+</p>
+
+</body>
+</html>
