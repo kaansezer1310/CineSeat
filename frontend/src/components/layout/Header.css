@@ -1,0 +1,195 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  backdrop-filter: blur(14px);
+}
+
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+
+  max-width: var(--container-xl);
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-5);
+}
+
+.site-logo {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-black);
+  color: var(--color-purple);
+  letter-spacing: -0.03em;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  margin-right: auto;
+}
+
+.header-nav-link {
+  position: relative;
+  padding-bottom: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.header-nav-link:hover {
+  color: var(--color-text);
+}
+
+.header-nav-link-active {
+  color: var(--color-purple);
+}
+
+.header-nav-link-active::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -2px;
+  left: 0;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-purple);
+}
+
+.site-header-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mobile-menu-trigger {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .site-nav,
+  .site-header-tools {
+    display: none;
+  }
+
+  .mobile-menu-trigger {
+    display: inline-flex;
+  }
+}
+
+/* Şehir seçici / kullanıcı menüsü — açılır panelin konum çerçevesi */
+.city-selector,
+.user-menu {
+  position: relative;
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: var(--z-dropdown);
+
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--space-2);
+
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: var(--color-background-soft);
+}
+
+.dropdown-item--danger {
+  color: var(--color-error);
+}
+
+.city-selector-empty {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.user-menu-guest {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Mobil menü */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+
+  display: flex;
+  justify-content: flex-end;
+
+  background: var(--color-overlay-scrim);
+}
+
+.mobile-menu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  width: min(320px, 84vw);
+  height: 100%;
+  padding: var(--space-6) var(--space-5);
+
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.mobile-menu-link {
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.mobile-menu-link:hover {
+  background: var(--color-background-soft);
+}
+
+.mobile-menu-link-active {
+  color: var(--color-purple);
+  background: var(--color-background-soft);
+}
+
+.mobile-menu-logout {
+  color: var(--color-error);
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  margin: var(--space-3) 0;
+  background: var(--color-border);
+}
