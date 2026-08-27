@@ -120,4 +120,11 @@ describe("Layout ana menü", () => {
       screen.getByRole("link", { name: "Sinemalar" })
     ).toHaveAttribute("href", "/cinemas");
   });
+
+  it("aktif temayı body yerine <html> üzerine uygular", () => {
+    renderLayout();
+
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.body.dataset.theme).toBeUndefined();
+  });
 });

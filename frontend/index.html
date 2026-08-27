@@ -7,25 +7,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <title>CineSeat</title>
-  </head>
-  <body>
     <script>
       // Tema flash'ını (FOUC) önlemek için, uygulama yüklenmeden
-      // önce kayıtlı temayı body'ye uygula. Kaynak: localStorage.
+      // önce kayıtlı temayı <html>'e uygula. Kaynak: localStorage.
+      // Varsayılan artık light (bkz. src/styles/tokens.css :root).
       (function () {
         try {
           var stored = localStorage.getItem("cineseat_theme");
-          document.body.dataset.theme =
-            stored === "light" ? "light" : "dark";
+          document.documentElement.dataset.theme =
+            stored === "dark" ? "dark" : "light";
         } catch (e) {
-          document.body.dataset.theme = "dark";
+          document.documentElement.dataset.theme = "light";
         }
       })();
     </script>
+  </head>
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
