@@ -51,4 +51,12 @@ describe("primitives.css", () => {
     expect(css).toContain("@keyframes skeleton-shimmer {");
     expect(css).toContain("@media (prefers-reduced-motion: reduce) {");
   });
+
+  it(".icon-btn ikon-only buton ve rozet varyantını tanımlar", () => {
+    expect(css).toContain(".icon-btn {");
+    expect(css).toContain("width: 38px;");
+    expect(css).toContain(".icon-btn:hover {");
+    expect(css).toContain(".icon-btn-badge {");
+    expect(css).toContain("background: var(--color-yellow);");
+  });
 });
