@@ -60,3 +60,35 @@ button {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-shell > main {
+  flex: 1;
+}
+
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: var(--space-4);
+  z-index: var(--z-toast);
+
+  padding: var(--space-3) var(--space-5);
+
+  background: var(--color-purple);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-md);
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+
+  transition: top var(--duration-fast) var(--ease-out);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+}

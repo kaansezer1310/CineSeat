@@ -25,4 +25,16 @@ describe("base.css", () => {
     expect(css).toContain("text-decoration: none;");
     expect(css).toContain("border: 0;");
   });
+
+  it(".app-shell'i tam yükseklikte dikey bir kutu olarak tanımlar", () => {
+    expect(css).toContain(".app-shell {");
+    expect(css).toContain("display: flex;");
+    expect(css).toContain("flex-direction: column;");
+  });
+
+  it(".skip-link'i odaklanınca görünür yapar", () => {
+    expect(css).toContain(".skip-link {");
+    expect(css).toContain(".skip-link:focus {");
+    expect(css).toContain("color: var(--color-on-primary);");
+  });
 });

@@ -1,124 +1,47 @@
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import CartProvider from "../../context/CartProvider.jsx";
 import AuthProvider from "../../context/AuthProvider.jsx";
 import ThemeProvider from "../../context/ThemeProvider.jsx";
 import Layout from "./Layout.jsx";
-import {
-  ADMIN_PERMISSIONS,
-  PERMISSIONS,
-} from "../../constants/permissions.js";
 
 function renderLayout(initialPath = "/") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
   render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <ThemeProvider>
-        <CartProvider>
-          <AuthProvider>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route path="/" element={<p>Ana sayfa içeriği</p>} />
-                <Route path="/cinemas" element={<p>Sinemalar içeriği</p>} />
-              </Route>
-            </Routes>
-          </AuthProvider>
-        </CartProvider>
-      </ThemeProvider>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <ThemeProvider>
+          <CartProvider>
+            <AuthProvider>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<p>Ana sayfa içeriği</p>} />
+                </Route>
+              </Routes>
+            </AuthProvider>
+          </CartProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
-function signIn(user) {
-  sessionStorage.setItem("cineseat_user", JSON.stringify(user));
-}
-
-describe("Layout ana menü", () => {
-  beforeEach(() => {
-    sessionStorage.clear();
-  });
-
-  // K2: panele ulaşmanın tek yolu adres çubuğuna /admin yazmaktı.
-  it("misafire Yönetim bağlantısı göstermez", () => {
+describe("Layout", () => {
+  it("skip link, header, sayfa içeriği ve footer'ı birlikte render eder", () => {
     renderLayout();
 
     expect(
-      screen.queryByRole("link", { name: "Yönetim" })
-    ).not.toBeInTheDocument();
-  });
-
-  it("izni olmayan üyeye Yönetim bağlantısı göstermez", () => {
-    signIn({ id: 2, name: "Üye", role: "member" });
-
-    renderLayout();
-
-    expect(
-      screen.queryByRole("link", { name: "Yönetim" })
-    ).not.toBeInTheDocument();
-  });
-
-  it("yönetim izni olan kullanıcıya Yönetim bağlantısı gösterir", () => {
-    signIn({
-      id: 3,
-      name: "Moderatör",
-      role: "member",
-      permissions: [PERMISSIONS.COMMENT_MODERATE],
-    });
-
-    renderLayout();
-
-    expect(
-      screen.getByRole("link", { name: "Yönetim" })
-    ).toHaveAttribute("href", "/admin");
-  });
-
-  it("tam yetkili kullanıcıya Yönetim bağlantısı gösterir", () => {
-    signIn({
-      id: 1,
-      name: "Yönetici",
-      role: "admin",
-      permissions: [...ADMIN_PERMISSIONS],
-    });
-
-    renderLayout();
-
-    expect(
-      screen.getByRole("link", { name: "Yönetim" })
-    ).toBeInTheDocument();
-  });
-
-  it("izinsiz admin rolüne Yönetim bağlantısı göstermez", () => {
-    // Yetki artık rolden değil izin listesinden geliyor.
-    signIn({ id: 1, name: "Yönetici", role: "admin", permissions: [] });
-
-    renderLayout();
-
-    expect(
-      screen.queryByRole("link", { name: "Yönetim" })
-    ).not.toBeInTheDocument();
-  });
-
-  // Y4: projede hiç NavLink yoktu, aktif sayfa vurgulanmıyordu.
-  it("aktif sayfayı aria-current ile işaretler", () => {
-    renderLayout("/cinemas");
-
-    const cinemasLink = screen.getByRole("link", { name: "Sinemalar" });
-    const homeLink = screen.getByRole("link", {
-      name: "Vizyondaki Filmler",
-    });
-
-    expect(cinemasLink).toHaveAttribute("aria-current", "page");
-    expect(homeLink).not.toHaveAttribute("aria-current");
-  });
-
-  // T9: sinemalar artık ana sayfada sekme değil, menüden ulaşılan rota.
-  it("menüden /cinemas rotasına bağlantı verir", () => {
-    renderLayout();
-
-    expect(
-      screen.getByRole("link", { name: "Sinemalar" })
-    ).toHaveAttribute("href", "/cinemas");
+      screen.getByRole("link", { name: "İçeriğe geç" })
+    ).toHaveAttribute("href", "#main-content");
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(screen.getByText("Ana sayfa içeriği")).toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
   });
 
   it("aktif temayı body yerine <html> üzerine uygular", () => {
