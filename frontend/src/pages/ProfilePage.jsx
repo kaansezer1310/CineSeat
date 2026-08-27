@@ -7,12 +7,24 @@ import reservationService from "../services/reservationService.js";
 import profileService from "../services/profileService.js";
 import sessionService from "../services/sessionService.js";
 import { validateRegisterForm } from "../services/validation.js";
+import PageHeader from "../components/ui/PageHeader.jsx";
+import EmptyState from "../components/ui/EmptyState.jsx";
+
+import "./profile.css";
 
 /**
  * Sprint 3 — Profil sayfası
  * 1.2.5: Kişisel bilgi formu (REQ-18)
  * 1.2.6: Bilet sekmeleri — güncel ve geçmiş (REQ-18)
  * 1.2.8: İzleme listem sekmesi + bildirim (REQ-25)
+ *
+ * Faz 4 (spec §8): sekmeli düzen + gerçek bilet görünümlü kartlar.
+ *
+ * Spec §8 dördüncü bir "Yorumlarım" sekmesi de öngörüyordu; EKLENMEDİ.
+ * Sebep: commentService yalnızca `getCommentsByMovieId` sunuyor, "bu
+ * kullanıcının yorumları" diye bir backend ucu yok. Sekmeyi eklemek yeni
+ * bir uç gerektirirdi ve spec §11 backend değişikliğini bu revizyonun
+ * kapsamı dışında bırakıyor. Uç eklendiğinde sekme buraya girer.
  */
 
 const PROFILE_TABS = [
@@ -20,6 +32,44 @@ const PROFILE_TABS = [
   { id: "tickets", label: "Biletlerim" },
   { id: "watchlist", label: "İzleme Listem" },
 ];
+
+/**
+ * Tek bir rezervasyon — fiziksel bilete benzeyen kart (spec §8):
+ * solda bilgi gövdesi, kesikli perforasyondan sonra sağda koçan.
+ */
+function TicketCard({ reservation, isPast = false }) {
+  return (
+    <article
+      className={
+        isPast
+          ? "profile-ticket-card profile-ticket-past"
+          : "profile-ticket-card"
+      }
+    >
+      <div className="profile-ticket-body">
+        <p className="profile-ticket-movie">{reservation.movieTitle}</p>
+
+        <div className="profile-ticket-meta">
+          <span>
+            {new Date(reservation.startDatetime).toLocaleString("tr-TR")}
+          </span>
+          <span>{reservation.ticketCount} bilet</span>
+        </div>
+
+        <span className="profile-ticket-resno">{reservation.resNo}</span>
+      </div>
+
+      <div className="profile-ticket-stub">
+        {/* Dekoratif yer tutucu: gerçek QR üretimi backend işi (spec §11). */}
+        <span className="profile-ticket-qr" aria-hidden="true" />
+
+        <span className="profile-ticket-total">
+          {reservation.total.toFixed(2)} ₺
+        </span>
+      </div>
+    </article>
+  );
+}
 
 function ProfilePage() {
   const { user } = useAuth();
@@ -141,14 +191,14 @@ function ProfilePage() {
   const favoriteMovies = allMovies.filter((m) => favoriteIds.includes(m.id));
 
   return (
-    <section>
-      <div className="page-heading">
-        <h1>Profilim</h1>
-        <p>Hoşgeldin, {user?.name}</p>
-      </div>
+    <section className="profile-page">
+      <PageHeader
+        title="Profilim"
+        description={`Hoşgeldin, ${user?.name ?? ""}`.trim()}
+      />
 
       {/* Sekme navigasyonu */}
-      <div className="movie-tab-list" role="tablist">
+      <div className="profile-tab-list" role="tablist">
         {PROFILE_TABS.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
@@ -159,8 +209,8 @@ function ProfilePage() {
               aria-selected={isActive}
               className={
                 isActive
-                  ? "movie-tab-button movie-tab-button-active"
-                  : "movie-tab-button"
+                  ? "profile-tab-button profile-tab-button-active"
+                  : "profile-tab-button"
               }
               onClick={() => setActiveTab(tab.id)}
             >
@@ -177,58 +227,87 @@ function ProfilePage() {
       {activeTab === "info" && (
         <div className="profile-panel">
           {saveMessage && (
-            <div className="auth-success" role="status">
+            <div className="profile-save-message" role="status">
               {saveMessage}
             </div>
           )}
 
-          <div className="auth-form">
-            <div className="auth-row">
-              <div className="auth-field">
-                <label>Ad</label>
+          <div className="profile-form">
+            <div className="profile-form-row">
+              <div className="profile-field">
+                <label htmlFor="profile-firstName">Ad</label>
                 <input
+                  id="profile-firstName"
+                  className="input"
                   type="text"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleFormChange}
                   disabled={!editMode}
+                  aria-invalid={Boolean(formErrors.firstName)}
                 />
-                {formErrors.firstName && <span className="auth-field-error">{formErrors.firstName}</span>}
+                {formErrors.firstName && (
+                  <span className="profile-field-error">
+                    {formErrors.firstName}
+                  </span>
+                )}
               </div>
-              <div className="auth-field">
-                <label>Soyad</label>
+              <div className="profile-field">
+                <label htmlFor="profile-lastName">Soyad</label>
                 <input
+                  id="profile-lastName"
+                  className="input"
                   type="text"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleFormChange}
                   disabled={!editMode}
+                  aria-invalid={Boolean(formErrors.lastName)}
                 />
-                {formErrors.lastName && <span className="auth-field-error">{formErrors.lastName}</span>}
+                {formErrors.lastName && (
+                  <span className="profile-field-error">
+                    {formErrors.lastName}
+                  </span>
+                )}
               </div>
             </div>
 
-            <div className="auth-field">
-              <label>E-posta</label>
-              <input type="email" value={formData.email} disabled />
+            <div className="profile-field">
+              <label htmlFor="profile-email">E-posta</label>
+              <input
+                id="profile-email"
+                className="input"
+                type="email"
+                value={formData.email}
+                disabled
+              />
             </div>
 
-            <div className="auth-field">
-              <label>Kullanıcı Adı</label>
+            <div className="profile-field">
+              <label htmlFor="profile-username">Kullanıcı Adı</label>
               <input
+                id="profile-username"
+                className="input"
                 type="text"
                 name="username"
                 value={formData.username}
                 onChange={handleFormChange}
                 disabled={!editMode}
+                aria-invalid={Boolean(formErrors.username)}
               />
-              {formErrors.username && <span className="auth-field-error">{formErrors.username}</span>}
+              {formErrors.username && (
+                <span className="profile-field-error">
+                  {formErrors.username}
+                </span>
+              )}
             </div>
 
-            <div className="auth-row">
-              <div className="auth-field">
-                <label>Telefon</label>
+            <div className="profile-form-row">
+              <div className="profile-field">
+                <label htmlFor="profile-phone">Telefon</label>
                 <input
+                  id="profile-phone"
+                  className="input"
                   type="tel"
                   name="phone"
                   value={formData.phone}
@@ -236,9 +315,11 @@ function ProfilePage() {
                   disabled={!editMode}
                 />
               </div>
-              <div className="auth-field">
-                <label>Cinsiyet</label>
+              <div className="profile-field">
+                <label htmlFor="profile-gender">Cinsiyet</label>
                 <select
+                  id="profile-gender"
+                  className="input"
                   name="gender"
                   value={formData.gender}
                   onChange={handleFormChange}
@@ -257,14 +338,14 @@ function ProfilePage() {
                 <>
                   <button
                     type="button"
-                    className="primary-button"
+                    className="btn btn--primary btn--md"
                     onClick={handleSave}
                   >
                     Kaydet
                   </button>
                   <button
                     type="button"
-                    className="secondary-button"
+                    className="btn btn--secondary btn--md"
                     onClick={() => {
                       setEditMode(false);
                       setFormErrors({});
@@ -276,7 +357,7 @@ function ProfilePage() {
               ) : (
                 <button
                   type="button"
-                  className="primary-button"
+                  className="btn btn--primary btn--md"
                   onClick={() => setEditMode(true)}
                 >
                   Düzenle
@@ -292,23 +373,15 @@ function ProfilePage() {
         <div className="profile-panel">
           <h2 className="profile-section-title">Güncel Biletler</h2>
           {currentTickets.length === 0 ? (
-            <div className="temporary-panel">Güncel biletiniz bulunmuyor.</div>
+            <EmptyState
+              icon="🎫"
+              title="Güncel biletiniz bulunmuyor."
+              description="Bir seans seçtiğinizde biletiniz burada görünecek."
+            />
           ) : (
             <div className="profile-ticket-list">
-              {currentTickets.map((r) => (
-                <div key={r.id} className="profile-ticket-card">
-                  <div className="profile-ticket-header">
-                    <strong>{r.resNo}</strong>
-                    <span>
-                      {new Date(r.startDatetime).toLocaleString("tr-TR")}
-                    </span>
-                  </div>
-                  <div className="profile-ticket-body">
-                    <span>{r.movieTitle}</span>
-                    <span>{r.ticketCount} bilet</span>
-                    <span>{r.total.toFixed(2)} ₺</span>
-                  </div>
-                </div>
+              {currentTickets.map((reservation) => (
+                <TicketCard key={reservation.id} reservation={reservation} />
               ))}
             </div>
           )}
@@ -317,23 +390,18 @@ function ProfilePage() {
             Geçmiş Biletler
           </h2>
           {pastTickets.length === 0 ? (
-            <div className="temporary-panel">Geçmiş biletiniz bulunmuyor.</div>
+            <EmptyState
+              icon="🗓️"
+              title="Geçmiş biletiniz bulunmuyor."
+            />
           ) : (
             <div className="profile-ticket-list">
-              {pastTickets.map((r) => (
-                <div key={r.id} className="profile-ticket-card profile-ticket-past">
-                  <div className="profile-ticket-header">
-                    <strong>{r.resNo}</strong>
-                    <span>
-                      {new Date(r.startDatetime).toLocaleString("tr-TR")}
-                    </span>
-                  </div>
-                  <div className="profile-ticket-body">
-                    <span>{r.movieTitle}</span>
-                    <span>{r.ticketCount} bilet</span>
-                    <span>{r.total.toFixed(2)} ₺</span>
-                  </div>
-                </div>
+              {pastTickets.map((reservation) => (
+                <TicketCard
+                  key={reservation.id}
+                  reservation={reservation}
+                  isPast
+                />
               ))}
             </div>
           )}
@@ -344,9 +412,11 @@ function ProfilePage() {
       {activeTab === "watchlist" && (
         <div className="profile-panel">
           {favoriteMovies.length === 0 ? (
-            <div className="temporary-panel">
-              İzleme listeniz boş. Film kartlarındaki ♡ ikonuna tıklayarak favori ekleyebilirsiniz.
-            </div>
+            <EmptyState
+              icon="♡"
+              title="İzleme listeniz boş."
+              description="Film kartlarındaki kalp ikonuna tıklayarak favori ekleyebilirsiniz."
+            />
           ) : (
             <div className="profile-watchlist-grid">
               {favoriteMovies.map((movie) => {
@@ -363,13 +433,13 @@ function ProfilePage() {
                       )}
                     </div>
                     <div className="profile-watchlist-info">
-                      <strong>{movie.title}</strong>
+                      <strong className="profile-watchlist-title">
+                        {movie.title}
+                      </strong>
                       {isReleased ? (
-                        <span className="profile-watchlist-badge profile-watchlist-badge--active">
-                          Vizyonda
-                        </span>
+                        <span className="badge badge--success">Vizyonda</span>
                       ) : (
-                        <span className="profile-watchlist-badge">
+                        <span className="badge badge--neutral">
                           {daysLeft > 0 ? `${daysLeft} gün kaldı` : "Bugün vizyonda"}
                         </span>
                       )}
@@ -379,6 +449,7 @@ function ProfilePage() {
                       className="profile-watchlist-remove"
                       onClick={() => toggleFavorite(movie.id)}
                       title="İzleme listesinden çıkar"
+                      aria-label={`${movie.title} filmini izleme listesinden çıkar`}
                     >
                       ✕
                     </button>

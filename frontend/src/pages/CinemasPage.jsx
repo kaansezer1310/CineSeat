@@ -60,7 +60,7 @@ export default function CinemasPage() {
           id="cinemas-city-select"
           value={selectedCity}
           onChange={(e) => setSelectedCity(e.target.value)}
-          className="city-select"
+          className="input cinemas-city-select"
         >
           {cities.map(city => (
             <option key={city} value={city}>{city}</option>
@@ -83,7 +83,7 @@ export default function CinemasPage() {
               </p>
             )}
             <button
-              className="secondary-button cinema-card-action"
+              className="btn btn--secondary btn--sm cinema-card-action"
               type="button"
               onClick={handleViewSessions}
             >

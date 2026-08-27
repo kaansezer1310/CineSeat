@@ -24,6 +24,11 @@ import {
   CARD_BRANDS,
 } from "../domain/card.js";
 
+// Ödeme formu, Giriş/Kayıt ile aynı `.auth-*` form düzenini kullanıyor.
+// Bu stiller Faz 4'te App.css'ten auth.css'e taşındı; Faz 3 bu sayfayı
+// kendi tasarımına geçirene kadar buradan tüketiliyor.
+import "./auth.css";
+
 function secondsUntil(isoDate) {
   const expiresAt = new Date(isoDate).getTime();
   if (Number.isNaN(expiresAt)) {
@@ -385,6 +390,7 @@ function PaymentPage() {
               <label htmlFor="payment-buyer-first-name">Ad</label>
               <input
                 id="payment-buyer-first-name"
+                className="input"
                 type="text"
                 required
                 minLength={2}
@@ -400,6 +406,7 @@ function PaymentPage() {
               <label htmlFor="payment-buyer-last-name">Soyad</label>
               <input
                 id="payment-buyer-last-name"
+                className="input"
                 type="text"
                 required
                 minLength={2}
@@ -415,6 +422,7 @@ function PaymentPage() {
               <label htmlFor="payment-buyer-email">E-posta</label>
               <input
                 id="payment-buyer-email"
+                className="input"
                 type="email"
                 required
                 value={buyerForm.email}
@@ -438,6 +446,7 @@ function PaymentPage() {
               <label htmlFor="payment-cardHolder">Kart Sahibinin Adı</label>
               <input
                 id="payment-cardHolder"
+                className="input"
                 type="text"
                 autoComplete="cc-name"
                 value={paymentForm.cardHolder}
@@ -470,6 +479,7 @@ function PaymentPage() {
                   uzun degil; bicimleme de ayrica kirpiyor (formatCardNumber). */}
               <input
                 id="payment-cardNumber"
+                className="input"
                 type="text"
                 inputMode="numeric"
                 maxLength={23}
@@ -508,6 +518,7 @@ function PaymentPage() {
                 <label htmlFor="payment-expiry">Son Kullanma (AA/YY)</label>
                 <input
                   id="payment-expiry"
+                  className="input"
                   type="text"
                   inputMode="numeric"
                   autoComplete="cc-exp"
@@ -535,6 +546,7 @@ function PaymentPage() {
                 </label>
                 <input
                   id="payment-cvv"
+                  className="input"
                   type="text"
                   inputMode="numeric"
                   autoComplete="cc-csc"

@@ -1,0 +1,181 @@
+/* Faz 4 — statik/yasal sayfaların ortak kabuğu (spec §7).
+   Tüm değerler token'lardan; bu dosyada ham renk/ölçü yazılmaz. */
+
+.static-page {
+  /* Uzun metin blokları için okunabilir satır uzunluğu: tam container
+     genişliğinde satırlar göz için fazla uzun kalıyor. */
+  max-width: var(--container-md);
+  margin-inline: auto;
+  padding-bottom: var(--space-16);
+}
+
+.static-page-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.static-page-section-title {
+  margin: 0 0 var(--space-3);
+
+  color: var(--color-text);
+
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.static-page-paragraph {
+  margin: 0 0 var(--space-3);
+
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.static-page-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.static-page-list {
+  margin: 0;
+  padding-left: var(--space-5);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+/* --- İletişim bilgileri (variant: "contact") ----------------------------- */
+.static-page-contact {
+  margin: 0 0 var(--space-10);
+  padding: var(--space-6);
+
+  display: grid;
+  gap: var(--space-4);
+}
+
+.static-page-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.static-page-contact-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.static-page-contact dt {
+  min-width: 160px;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.static-page-contact dd {
+  margin: 0;
+
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+/* --- SSS akordeonu (variant: "faq") ------------------------------------- */
+.static-page-faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.static-page-faq-item {
+  padding: var(--space-4) var(--space-5);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+}
+
+.static-page-faq-item[open] {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.static-page-faq-question {
+  color: var(--color-text);
+
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+
+  cursor: pointer;
+  list-style: none;
+
+  /* Yerleşik üçgen işaretçiyi kaldırıp kendi göstergemizi koyuyoruz;
+     Safari için ayrıca ::-webkit-details-marker gerekiyor. */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.static-page-faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.static-page-faq-question::after {
+  content: "+";
+
+  flex-shrink: 0;
+
+  color: var(--color-purple);
+
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.static-page-faq-item[open] .static-page-faq-question::after {
+  content: "−";
+}
+
+.static-page-faq-answer {
+  padding-top: var(--space-3);
+}
+
+/* --- Alt not ------------------------------------------------------------- */
+.static-page-footer-note {
+  margin-top: var(--space-10);
+  padding-top: var(--space-6);
+
+  border-top: 1px solid var(--color-border);
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.static-page-footer-note p {
+  margin: 0;
+}
+
+.static-page-link {
+  color: var(--color-purple);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+}
+
+.static-page-link:hover {
+  color: var(--color-purple-dark);
+}
+
+@media (max-width: 650px) {
+  .static-page-contact dt {
+    min-width: 0;
+  }
+}
