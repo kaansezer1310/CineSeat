@@ -21,7 +21,7 @@ function Layout() {
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
-    document.body.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   const totalTicketCount = state.items.reduce(

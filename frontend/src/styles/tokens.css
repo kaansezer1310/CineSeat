@@ -1,0 +1,188 @@
+/* ═══════════════════════════════════════════════════════
+   Tasarım token katmanı — tek kaynak.
+
+   :root                     → light tema (varsayılan)
+   [data-theme="dark"]       → dark tema (Faz 6'da yeniden ele alınacak;
+                                şimdilik önceki dark palet değerleri)
+
+   Header ve poster-katmanı token'ları kasıtlı olarak temadan bağımsızdır
+   (Faz 1'de Header/Footer yeniden kurulana kadar sabit kalır).
+   ═══════════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;
+
+  /* Yüzeyler */
+  --color-background: #FAF8FC;
+  --color-background-soft: #F2EFF7;
+  --color-surface: #FFFFFF;
+  --color-surface-light: #F6F2FA;
+  --color-ambient-glow: rgba(91, 62, 142, 0.10);
+
+  /* Marka */
+  --color-purple: #5B3E8E;
+  --color-purple-light: #7B5CAE;
+  --color-yellow: #E0A82E;
+  --color-yellow-hover: #C6921F;
+  --color-yellow-text: #7A5A0E;
+  --color-on-accent: #2B2100;
+  --color-purple-dark: #4A3175;
+  --color-accent-soft: #FBF0D8;
+  --color-warn: #B5761F;
+  --color-on-primary: #FFFFFF;
+  --color-on-danger: #FFFFFF;
+  --color-skeleton-shimmer: rgba(255, 255, 255, 0.5);
+
+  /* Metin */
+  --color-text: #1E1A26;
+  --color-text-muted: #6B6478;
+
+  /* Kenarlık */
+  --color-border: #E4DFEC;
+  --color-border-strong: #C9BEDB;
+
+  /* Durum renkleri */
+  --color-success: #2E7D5B;
+  --color-success-bg: #E2F1EA;
+  --color-error: #C0392B;
+  --color-error-text: #A93226;
+  --color-error-bg: #FBE7E4;
+  --color-error-border: rgba(192, 57, 43, 0.3);
+
+  /* Pasif (disabled) alan/aksiyonlar */
+  --color-disabled-bg: #E7E2ED;
+  --color-disabled-text: #948C9E;
+
+  /* Dolu koltuk durumu */
+  --color-seat-occupied-bg: #D5D0DC;
+  --color-seat-occupied-text: #5F5869;
+
+  /* Odak halkası */
+  --color-focus-ring: var(--color-purple);
+
+  /* Gölgeler (ham renk — --shadow-* ölçeği bunları kullanır) */
+  --color-shadow: rgba(76, 52, 112, 0.14);
+  --color-shadow-strong: rgba(76, 52, 112, 0.22);
+
+  /* Poster üzeri katman (her iki temada koyu kalır) */
+  --color-overlay-scrim: rgba(12, 9, 18, 0.82);
+  --color-on-overlay: #f2edf5;
+
+  /* Header (Faz 1'e kadar temadan bağımsız, orijinal değerler) */
+  --color-header-background: rgba(12, 9, 18, 0.9);
+  --color-header-border: rgba(190, 164, 207, 0.14);
+  --color-header-text: #f2edf5;
+  --color-header-text-muted: #c3b8d0;
+  --color-header-accent: #d8b662;
+  --color-header-hover-surface: rgba(255, 255, 255, 0.12);
+
+  --font-ui: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+
+  /* Boşluk ölçeği (4px taban) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Tipografi ölçeği */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.875rem;
+  --text-3xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.375rem);
+  --text-4xl: clamp(2rem, 1.5rem + 2.2vw, 2.75rem);
+  --text-5xl: clamp(2.25rem, 1.5rem + 3.2vw, 3.5rem);
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  /* Radius ölçeği */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* Gölge ölçeği (katmanlı — Yumuşak Modern dilinin imzası) */
+  --shadow-sm: 0 2px 6px var(--color-shadow);
+  --shadow-md: 0 10px 30px var(--color-shadow), 0 2px 6px var(--color-shadow);
+  --shadow-lg: 0 20px 48px var(--color-shadow-strong), 0 4px 12px var(--color-shadow);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Z-index ölçeği */
+  --z-header: 100;
+  --z-dropdown: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+
+  /* Container genişlikleri */
+  --container-sm: 640px;
+  --container-md: 960px;
+  --container-lg: 1200px;
+  --container-xl: 1440px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-background: #0c0912;
+  --color-background-soft: #14101c;
+  --color-surface: #1b1425;
+  --color-surface-light: #241a30;
+  --color-ambient-glow: rgba(92, 62, 122, 0.24);
+
+  --color-purple: #8765a3;
+  --color-purple-light: #a181ba;
+  --color-yellow: #d0ac59;
+  --color-yellow-hover: #ddbd70;
+  --color-yellow-text: #d0ac59;
+  --color-on-accent: #211a0b;
+  --color-purple-dark: #a181ba;
+  --color-accent-soft: rgba(208, 172, 89, 0.16);
+  --color-warn: #ddbd70;
+  --color-on-primary: #FFFFFF;
+  --color-on-danger: #FFFFFF;
+  --color-skeleton-shimmer: rgba(255, 255, 255, 0.5);
+
+  --color-text: #f2edf5;
+  --color-text-muted: #aaa0b4;
+
+  --color-border: rgba(190, 164, 207, 0.14);
+  --color-border-strong: rgba(190, 164, 207, 0.25);
+
+  --color-success: #71947c;
+  --color-success-bg: rgba(113, 148, 124, 0.16);
+  --color-error: #d77b82;
+  --color-error-text: #e8a0a0;
+  --color-error-bg: rgba(220, 80, 80, 0.1);
+  --color-error-border: rgba(220, 80, 80, 0.35);
+
+  --color-disabled-bg: #4a414f;
+  --color-disabled-text: #89808d;
+
+  --color-seat-occupied-bg: #3e3843;
+  --color-seat-occupied-text: #cfc9d3;
+
+  --color-focus-ring: var(--color-yellow);
+
+  --color-shadow: rgba(0, 0, 0, 0.22);
+  --color-shadow-strong: rgba(0, 0, 0, 0.28);
+}

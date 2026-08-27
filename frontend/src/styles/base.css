@@ -1,0 +1,62 @@
+/* Sıfırlama, tipografi varsayılanları ve global odak stili.
+   Renk/ölçü değerleri tokens.css'ten gelir; burada ham değer yazılmaz. */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+
+  background:
+    radial-gradient(
+      circle at top,
+      var(--color-ambient-glow) 0%,
+      transparent 42%
+    ),
+    var(--color-background);
+
+  color: var(--color-text);
+
+  font-family: var(--font-ui);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  border: 0;
+  background: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
