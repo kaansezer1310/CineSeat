@@ -90,7 +90,7 @@ function MobileMenu() {
               ✕
             </button>
 
-            <NavLink to="/" end className={mobileNavLinkClass} onClick={close}>
+            <NavLink to="/movies" className={mobileNavLinkClass} onClick={close}>
               Filmler
             </NavLink>
             <NavLink

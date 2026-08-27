@@ -63,7 +63,7 @@ describe("Header", () => {
 
     expect(
       screen.getByRole("link", { name: "Filmler" })
-    ).toHaveAttribute("href", "/");
+    ).toHaveAttribute("href", "/movies");
     expect(
       screen.getByRole("link", { name: "Sinemalar" })
     ).toHaveAttribute("href", "/cinemas");
@@ -157,5 +157,13 @@ describe("Header", () => {
     expect(
       screen.getByRole("button", { name: "Menüyü aç" })
     ).toBeInTheDocument();
+  });
+
+  it("bir film detay sayfasındayken Filmler bağlantısını aktif işaretler", () => {
+    renderHeader("/movies/42");
+
+    expect(
+      screen.getByRole("link", { name: "Filmler" })
+    ).toHaveAttribute("aria-current", "page");
   });
 });

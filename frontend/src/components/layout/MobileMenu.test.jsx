@@ -45,7 +45,7 @@ describe("MobileMenu", () => {
 
     expect(
       screen.getByRole("link", { name: "Filmler" })
-    ).toHaveAttribute("href", "/");
+    ).toHaveAttribute("href", "/movies");
     expect(
       screen.getByRole("link", { name: "Sinemalar" })
     ).toHaveAttribute("href", "/cinemas");

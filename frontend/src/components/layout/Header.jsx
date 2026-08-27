@@ -25,7 +25,7 @@ function Header() {
         </Link>
 
         <nav className="site-nav" aria-label="Ana menü">
-          <NavLink to="/" end className={navLinkClass}>
+          <NavLink to="/movies" className={navLinkClass}>
             Filmler
           </NavLink>
           <NavLink to="/cinemas" className={navLinkClass}>

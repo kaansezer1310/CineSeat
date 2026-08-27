@@ -21,7 +21,7 @@ function Footer() {
             <h2 className="site-footer-heading">Keşfet</h2>
             <ul className="site-footer-list">
               <li>
-                <Link to="/">Vizyondaki Filmler</Link>
+                <Link to="/movies">Vizyondaki Filmler</Link>
               </li>
               <li>
                 <Link to="/cinemas">Sinemalar</Link>

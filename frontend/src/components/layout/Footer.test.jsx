@@ -28,6 +28,9 @@ describe("Footer", () => {
     expect(
       screen.getByRole("link", { name: "Sinemalar" })
     ).toHaveAttribute("href", "/cinemas");
+    expect(
+      screen.getByRole("link", { name: "Vizyondaki Filmler" })
+    ).toHaveAttribute("href", "/movies");
   });
 
   it("Kurumsal ve Yasal sütunlarını başlıklarıyla gösterir", () => {
