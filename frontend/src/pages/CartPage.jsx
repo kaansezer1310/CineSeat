@@ -101,7 +101,7 @@ function CartPage() {
 
           <Link
             className="primary-button"
-            to="/"
+            to="/movies"
           >
             Filmleri İncele
           </Link>

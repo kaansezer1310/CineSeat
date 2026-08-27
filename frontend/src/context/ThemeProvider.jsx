@@ -4,14 +4,14 @@ import ThemeContext from "./ThemeContext.js";
 /**
  * Sprint 3 / 1.5.9 — Light / Dark mod (REQ-23)
  *
- * Varsayılan: dark (mevcut tasarım dark tema)
+ * Varsayılan: light (Faz 0 — light-first tasarım revizyonu).
  * Tema bilgisi localStorage'da saklanır.
- * CSS: body'ye `data-theme="light"` veya `data-theme="dark"` attr eklenir.
+ * CSS: <html>'e `data-theme="light"` veya `data-theme="dark"` attr eklenir.
  */
 function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     const stored = localStorage.getItem("cineseat_theme");
-    return stored === "light" ? "light" : "dark";
+    return stored === "dark" ? "dark" : "light";
   });
 
   const toggleTheme = () => {

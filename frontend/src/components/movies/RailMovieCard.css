@@ -1,0 +1,48 @@
+.rail-movie-card {
+  width: 180px;
+}
+
+.rail-movie-card-button {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  width: 100%;
+  padding: 0;
+
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rail-movie-card-poster {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.rail-movie-card-button:hover .rail-movie-card-poster {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+}
+
+.rail-movie-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+.rail-movie-card-meta {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
