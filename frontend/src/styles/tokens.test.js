@@ -62,4 +62,12 @@ describe("tokens.css", () => {
     expect(css).toContain("--color-header-background: rgba(12, 9, 18, 0.9);");
     expect(css).toContain("--color-overlay-scrim: rgba(12, 9, 18, 0.82);");
   });
+
+  it("footer token'larını temadan bağımsız tanımlar", () => {
+    expect(css).toContain("--color-footer-background: #231C30;");
+    expect(css).toContain("--color-footer-text: #EDE7F3;");
+    expect(css).toContain("--color-footer-text-muted: #A99BBB;");
+    expect(css).toContain("--color-footer-heading: #FFFFFF;");
+    expect(css).toContain("--color-footer-border: rgba(255, 255, 255, 0.11);");
+  });
 });

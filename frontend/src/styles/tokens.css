@@ -75,6 +75,13 @@
   --color-header-accent: #d8b662;
   --color-header-hover-surface: rgba(255, 255, 255, 0.12);
 
+  /* Footer (temadan bağımsız, her zaman koyu — "marka çıpası" artık footer'da, spec §6) */
+  --color-footer-background: #231C30;
+  --color-footer-text: #EDE7F3;
+  --color-footer-text-muted: #A99BBB;
+  --color-footer-heading: #FFFFFF;
+  --color-footer-border: rgba(255, 255, 255, 0.11);
+
   --font-ui: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
 
   /* Boşluk ölçeği (4px taban) */
