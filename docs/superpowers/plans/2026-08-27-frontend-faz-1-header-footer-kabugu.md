@@ -1066,7 +1066,7 @@ function CitySelector() {
 
   const { data: cities = [] } = useQuery({
     queryKey: ["cities"],
-    queryFn: cityResource.list,
+    queryFn: () => cityResource.list(),
     staleTime: 30 * 60 * 1000,
   });
 
