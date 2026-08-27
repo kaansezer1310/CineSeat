@@ -3,6 +3,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import {
   QueryClient,
@@ -12,12 +13,21 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import movieService from "../services/movieService.js";
+import campaignService from "../services/campaignService.js";
 import { cityResource } from "../services/locationService.js";
 import HomePage from "./HomePage.jsx";
 
 vi.mock("../services/movieService.js", async () => {
   const actual = await vi.importActual("../services/movieService.js");
   return { default: { ...actual.default, getMovies: vi.fn() } };
+});
+
+vi.mock("../services/campaignService.js", async () => {
+  const actual = await vi.importActual("../services/campaignService.js");
+  return {
+    ...actual,
+    default: { ...actual.default, getActiveCampaigns: vi.fn() },
+  };
 });
 
 vi.mock("../services/locationService.js", () => ({
@@ -85,6 +95,7 @@ describe("HomePage — Hero ve hızlı bilet şeridi", () => {
     vi.clearAllMocks();
     movieService.getMovies.mockResolvedValue(MOVIES);
     cityResource.list.mockResolvedValue(CITIES);
+    campaignService.getActiveCampaigns.mockResolvedValue([]);
   });
 
   it("başlığı ve Bilet Al CTA'sını gösterir", async () => {
@@ -150,5 +161,127 @@ describe("HomePage — Hero ve hızlı bilet şeridi", () => {
     expect(
       await screen.findByText("Sinemalar sayfası")
     ).toBeInTheDocument();
+  });
+});
+
+describe("HomePage — Vizyondaki Filmler ve Yakında rayları", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    cityResource.list.mockResolvedValue(CITIES);
+    campaignService.getActiveCampaigns.mockResolvedValue([]);
+  });
+
+  it("vizyondaki filmleri Vizyondaki Filmler rayında gösterir", async () => {
+    movieService.getMovies.mockResolvedValue(MOVIES);
+
+    renderHomePage();
+
+    const rail = (
+      await screen.findByRole("heading", { name: "Vizyondaki Filmler" })
+    ).closest("section");
+
+    // Rail'in başlığı yükleme durumunda da hemen render olur (statik prop);
+    // film kartı ise `movies` sorgusu çözüldükten sonra gelir — bu yüzden
+    // burada senkron getByText değil asenkron findByText kullanılmalı,
+    // aksi halde test yükleme durumunu (StatusPanel) yakalayıp başarısız
+    // olabilir (Task 6'nın implementer'ının bulduğu aynı sınıf hata).
+    expect(
+      await within(rail).findByText("Neon Yağmuru")
+    ).toBeInTheDocument();
+  });
+
+  it("film yoksa Vizyondaki Filmler raylında boş durum mesajı gösterir", async () => {
+    movieService.getMovies.mockResolvedValue([]);
+
+    renderHomePage();
+
+    expect(
+      await screen.findByText("Şu anda vizyonda film bulunmuyor.")
+    ).toBeInTheDocument();
+  });
+
+  it("bir rail kartına tıklanınca film detayına gider", async () => {
+    movieService.getMovies.mockResolvedValue(MOVIES);
+
+    renderHomePage();
+
+    // Brief'teki orijinal test buradaki `screen.findByText("Neon Yağmuru")`yu
+    // sayfa genelinde arıyordu; ancak QuickTicketStrip'in "Film" <select>'i
+    // de aynı ada sahip bir <option> render ediyor, bu yüzden sorgu iki
+    // eşleşme buluyor ve "Found multiple elements" ile başarısız oluyordu
+    // (bir yarış durumu değil, gerçek bir sorgu belirsizliği hatası).
+    // Fix: yukarıdaki testteki gibi sorguyu rail bölümüyle sınırlıyoruz.
+    const rail = (
+      await screen.findByRole("heading", { name: "Vizyondaki Filmler" })
+    ).closest("section");
+
+    fireEvent.click(await within(rail).findByText("Neon Yağmuru"));
+
+    expect(
+      await screen.findByText("Film detay sayfası")
+    ).toBeInTheDocument();
+  });
+});
+
+describe("HomePage — Kampanyalar", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    movieService.getMovies.mockResolvedValue(MOVIES);
+    cityResource.list.mockResolvedValue(CITIES);
+  });
+
+  it("aktif kampanyaları kart olarak gösterir", async () => {
+    campaignService.getActiveCampaigns.mockResolvedValue([
+      {
+        id: 1,
+        name: "Hafta Sonu İndirimi",
+        type: "Percentage",
+        value: 20,
+        minCartTotal: 0,
+        membersOnly: false,
+        isActive: true,
+      },
+    ]);
+
+    renderHomePage();
+
+    expect(
+      await screen.findByText("Hafta Sonu İndirimi")
+    ).toBeInTheDocument();
+    expect(screen.getByText("%20")).toBeInTheDocument();
+    expect(screen.getByText("Tüm sepetlerde geçerli")).toBeInTheDocument();
+  });
+
+  it("yalnızca üyelere özel kampanyada rozet gösterir", async () => {
+    campaignService.getActiveCampaigns.mockResolvedValue([
+      {
+        id: 2,
+        name: "Üye Kampanyası",
+        type: "FixedAmount",
+        value: 50,
+        minCartTotal: 100,
+        membersOnly: true,
+        isActive: true,
+      },
+    ]);
+
+    renderHomePage();
+
+    expect(
+      await screen.findByText("Yalnızca üyelere özel")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("100.00 TL ve üzeri sepetlerde geçerli")
+    ).toBeInTheDocument();
+  });
+
+  it("aktif kampanya yoksa Kampanyalar bölümünü hiç göstermez", async () => {
+    campaignService.getActiveCampaigns.mockResolvedValue([]);
+
+    renderHomePage();
+
+    await screen.findByTestId("hero-stat-movies");
+
+    expect(screen.queryByText("Kampanyalar")).not.toBeInTheDocument();
   });
 });

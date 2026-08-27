@@ -3,7 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import movieService from "../services/movieService.js";
+import campaignService, {
+  formatCampaignValue,
+} from "../services/campaignService.js";
 import { cityResource } from "../services/locationService.js";
+import Rail from "../components/ui/Rail.jsx";
+import RailMovieCard from "../components/movies/RailMovieCard.jsx";
+import StatusPanel from "../components/ui/StatusPanel.jsx";
+import EmptyState from "../components/ui/EmptyState.jsx";
 import heroPoster from "../assets/hero.png";
 
 import "./home.css";
@@ -92,11 +99,22 @@ function HomePage() {
     staleTime: 30 * 60 * 1000,
   });
 
+  const { data: campaigns = [] } = useQuery({
+    queryKey: ["campaigns", "active"],
+    queryFn: campaignService.getActiveCampaigns,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const activeMovies = movies.filter(
     (movie) => !movieService.isMovieArchived(movie)
   );
   const nowShowingMovies = activeMovies.filter((movie) =>
     movieService.isMovieReleased(movie)
+  );
+  const comingSoonMovies = activeMovies.filter(
+    (movie) =>
+      !movieService.isMovieReleased(movie) &&
+      movieService.isWithinComingSoonWindow(movie)
   );
   const heroPosters = movieService
     .sortMovies(nowShowingMovies, "rating-desc")
@@ -122,6 +140,10 @@ function HomePage() {
     }
 
     navigate("/movies");
+  }
+
+  function handleMovieSelect(movieId) {
+    navigate(`/movies/${movieId}`);
   }
 
   return (
@@ -189,6 +211,88 @@ function HomePage() {
         cities={cities}
         onSubmit={handleQuickTicketSubmit}
       />
+
+      <Rail
+        title="Vizyondaki Filmler"
+        viewAllHref="/movies"
+        ariaLabel="Vizyondaki filmler"
+      >
+        {moviesLoading ? (
+          <StatusPanel variant="loading" title="Filmler yükleniyor…" />
+        ) : nowShowingMovies.length === 0 ? (
+          <EmptyState icon="🎬" title="Şu anda vizyonda film bulunmuyor." />
+        ) : (
+          nowShowingMovies
+            .slice(0, 12)
+            .map((movie) => (
+              <RailMovieCard
+                key={movie.id}
+                movie={movie}
+                onSelect={handleMovieSelect}
+              />
+            ))
+        )}
+      </Rail>
+
+      <Rail
+        title="Yakında"
+        viewAllHref="/movies"
+        ariaLabel="Yakında vizyona girecek filmler"
+      >
+        {moviesLoading ? (
+          <StatusPanel variant="loading" title="Filmler yükleniyor…" />
+        ) : comingSoonMovies.length === 0 ? (
+          <EmptyState
+            icon="🎬"
+            title="Yakında vizyona girecek film bulunmuyor."
+          />
+        ) : (
+          comingSoonMovies
+            .slice(0, 12)
+            .map((movie) => (
+              <RailMovieCard
+                key={movie.id}
+                movie={movie}
+                onSelect={handleMovieSelect}
+              />
+            ))
+        )}
+      </Rail>
+
+      {campaigns.length > 0 && (
+        <section className="landing-section" aria-label="Kampanyalar">
+          <div className="rail-section-heading">
+            <h2 className="rail-section-title">Kampanyalar</h2>
+            <Link to="/campaigns" className="rail-section-link">
+              Tümünü gör →
+            </Link>
+          </div>
+
+          <div className="campaign-grid">
+            {campaigns.slice(0, 3).map((campaign) => (
+              <article key={campaign.id} className="campaign-card">
+                <span className="badge badge--accent">
+                  {formatCampaignValue(campaign)}
+                </span>
+
+                <h3 className="campaign-card-title">{campaign.name}</h3>
+
+                <p className="campaign-card-condition">
+                  {campaign.minCartTotal > 0
+                    ? `${campaign.minCartTotal.toFixed(2)} TL ve üzeri sepetlerde geçerli`
+                    : "Tüm sepetlerde geçerli"}
+                </p>
+
+                {campaign.membersOnly && (
+                  <span className="badge badge--neutral">
+                    Yalnızca üyelere özel
+                  </span>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
