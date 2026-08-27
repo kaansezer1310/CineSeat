@@ -30,3 +30,6 @@ dist-ssr
 
 # Superpowers brainstorm görsel oturumu (geçici)
 .superpowers/
+
+# Claude Code worktree oturumları (geçici, kalıcı geçmişe girmemeli)
+.claude/worktrees/
