@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/layout/Layout.jsx";
 import HomePage from "./pages/HomePage.jsx";
+import MoviesPage from "./pages/MoviesPage.jsx";
 import MovieDetailsPage from "./pages/MovieDetailsPage.jsx";
 import BookingPage from "./pages/BookingPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
@@ -68,6 +69,7 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/movies" element={<MoviesPage />} />
 
         <Route
           path="/movies/:movieId"
