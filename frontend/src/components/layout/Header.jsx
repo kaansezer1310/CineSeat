@@ -44,9 +44,12 @@ function Header() {
 
         <div className="site-header-tools">
           <CitySelector />
+          <UserMenu />
+        </div>
+
+        <div className="site-header-quick-actions">
           <CartButton />
           <ThemeToggle />
-          <UserMenu />
         </div>
 
         <MobileMenu />

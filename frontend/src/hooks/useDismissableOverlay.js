@@ -5,21 +5,32 @@ import { useEffect, useRef, useState } from "react";
  * CitySelector ve MobileMenu'nün paylaştığı ortak açılır-panel deseni.
  * `containerRef` bağlanmazsa (tam ekran overlay'ler gibi) dışarı-tıklama
  * kontrolü sessizce devre dışı kalır; Escape her durumda çalışır.
+ * Açılış anındaki odaklı eleman hatırlanır ve kapanışta ona geri
+ * odaklanılır (WCAG 2.4.3 — odak kaybolmasın).
  */
 function useDismissableOverlay() {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const triggerRef = useRef(null);
 
   function open() {
+    triggerRef.current = document.activeElement;
     setIsOpen(true);
   }
 
   function close() {
     setIsOpen(false);
+    triggerRef.current?.focus();
   }
 
   function toggle() {
-    setIsOpen((prev) => !prev);
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        triggerRef.current = document.activeElement;
+      }
+      return next;
+    });
   }
 
   useEffect(() => {

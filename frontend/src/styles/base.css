@@ -69,6 +69,7 @@ button {
 
 .app-shell > main {
   flex: 1;
+  padding-block: var(--space-10) 0;
 }
 
 .skip-link {

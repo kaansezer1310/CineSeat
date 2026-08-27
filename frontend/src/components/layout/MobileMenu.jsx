@@ -81,6 +81,15 @@ function MobileMenu() {
             aria-label="Mobil menü"
             onClick={(event) => event.stopPropagation()}
           >
+            <button
+              type="button"
+              className="icon-btn mobile-menu-close"
+              onClick={close}
+              aria-label="Mobil menüyü kapat"
+            >
+              ✕
+            </button>
+
             <NavLink to="/" end className={mobileNavLinkClass} onClick={close}>
               Filmler
             </NavLink>
