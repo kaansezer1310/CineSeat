@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import PageHeader from '../components/ui/PageHeader.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -11,7 +11,8 @@ const ALL_CITIES = "Tümü";
 
 export default function CinemasPage() {
   const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = useState(ALL_CITIES);
+  const { state } = useLocation();
+  const [selectedCity, setSelectedCity] = useState(state?.city ?? ALL_CITIES);
 
   const { cinemas, isLoading, error, locationStatus } = useNearestCinemas();
 

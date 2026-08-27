@@ -7,6 +7,7 @@ function Rail({
   viewAllHref,
   viewAllLabel = "Tümünü gör →",
   ariaLabel,
+  isList = true,
   children,
 }) {
   return (
@@ -23,7 +24,7 @@ function Rail({
         </div>
       )}
 
-      <div className="rail" role="list">
+      <div className="rail" role={isList ? "list" : undefined}>
         {children}
       </div>
     </section>

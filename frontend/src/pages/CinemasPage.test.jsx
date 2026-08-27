@@ -133,6 +133,31 @@ describe("CinemasPage", () => {
     );
   });
 
+  it("router state ile gelen şehri seçili olarak başlatır", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            { pathname: "/cinemas", state: { city: "Ankara" } },
+          ]}
+        >
+          <CinemasPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await screen.findByText("CineSeat Çankaya");
+
+    expect(screen.getByLabelText(/Şehir Seçin/)).toHaveValue("Ankara");
+    expect(
+      screen.queryByText("CineSeat Kadıköy")
+    ).not.toBeInTheDocument();
+  });
+
   it("'Seansları Gör' kullanıcıyı ana sayfaya yönlendirir", async () => {
     renderCinemasPage(true);
 

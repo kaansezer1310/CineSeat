@@ -77,7 +77,9 @@ function QuickTicketStrip({ movies, cities, onSubmit }) {
       </label>
 
       <label className="quick-ticket-field">
-        <span>Tarih</span>
+        <span>
+          Tarih <span className="quick-ticket-hint">(yakında)</span>
+        </span>
         {/* Backend'de şehir+film+tarih birleşik seans sorgusu yok (spec
             §11 — bu revizyon hiçbir backend değişikliği içermiyor), bu
             yüzden tarih şimdilik yalnızca bilgi amaçlı; "Seansları Bul"
@@ -126,7 +128,6 @@ function HomePage() {
     cinemas: nearestCinemas,
     isLoading: cinemasLoading,
     hasLocation,
-    locationStatus,
   } = useNearestCinemas();
 
   const activeMovies = movies.filter(
@@ -240,6 +241,7 @@ function HomePage() {
         title="Vizyondaki Filmler"
         viewAllHref="/movies"
         ariaLabel="Vizyondaki filmler"
+        isList={!moviesLoading && nowShowingMovies.length > 0}
       >
         {moviesLoading ? (
           <StatusPanel variant="loading" title="Filmler yükleniyor…" />
@@ -262,6 +264,7 @@ function HomePage() {
         title="Yakında"
         viewAllHref="/movies"
         ariaLabel="Yakında vizyona girecek filmler"
+        isList={!moviesLoading && comingSoonMovies.length > 0}
       >
         {moviesLoading ? (
           <StatusPanel variant="loading" title="Filmler yükleniyor…" />
@@ -287,9 +290,6 @@ function HomePage() {
         <section className="landing-section" aria-label="Kampanyalar">
           <div className="rail-section-heading">
             <h2 className="rail-section-title">Kampanyalar</h2>
-            <Link to="/campaigns" className="rail-section-link">
-              Tümünü gör →
-            </Link>
           </div>
 
           <div className="campaign-grid">
@@ -332,7 +332,7 @@ function HomePage() {
           <EmptyState
             icon="📍"
             title="Size en yakın sinemaları göstermek için konum izni gerekiyor."
-            description={locationStatus}
+            description="Tarayıcı konum izni verirsen sana en yakın sinemaları burada gösterebiliriz."
             action={
               <Link to="/cinemas" className="btn btn--secondary btn--sm">
                 Tüm sinemaları gör

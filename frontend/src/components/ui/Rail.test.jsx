@@ -61,4 +61,16 @@ describe("Rail", () => {
 
     expect(screen.getByRole("list")).toBeInTheDocument();
   });
+
+  it("isList false verilince role=list uygulamaz", () => {
+    render(
+      <MemoryRouter>
+        <Rail title="Test" isList={false}>
+          <div>Yükleniyor</div>
+        </Rail>
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+  });
 });
