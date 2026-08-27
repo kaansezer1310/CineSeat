@@ -7,6 +7,7 @@ import campaignService, {
   formatCampaignValue,
 } from "../services/campaignService.js";
 import { cityResource } from "../services/locationService.js";
+import useNearestCinemas from "../hooks/useNearestCinemas.js";
 import Rail from "../components/ui/Rail.jsx";
 import RailMovieCard from "../components/movies/RailMovieCard.jsx";
 import StatusPanel from "../components/ui/StatusPanel.jsx";
@@ -14,6 +15,22 @@ import EmptyState from "../components/ui/EmptyState.jsx";
 import heroPoster from "../assets/hero.png";
 
 import "./home.css";
+
+const HOW_IT_WORKS_STEPS = [
+  {
+    title: "Filmini seç",
+    description:
+      "Vizyondaki ve yakında gelecek filmler arasından birini seç.",
+  },
+  {
+    title: "Koltuğunu seç",
+    description: "Salon haritasından istediğin koltuğu işaretle.",
+  },
+  {
+    title: "Biletin hazır",
+    description: "Ödemeni tamamla, biletin anında hesabına düşsün.",
+  },
+];
 
 function QuickTicketStrip({ movies, cities, onSubmit }) {
   const [selectedCity, setSelectedCity] = useState("");
@@ -104,6 +121,13 @@ function HomePage() {
     queryFn: campaignService.getActiveCampaigns,
     staleTime: 5 * 60 * 1000,
   });
+
+  const {
+    cinemas: nearestCinemas,
+    isLoading: cinemasLoading,
+    hasLocation,
+    locationStatus,
+  } = useNearestCinemas();
 
   const activeMovies = movies.filter(
     (movie) => !movieService.isMovieArchived(movie)
@@ -293,6 +317,58 @@ function HomePage() {
           </div>
         </section>
       )}
+
+      <section className="landing-section" aria-label="Sana yakın sinemalar">
+        <div className="rail-section-heading">
+          <h2 className="rail-section-title">Sana Yakın Sinemalar</h2>
+          <Link to="/cinemas" className="rail-section-link">
+            Tümünü gör →
+          </Link>
+        </div>
+
+        {cinemasLoading ? (
+          <StatusPanel variant="loading" title="Sinemalar yükleniyor…" />
+        ) : !hasLocation ? (
+          <EmptyState
+            icon="📍"
+            title="Size en yakın sinemaları göstermek için konum izni gerekiyor."
+            description={locationStatus}
+            action={
+              <Link to="/cinemas" className="btn btn--secondary btn--sm">
+                Tüm sinemaları gör
+              </Link>
+            }
+          />
+        ) : (
+          <div className="nearby-cinemas-grid">
+            {nearestCinemas.slice(0, 3).map((cinema) => (
+              <article key={cinema.id} className="nearby-cinema-card">
+                <h3>{cinema.name}</h3>
+                <p className="nearby-cinema-city">{cinema.city}</p>
+                <p className="nearby-cinema-distance">
+                  {cinema.distance.toFixed(1)} km uzaklıkta
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="landing-section" aria-label="Nasıl çalışır">
+        <div className="rail-section-heading">
+          <h2 className="rail-section-title">Nasıl Çalışır?</h2>
+        </div>
+
+        <ol className="how-it-works-list">
+          {HOW_IT_WORKS_STEPS.map((step, index) => (
+            <li key={step.title} className="how-it-works-step">
+              <span className="how-it-works-number">{index + 1}</span>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
     </div>
   );
 }

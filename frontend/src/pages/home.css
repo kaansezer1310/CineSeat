@@ -232,3 +232,92 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
+
+/* Sana Yakın Sinemalar -------------------------------------------------- */
+
+.nearby-cinemas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-5);
+}
+
+.nearby-cinema-card {
+  padding: var(--space-6);
+
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.nearby-cinema-card h3 {
+  margin: 0 0 var(--space-1);
+
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.nearby-cinema-city {
+  margin: 0 0 var(--space-2);
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.nearby-cinema-distance {
+  margin: 0;
+
+  color: var(--color-purple);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+/* Nasıl Çalışır? ---------------------------------------------------- */
+
+.how-it-works-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-6);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.how-it-works-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.how-it-works-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 36px;
+  height: 36px;
+
+  background: var(--color-accent-soft);
+  color: var(--color-yellow-text);
+  border-radius: var(--radius-pill);
+
+  font-size: var(--text-md);
+  font-weight: var(--weight-black);
+}
+
+.how-it-works-step h3 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.how-it-works-step p {
+  margin: 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

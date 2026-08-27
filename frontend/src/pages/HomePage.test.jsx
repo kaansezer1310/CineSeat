@@ -10,11 +10,12 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import movieService from "../services/movieService.js";
 import campaignService from "../services/campaignService.js";
 import { cityResource } from "../services/locationService.js";
+import cinemaService from "../services/cinemaService.js";
 import HomePage from "./HomePage.jsx";
 
 vi.mock("../services/movieService.js", async () => {
@@ -32,6 +33,10 @@ vi.mock("../services/campaignService.js", async () => {
 
 vi.mock("../services/locationService.js", () => ({
   cityResource: { list: vi.fn() },
+}));
+
+vi.mock("../services/cinemaService.js", () => ({
+  default: { getCinemas: vi.fn() },
 }));
 
 function isoDateOffsetFromToday(daysOffset) {
@@ -96,6 +101,7 @@ describe("HomePage — Hero ve hızlı bilet şeridi", () => {
     movieService.getMovies.mockResolvedValue(MOVIES);
     cityResource.list.mockResolvedValue(CITIES);
     campaignService.getActiveCampaigns.mockResolvedValue([]);
+    cinemaService.getCinemas.mockResolvedValue([]);
   });
 
   it("başlığı ve Bilet Al CTA'sını gösterir", async () => {
@@ -169,6 +175,7 @@ describe("HomePage — Vizyondaki Filmler ve Yakında rayları", () => {
     vi.clearAllMocks();
     cityResource.list.mockResolvedValue(CITIES);
     campaignService.getActiveCampaigns.mockResolvedValue([]);
+    cinemaService.getCinemas.mockResolvedValue([]);
   });
 
   it("vizyondaki filmleri Vizyondaki Filmler rayında gösterir", async () => {
@@ -228,6 +235,7 @@ describe("HomePage — Kampanyalar", () => {
     vi.clearAllMocks();
     movieService.getMovies.mockResolvedValue(MOVIES);
     cityResource.list.mockResolvedValue(CITIES);
+    cinemaService.getCinemas.mockResolvedValue([]);
   });
 
   it("aktif kampanyaları kart olarak gösterir", async () => {
@@ -283,5 +291,78 @@ describe("HomePage — Kampanyalar", () => {
     await screen.findByTestId("hero-stat-movies");
 
     expect(screen.queryByText("Kampanyalar")).not.toBeInTheDocument();
+  });
+});
+
+describe("HomePage — Sana Yakın Sinemalar ve Nasıl Çalışır", () => {
+  const originalGeolocation = navigator.geolocation;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    movieService.getMovies.mockResolvedValue(MOVIES);
+    cityResource.list.mockResolvedValue(CITIES);
+    campaignService.getActiveCampaigns.mockResolvedValue([]);
+    cinemaService.getCinemas.mockResolvedValue([
+      {
+        id: 1,
+        name: "CineSeat Kadıköy",
+        city: "İstanbul",
+        lat: 40.9819,
+        lng: 29.0233,
+      },
+    ]);
+  });
+
+  afterEach(() => {
+    Object.defineProperty(navigator, "geolocation", {
+      value: originalGeolocation,
+      configurable: true,
+    });
+  });
+
+  it("konum izni yoksa Tüm sinemaları gör çağrısı gösterir", async () => {
+    Object.defineProperty(navigator, "geolocation", {
+      value: undefined,
+      configurable: true,
+    });
+
+    renderHomePage();
+
+    expect(
+      await screen.findByText(
+        "Size en yakın sinemaları göstermek için konum izni gerekiyor."
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Tüm sinemaları gör" })
+    ).toHaveAttribute("href", "/cinemas");
+  });
+
+  it("konum izni verilince en yakın sinemaları listeler", async () => {
+    Object.defineProperty(navigator, "geolocation", {
+      value: {
+        getCurrentPosition: (success) => {
+          success({ coords: { latitude: 40.9819, longitude: 29.0233 } });
+        },
+      },
+      configurable: true,
+    });
+
+    renderHomePage();
+
+    expect(
+      await screen.findByText("CineSeat Kadıköy")
+    ).toBeInTheDocument();
+  });
+
+  it("Nasıl Çalışır bölümünün üç adımını gösterir", async () => {
+    renderHomePage();
+
+    expect(
+      await screen.findByRole("heading", { name: "Nasıl Çalışır?" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Filmini seç")).toBeInTheDocument();
+    expect(screen.getByText("Koltuğunu seç")).toBeInTheDocument();
+    expect(screen.getByText("Biletin hazır")).toBeInTheDocument();
   });
 });
