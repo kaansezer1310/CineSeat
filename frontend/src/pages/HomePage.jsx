@@ -1,287 +1,195 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 
-import MovieList from "../components/movies/MovieList.jsx";
-import SortControl, {
-  DEFAULT_SORT,
-} from "../components/movies/SortControl.jsx";
-import FilterControl, {
-  ALL_VALUE,
-} from "../components/movies/FilterControl.jsx";
 import movieService from "../services/movieService.js";
-import useWatchlist from "../hooks/useWatchlist.js";
+import { cityResource } from "../services/locationService.js";
+import heroPoster from "../assets/hero.png";
 
-// REQ-25 — favori bir film vizyona girdiğinde girişte bildirim bandı.
-// "Yakın zamanda vizyona girdi" penceresi 7 gün olarak seçildi: gösterge
-// süresiz kalırsa (ör. 3 ay önce vizyona giren eski bir favori) her girişte
-// gösterilmesi rahatsız edici olurdu; 7 gün, "yeni vizyona girdi" haberini
-// vermek için makul ve pratik bir eşik.
-const RECENTLY_RELEASED_WINDOW_DAYS = 7;
+import "./home.css";
 
-function isRecentlyReleased(movie) {
-  // getDaysUntilRelease, releaseDate'i olmayan filmlerde parse hatası verir
-  // (bkz. movieService.js) — bu yüzden burada önce varlığı kontrol edilir.
-  if (!movie.releaseDate) {
-    return false;
+function QuickTicketStrip({ movies, cities, onSubmit }) {
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedMovieId, setSelectedMovieId] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    onSubmit({ city: selectedCity, movieId: selectedMovieId });
   }
 
-  const daysUntilRelease = movieService.getDaysUntilRelease(movie);
   return (
-    daysUntilRelease <= 0 &&
-    daysUntilRelease > -RECENTLY_RELEASED_WINDOW_DAYS
+    <form className="quick-ticket-strip" onSubmit={handleSubmit}>
+      <label className="quick-ticket-field">
+        <span>Şehir</span>
+        <select
+          className="input"
+          value={selectedCity}
+          onChange={(event) => setSelectedCity(event.target.value)}
+        >
+          <option value="">Şehir seç</option>
+          {cities.map((city) => (
+            <option key={city.id} value={city.name}>
+              {city.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="quick-ticket-field">
+        <span>Film</span>
+        <select
+          className="input"
+          value={selectedMovieId}
+          onChange={(event) => setSelectedMovieId(event.target.value)}
+        >
+          <option value="">Film seç</option>
+          {movies.map((movie) => (
+            <option key={movie.id} value={movie.id}>
+              {movie.title}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="quick-ticket-field">
+        <span>Tarih</span>
+        {/* Backend'de şehir+film+tarih birleşik seans sorgusu yok (spec
+            §11 — bu revizyon hiçbir backend değişikliği içermiyor), bu
+            yüzden tarih şimdilik yalnızca bilgi amaçlı; "Seansları Bul"
+            yönlendirmesi film/şehir seçimine göre çalışır. */}
+        <input
+          className="input"
+          type="date"
+          value={selectedDate}
+          onChange={(event) => setSelectedDate(event.target.value)}
+        />
+      </label>
+
+      <button
+        type="submit"
+        className="btn btn--primary btn--md quick-ticket-submit"
+      >
+        Seansları Bul
+      </button>
+    </form>
   );
 }
 
-// T9: "Sinemalar" artık burada bir sekme değil, ana menüden ulaşılan kendi
-// rotası (/cinemas). Sekme olduğunda adres değişmiyordu: bağlantı
-// paylaşılamıyor ve geri tuşu beklendiği gibi çalışmıyordu (O1).
-const MOVIE_TABS = [
-  { id: "nowShowing", label: "Vizyonda" },
-  { id: "comingSoon", label: "Yakında" },
-];
-
 function HomePage() {
   const navigate = useNavigate();
-  const { getFavoriteMovieIds } = useWatchlist();
 
-  const [activeTab, setActiveTab] = useState("nowShowing");
-  const [sortValue, setSortValue] = useState(DEFAULT_SORT);
-  const [genreFilter, setGenreFilter] = useState(ALL_VALUE);
-  const [ageRatingFilter, setAgeRatingFilter] = useState(ALL_VALUE);
-  const [isReleaseBannerDismissed, setIsReleaseBannerDismissed] =
-    useState(false);
-
-  const {
-    data: movies = [],
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useQuery({
+  const { data: movies = [], isLoading: moviesLoading } = useQuery({
     queryKey: ["movies"],
     queryFn: movieService.getMovies,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
 
-  function handleMovieSelect(movieId) {
-    navigate(`/movies/${movieId}`);
-  }
-
-  if (isLoading) {
-    return (
-      <section>
-        <div className="page-heading">
-          <h1>Filmler yükleniyor...</h1>
-        </div>
-
-        <div className="temporary-panel">
-          Film verileri getiriliyor.
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section>
-        <div className="page-heading">
-          <h1>Filmler alınamadı</h1>
-          <p>{error.message}</p>
-        </div>
-
-        <button
-          className="primary-button"
-          type="button"
-          onClick={() => refetch()}
-        >
-          Tekrar Dene
-        </button>
-      </section>
-    );
-  }
-
-  // REQ-05: vizyon süresi dolan filmler arşive düşer, ana sayfada hiçbir
-  // sekmede gösterilmez (veri movies.js'ten silinmez, sadece burada elenir).
-  const activeMovies = movies.filter((movie) => {
-    return !movieService.isMovieArchived(movie);
+  const { data: cities = [] } = useQuery({
+    queryKey: ["cities"],
+    queryFn: () => cityResource.list(),
+    staleTime: 30 * 60 * 1000,
   });
 
-  const nowShowingMovies = activeMovies.filter((movie) => {
-    return movieService.isMovieReleased(movie);
-  });
-
-  // REQ-15: "Yakında" sekmesi bugünden itibaren en fazla 6 ay ileride
-  // vizyona girecek filmlerle sınırlıdır (daha uzak filmler veride kalır,
-  // sadece burada gösterilmez).
-  const comingSoonMovies = activeMovies.filter((movie) => {
-    return (
-      !movieService.isMovieReleased(movie) &&
-      movieService.isWithinComingSoonWindow(movie)
-    );
-  });
-
-  const tabMovies =
-    activeTab === "nowShowing"
-      ? nowShowingMovies
-      : comingSoonMovies;
-
-  // REQ-25 — izleme listesindeki filmlerden yakın zamanda vizyona girenler.
-  const favoriteMovieIds = getFavoriteMovieIds();
-  const recentlyReleasedFavorites = activeMovies.filter(
-    (movie) =>
-      favoriteMovieIds.includes(movie.id) && isRecentlyReleased(movie)
+  const activeMovies = movies.filter(
+    (movie) => !movieService.isMovieArchived(movie)
   );
-
-  // REQ-08.1: sıralama ve filtre, aktif sekmenin filmleri üzerinde birlikte
-  // uygulanır. Seçenekler filtre uygulanmadan ÖNCEKİ kümeden türetilir,
-  // böylece bir filtre sonucu boş kalsa bile diğer seçenekler kaybolmaz.
-  const availableGenres = movieService.getAvailableGenres(tabMovies);
-  const availableAgeRatings =
-    movieService.getAvailableAgeRatings(tabMovies);
-
-  const filteredMovies = movieService.filterMovies(tabMovies, {
-    genre: genreFilter,
-    ageRating: ageRatingFilter,
-  });
-
-  const visibleMovies = movieService.sortMovies(
-    filteredMovies,
-    sortValue
+  const nowShowingMovies = activeMovies.filter((movie) =>
+    movieService.isMovieReleased(movie)
   );
+  const heroPosters = movieService
+    .sortMovies(nowShowingMovies, "rating-desc")
+    .slice(0, 3);
 
-  const isFilterActive =
-    genreFilter !== ALL_VALUE || ageRatingFilter !== ALL_VALUE;
+  const averageRating =
+    activeMovies.length > 0
+      ? activeMovies.reduce(
+          (sum, movie) => sum + (movie.rating?.average ?? 0),
+          0
+        ) / activeMovies.length
+      : 0;
 
-  const pageHeading =
-    activeTab === "nowShowing"
-      ? "Vizyondaki Filmler"
-      : "Yakında Vizyona Girecek Filmler";
+  function handleQuickTicketSubmit({ city, movieId }) {
+    if (movieId) {
+      navigate(`/movies/${movieId}`);
+      return;
+    }
 
-  const pageDescription =
-    activeTab === "nowShowing"
-      ? "Film seçerek seansları inceleyebilir ve bilet oluşturabilirsin."
-      : "Yakında vizyona girecek filmleri keşfet, vizyon tarihini kaçırma.";
+    if (city) {
+      navigate("/cinemas", { state: { city } });
+      return;
+    }
 
-  const emptyStateMessage =
-    tabMovies.length === 0
-      ? activeTab === "nowShowing"
-        ? "Şu anda vizyonda film bulunmuyor."
-        : "Yakında vizyona girecek film bulunmuyor."
-      : "Seçtiğin filtrelere uyan film bulunamadı.";
+    navigate("/movies");
+  }
 
   return (
-    <section>
-      {recentlyReleasedFavorites.length > 0 &&
-        !isReleaseBannerDismissed && (
-          <div className="release-notification-banner" role="status">
-            <span>
-              🎬 İzleme listenizden{" "}
-              <strong>
-                {recentlyReleasedFavorites
-                  .map((movie) => movie.title)
-                  .join(", ")}
-              </strong>{" "}
-              vizyona girdi!
-            </span>
-
-            <button
-              type="button"
-              className="release-notification-dismiss"
-              onClick={() => setIsReleaseBannerDismissed(true)}
-              aria-label="Bildirimi kapat"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
-      <div className="page-heading-row">
-        <div className="page-heading">
-          <h1>{pageHeading}</h1>
-
-          <p>{pageDescription}</p>
-        </div>
-
-        <button
-          className="refresh-button"
-          type="button"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          {isFetching ? "Yenileniyor..." : "↻ Filmleri Yenile"}
-        </button>
-      </div>
-
-      <div
-        className="movie-tab-list"
-        role="tablist"
+    <div className="landing">
+      <section
+        className="hero"
+        style={{ backgroundImage: `url(${heroPoster})` }}
       >
-        {MOVIE_TABS.map((tab) => {
-          const isActive = tab.id === activeTab;
+        <div className="hero-inner">
+          <div className="hero-message">
+            <span className="hero-eyebrow">CineSeat</span>
 
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={
-                isActive
-                  ? "movie-tab-button movie-tab-button-active"
-                  : "movie-tab-button"
-              }
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+            <h1 className="hero-title">
+              Bileti telefonundan al, koltuğunu önceden seç.
+            </h1>
 
-      {tabMovies.length > 0 && (
-        <div className="movie-controls-row">
-          <SortControl
-            value={sortValue}
-            onChange={setSortValue}
-          />
+            <p className="hero-description">
+              Türkiye&apos;nin dört bir yanındaki sinemalardan saniyeler
+              içinde bilet al, sırada beklemeden salona gir.
+            </p>
 
-          <FilterControl
-            genres={availableGenres}
-            ageRatings={availableAgeRatings}
-            selectedGenre={genreFilter}
-            selectedAgeRating={ageRatingFilter}
-            onGenreChange={setGenreFilter}
-            onAgeRatingChange={setAgeRatingFilter}
-          />
+            <div className="hero-actions">
+              <Link to="/movies" className="btn btn--primary btn--lg">
+                Bilet Al
+              </Link>
+            </div>
 
-          {isFilterActive && (
-            <button
-              type="button"
-              className="secondary-button movie-filter-clear-button"
-              onClick={() => {
-                setGenreFilter(ALL_VALUE);
-                setAgeRatingFilter(ALL_VALUE);
-              }}
-            >
-              Filtreleri Temizle
-            </button>
-          )}
+            <dl className="hero-stats">
+              <div className="hero-stat">
+                <dt>Film</dt>
+                <dd data-testid="hero-stat-movies">
+                  {moviesLoading ? "—" : activeMovies.length}
+                </dd>
+              </div>
+
+              <div className="hero-stat">
+                <dt>Şehir</dt>
+                <dd data-testid="hero-stat-cities">{cities.length}</dd>
+              </div>
+
+              <div className="hero-stat">
+                <dt>Kullanıcı Puanı</dt>
+                <dd data-testid="hero-stat-rating">
+                  {averageRating > 0 ? `${averageRating.toFixed(1)}/5` : "—"}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="hero-posters" aria-hidden="true">
+            {heroPosters.map((movie, index) => (
+              <img
+                key={movie.id}
+                src={movie.poster}
+                alt=""
+                className={`hero-poster hero-poster-${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
-      )}
+      </section>
 
-      {visibleMovies.length === 0 ? (
-        <div className="temporary-panel">
-          {emptyStateMessage}
-        </div>
-      ) : (
-        <MovieList
-          movies={visibleMovies}
-          onMovieSelect={handleMovieSelect}
-        />
-      )}
-    </section>
+      <QuickTicketStrip
+        movies={nowShowingMovies}
+        cities={cities}
+        onSubmit={handleQuickTicketSubmit}
+      />
+    </div>
   );
 }
 

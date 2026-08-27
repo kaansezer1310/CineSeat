@@ -2,59 +2,27 @@ import {
   fireEvent,
   render,
   screen,
-  within,
+  waitFor,
 } from "@testing-library/react";
 import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { MemoryRouter } from "react-router-dom";
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import movieService from "../services/movieService.js";
-import useWatchlist from "../hooks/useWatchlist.js";
+import { cityResource } from "../services/locationService.js";
 import HomePage from "./HomePage.jsx";
 
-vi.mock("../hooks/useWatchlist.js", () => ({
-  default: vi.fn(),
-}));
-
 vi.mock("../services/movieService.js", async () => {
-  const actual = await vi.importActual(
-    "../services/movieService.js"
-  );
-
-  return {
-    default: {
-      ...actual.default,
-      getMovies: vi.fn(),
-    },
-  };
+  const actual = await vi.importActual("../services/movieService.js");
+  return { default: { ...actual.default, getMovies: vi.fn() } };
 });
 
-function renderHomePage() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-
-  render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <HomePage />
-      </MemoryRouter>
-    </QueryClientProvider>
-  );
-}
+vi.mock("../services/locationService.js", () => ({
+  cityResource: { list: vi.fn() },
+}));
 
 function isoDateOffsetFromToday(daysOffset) {
   const date = new Date();
@@ -67,360 +35,120 @@ function isoDateOffsetFromToday(daysOffset) {
   return `${year}-${month}-${day}`;
 }
 
-const COMING_SOON_DAYS_OFFSET = 29;
+const MOVIES = [
+  {
+    id: 1,
+    title: "Neon Yağmuru",
+    genre: "Cyberpunk Dram",
+    poster: "/posters/neon-yagmuru.png",
+    releaseDate: isoDateOffsetFromToday(-3),
+    rating: { average: 4.5 },
+  },
+  {
+    id: 2,
+    title: "Yanlış Düğün",
+    genre: "Komedi",
+    poster: "/posters/yanlis-dugun.png",
+    releaseDate: isoDateOffsetFromToday(-10),
+    rating: { average: 3.5 },
+  },
+];
 
-const nowShowingMovie = {
-  id: 1,
-  title: "Neon Yağmuru",
-  genre: "Cyberpunk Dram",
-  duration: 134,
-  ageRating: "16+",
-  releaseYear: 2026,
-  releaseDate: isoDateOffsetFromToday(-3),
-  description: "Vizyondaki film.",
-  rating: { average: 3.5 },
-};
+const CITIES = [
+  { id: 1, name: "İstanbul" },
+  { id: 2, name: "Ankara" },
+];
 
-const secondNowShowingMovie = {
-  id: 8,
-  title: "Yanlış Düğün",
-  genre: "Komedi",
-  duration: 101,
-  ageRating: "7+",
-  releaseYear: 2026,
-  releaseDate: isoDateOffsetFromToday(-10),
-  description: "İkinci vizyondaki film.",
-  rating: { average: 4.8 },
-};
-
-const comingSoonMovie = {
-  id: 5,
-  title: "Kayıp Sinyal",
-  genre: "Bilim Kurgu",
-  duration: 121,
-  ageRating: "13+",
-  releaseYear: 2026,
-  releaseDate: isoDateOffsetFromToday(
-    COMING_SOON_DAYS_OFFSET
-  ),
-  description: "Yakında vizyonda.",
-};
-
-const archivedMovie = {
-  id: 7,
-  title: "Son Tren",
-  genre: "Dram",
-  duration: 112,
-  ageRating: "13+",
-  releaseYear: 2026,
-  releaseDate: isoDateOffsetFromToday(-60),
-  screeningEndDate: isoDateOffsetFromToday(-30),
-  description: "Vizyon süresi dolmuş film.",
-};
-
-describe("HomePage - Vizyonda / Yakında sekmeleri", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    useWatchlist.mockReturnValue({
-      watchlist: [],
-      toggleFavorite: vi.fn(),
-      isFavorite: vi.fn(() => false),
-      getFavoriteMovieIds: vi.fn(() => []),
-    });
+function renderHomePage(initialPath = "/") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
   });
 
-  it("varsayılan olarak Vizyonda sekmesini gösterir", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-      comingSoonMovie,
-    ]);
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/movies/:movieId"
+            element={<div>Film detay sayfası</div>}
+          />
+          <Route path="/cinemas" element={<div>Sinemalar sayfası</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
 
+describe("HomePage — Hero ve hızlı bilet şeridi", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    movieService.getMovies.mockResolvedValue(MOVIES);
+    cityResource.list.mockResolvedValue(CITIES);
+  });
+
+  it("başlığı ve Bilet Al CTA'sını gösterir", async () => {
     renderHomePage();
 
     expect(
       await screen.findByRole("heading", {
-        name: "Neon Yağmuru",
+        level: 1,
+        name: /Bileti telefonundan al/,
       })
     ).toBeInTheDocument();
 
     expect(
-      screen.queryByRole("heading", {
-        name: "Kayıp Sinyal",
-      })
-    ).not.toBeInTheDocument();
+      screen.getByRole("link", { name: "Bilet Al" })
+    ).toHaveAttribute("href", "/movies");
   });
 
-  it("Yakında sekmesine geçince sayfa yenilenmeden ilgili filmleri ve kalan gün sayısını gösterir", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-      comingSoonMovie,
-    ]);
-
+  it("film ve şehir sayısını güven rakamı olarak gösterir", async () => {
     renderHomePage();
 
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
+    await waitFor(() => {
+      expect(screen.getByTestId("hero-stat-movies")).toHaveTextContent("2");
+    });
+    expect(screen.getByTestId("hero-stat-cities")).toHaveTextContent("2");
+  });
+
+  it("vizyondaki en yüksek puanlı filmleri poster yelpazesinde gösterir", async () => {
+    const { container } = renderHomePage();
+
+    await waitFor(() => {
+      expect(container.querySelectorAll(".hero-poster")).toHaveLength(2);
     });
 
-    fireEvent.click(
-      screen.getByRole("tab", { name: "Yakında" })
+    const heroPosters = container.querySelectorAll(".hero-poster");
+
+    expect(heroPosters[0]).toHaveAttribute(
+      "src",
+      "/posters/neon-yagmuru.png"
     );
+  });
+
+  it("hızlı bilet şeridinde film seçilip Seansları Bul'a basılınca film detayına gider", async () => {
+    renderHomePage();
+
+    const movieSelect = await screen.findByLabelText("Film");
+    await screen.findByRole("option", { name: "Neon Yağmuru" });
+    fireEvent.change(movieSelect, { target: { value: "1" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Seansları Bul" }));
+
+    expect(await screen.findByText("Film detay sayfası")).toBeInTheDocument();
+  });
+
+  it("hızlı bilet şeridinde yalnızca şehir seçilirse Sinemalar sayfasına gider", async () => {
+    renderHomePage();
+
+    const citySelect = await screen.findByLabelText("Şehir");
+    await screen.findByRole("option", { name: "İstanbul" });
+    fireEvent.change(citySelect, { target: { value: "İstanbul" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Seansları Bul" }));
 
     expect(
-      await screen.findByRole("heading", {
-        name: "Kayıp Sinyal",
-      })
+      await screen.findByText("Sinemalar sayfası")
     ).toBeInTheDocument();
-
-    expect(
-      screen.queryByRole("heading", {
-        name: "Neon Yağmuru",
-      })
-    ).not.toBeInTheDocument();
-
-    expect(
-      screen.getByText(
-        `Vizyona ${COMING_SOON_DAYS_OFFSET} gün kaldı`
-      )
-    ).toBeInTheDocument();
-
-    expect(movieService.getMovies).toHaveBeenCalledTimes(1);
-  });
-
-  it("bir sekmede film yoksa boş durum mesajı gösterir", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    fireEvent.click(
-      screen.getByRole("tab", { name: "Yakında" })
-    );
-
-    expect(
-      await screen.findByText(
-        "Yakında vizyona girecek film bulunmuyor."
-      )
-    ).toBeInTheDocument();
-  });
-
-  it("vizyon süresi dolan (arşivlenmiş) filmi hiçbir sekmede göstermez", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-      comingSoonMovie,
-      archivedMovie,
-    ]);
-
-    renderHomePage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    expect(
-      screen.queryByRole("heading", { name: "Son Tren" })
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole("tab", { name: "Yakında" })
-    );
-
-    await screen.findByRole("heading", {
-      name: "Kayıp Sinyal",
-    });
-
-    expect(
-      screen.queryByRole("heading", { name: "Son Tren" })
-    ).not.toBeInTheDocument();
-  });
-});
-
-describe("HomePage — Sıralama ve filtreleme (1.3.3 / 1.3.4)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    useWatchlist.mockReturnValue({
-      watchlist: [],
-      toggleFavorite: vi.fn(),
-      isFavorite: vi.fn(() => false),
-      getFavoriteMovieIds: vi.fn(() => []),
-    });
-  });
-
-  it("varsayılan sıralama vizyon tarihine göre yeniden eskiyedir", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-      secondNowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    const headings = await screen.findAllByRole("heading", {
-      level: 2,
-    });
-
-    expect(headings.map((h) => h.textContent)).toEqual([
-      "Neon Yağmuru",
-      "Yanlış Düğün",
-    ]);
-  });
-
-  it("puana göre sıralama seçilince sırayı değiştirir", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-      secondNowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    fireEvent.change(screen.getByLabelText("Sırala"), {
-      target: { value: "rating-desc" },
-    });
-
-    const headings = await screen.findAllByRole("heading", {
-      level: 2,
-    });
-
-    expect(headings.map((h) => h.textContent)).toEqual([
-      "Yanlış Düğün",
-      "Neon Yağmuru",
-    ]);
-  });
-
-  it("türe göre filtreleyince eşleşmeyen filmi gizler", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-      secondNowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    fireEvent.change(screen.getByLabelText("Tür"), {
-      target: { value: "Komedi" },
-    });
-
-    expect(
-      await screen.findByRole("heading", {
-        name: "Yanlış Düğün",
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("heading", { name: "Neon Yağmuru" })
-    ).not.toBeInTheDocument();
-  });
-
-  it("filtre sonucu boşsa 'eşleşen film yok' mesajı gösterir", async () => {
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-      secondNowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    fireEvent.change(screen.getByLabelText("Yaş Sınırı"), {
-      target: { value: "18+" },
-    });
-
-    expect(
-      await screen.findByText(
-        "Seçtiğin filtrelere uyan film bulunamadı."
-      )
-    ).toBeInTheDocument();
-  });
-});
-
-describe("HomePage — İzleme listesi vizyona giriş bildirimi (REQ-25 / 1.2.8)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("izleme listesindeki, yakın zamanda vizyona giren bir film için bildirim bandı gösterir", async () => {
-    useWatchlist.mockReturnValue({
-      watchlist: [1],
-      toggleFavorite: vi.fn(),
-      isFavorite: vi.fn(() => true),
-      getFavoriteMovieIds: vi.fn(() => [1]),
-    });
-
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    const banner = await screen.findByRole("status");
-
-    expect(
-      within(banner).getByText(/vizyona girdi!/)
-    ).toBeInTheDocument();
-    expect(
-      within(banner).getByText(nowShowingMovie.title, {
-        exact: false,
-      })
-    ).toBeInTheDocument();
-  });
-
-  it("izleme listesinde olmayan bir film için bildirim göstermez", async () => {
-    useWatchlist.mockReturnValue({
-      watchlist: [],
-      toggleFavorite: vi.fn(),
-      isFavorite: vi.fn(() => false),
-      getFavoriteMovieIds: vi.fn(() => []),
-    });
-
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    await screen.findByRole("heading", {
-      name: "Neon Yağmuru",
-    });
-
-    expect(
-      screen.queryByText(/vizyona girdi!/)
-    ).not.toBeInTheDocument();
-  });
-
-  it("bildirimi kapat butonuna tıklayınca bant kaybolur", async () => {
-    useWatchlist.mockReturnValue({
-      watchlist: [1],
-      toggleFavorite: vi.fn(),
-      isFavorite: vi.fn(() => true),
-      getFavoriteMovieIds: vi.fn(() => [1]),
-    });
-
-    movieService.getMovies.mockResolvedValue([
-      nowShowingMovie,
-    ]);
-
-    renderHomePage();
-
-    await screen.findByText(/vizyona girdi!/);
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Bildirimi kapat" })
-    );
-
-    expect(
-      screen.queryByText(/vizyona girdi!/)
-    ).not.toBeInTheDocument();
   });
 });

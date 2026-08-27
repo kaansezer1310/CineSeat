@@ -1,0 +1,193 @@
+.landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+
+  padding-bottom: var(--space-16);
+}
+
+/* Hero ------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface-light);
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    120deg,
+    rgba(250, 248, 252, 0.96) 0%,
+    rgba(250, 248, 252, 0.86) 55%,
+    rgba(250, 248, 252, 0.65) 100%
+  );
+}
+
+:root[data-theme="dark"] .hero::before {
+  background: linear-gradient(
+    120deg,
+    rgba(12, 9, 18, 0.96) 0%,
+    rgba(12, 9, 18, 0.86) 55%,
+    rgba(12, 9, 18, 0.65) 100%
+  );
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  align-items: center;
+  gap: var(--space-8);
+
+  padding: var(--space-12) var(--space-8);
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  margin-bottom: var(--space-3);
+
+  color: var(--color-purple);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-title {
+  margin: 0 0 var(--space-4);
+
+  color: var(--color-text);
+  font-size: var(--text-5xl);
+  font-weight: var(--weight-black);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.hero-description {
+  max-width: 480px;
+  margin: 0 0 var(--space-6);
+
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
+  line-height: 1.6;
+}
+
+.hero-actions {
+  margin-bottom: var(--space-8);
+}
+
+.hero-stats {
+  display: flex;
+  gap: var(--space-8);
+  margin: 0;
+}
+
+.hero-stat dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hero-stat dd {
+  margin: var(--space-1) 0 0;
+
+  color: var(--color-text);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+}
+
+.hero-posters {
+  position: relative;
+  height: 320px;
+}
+
+.hero-poster {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 160px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-poster-1 {
+  z-index: 1;
+  transform: translate(-85%, -55%) rotate(-8deg);
+}
+
+.hero-poster-2 {
+  z-index: 2;
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.hero-poster-3 {
+  z-index: 1;
+  transform: translate(-15%, -55%) rotate(8deg);
+}
+
+@media (max-width: 860px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-posters {
+    height: 220px;
+  }
+}
+
+/* Hızlı bilet şeridi ------------------------------------------------ */
+
+.quick-ticket-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-4);
+
+  margin-top: calc(-1 * var(--space-8));
+  padding: var(--space-5);
+
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.quick-ticket-field {
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.quick-ticket-submit {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .quick-ticket-strip {
+    margin-top: var(--space-4);
+  }
+
+  .quick-ticket-field {
+    flex-basis: 100%;
+  }
+}
