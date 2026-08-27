@@ -25,6 +25,12 @@
   --color-yellow-hover: #C6921F;
   --color-yellow-text: #7A5A0E;
   --color-on-accent: #2B2100;
+  --color-purple-dark: #4A3175;
+  --color-accent-soft: #FBF0D8;
+  --color-warn: #B5761F;
+  --color-on-primary: #FFFFFF;
+  --color-on-danger: #FFFFFF;
+  --color-skeleton-shimmer: rgba(255, 255, 255, 0.5);
 
   /* Metin */
   --color-text: #1E1A26;
@@ -134,7 +140,7 @@
   --container-xl: 1440px;
 }
 
-[data-theme="dark"] {
+:root[data-theme="dark"] {
   color-scheme: dark;
 
   --color-background: #0c0912;
@@ -149,6 +155,12 @@
   --color-yellow-hover: #ddbd70;
   --color-yellow-text: #d0ac59;
   --color-on-accent: #211a0b;
+  --color-purple-dark: #a181ba;
+  --color-accent-soft: rgba(208, 172, 89, 0.16);
+  --color-warn: #ddbd70;
+  --color-on-primary: #FFFFFF;
+  --color-on-danger: #FFFFFF;
+  --color-skeleton-shimmer: rgba(255, 255, 255, 0.5);
 
   --color-text: #f2edf5;
   --color-text-muted: #aaa0b4;

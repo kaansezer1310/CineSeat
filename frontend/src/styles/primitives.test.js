@@ -14,6 +14,14 @@ describe("primitives.css", () => {
     expect(css).toContain(".btn--danger {");
   });
 
+  it(".btn--primary ve .btn--danger hardcoded #fff yerine token kullanır", () => {
+    expect(css).not.toContain("#fff");
+    expect(css).not.toContain("rgba(255, 255, 255");
+    expect(css).toContain("color: var(--color-on-primary);");
+    expect(css).toContain("color: var(--color-on-danger);");
+    expect(css).toContain("background: var(--color-purple-dark);");
+  });
+
   it(".card gölge ölçeğini kullanır", () => {
     expect(css).toContain(".card {");
     expect(css).toContain("box-shadow: var(--shadow-md);");
@@ -28,6 +36,15 @@ describe("primitives.css", () => {
     expect(css).toContain(".badge--accent {");
     expect(css).toContain(".badge--success {");
     expect(css).toContain('.chip[aria-pressed="true"],');
+  });
+
+  it(".badge--accent yeni token'lara işaret eder", () => {
+    expect(css).toContain("background: var(--color-accent-soft);");
+    expect(css).toContain("color: var(--color-yellow-text);");
+  });
+
+  it(".skeleton shimmer'ı token üzerinden tanımlar", () => {
+    expect(css).toContain("var(--color-skeleton-shimmer),");
   });
 
   it(".skeleton azaltılmış hareket tercihine uyar", () => {
