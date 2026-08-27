@@ -9,6 +9,7 @@ import sessionService from "../services/sessionService.js";
 import { validateRegisterForm } from "../services/validation.js";
 import PageHeader from "../components/ui/PageHeader.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
+import useTabs from "../hooks/useTabs.js";
 
 import "./profile.css";
 
@@ -75,7 +76,10 @@ function ProfilePage() {
   const { user } = useAuth();
   const { getFavoriteMovieIds, toggleFavorite } = useWatchlist();
 
-  const [activeTab, setActiveTab] = useState("info");
+  const { activeTab, getTabProps, getPanelProps } = useTabs(
+    PROFILE_TABS.map((tab) => tab.id),
+    { idPrefix: "profile" }
+  );
 
   // === BİLGİLERİM sekmesi ===
   const [editMode, setEditMode] = useState(false);
@@ -197,22 +201,20 @@ function ProfilePage() {
         description={`Hoşgeldin, ${user?.name ?? ""}`.trim()}
       />
 
-      {/* Sekme navigasyonu */}
-      <div className="profile-tab-list" role="tablist">
+      {/* Sekme navigasyonu — ARIA deseni useTabs'tan gelir (ok tuşları,
+          roving tabindex, panel bağı). */}
+      <div className="profile-tab-list" role="tablist" aria-label="Profil bölümleri">
         {PROFILE_TABS.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
             <button
               key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
+              {...getTabProps(tab.id)}
               className={
                 isActive
                   ? "profile-tab-button profile-tab-button-active"
                   : "profile-tab-button"
               }
-              onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
               {tab.id === "watchlist" && favoriteIds.length > 0 && (
@@ -225,7 +227,7 @@ function ProfilePage() {
 
       {/* BİLGİLERİM */}
       {activeTab === "info" && (
-        <div className="profile-panel">
+        <div className="profile-panel" {...getPanelProps("info")}>
           {saveMessage && (
             <div className="profile-save-message" role="status">
               {saveMessage}
@@ -370,7 +372,7 @@ function ProfilePage() {
 
       {/* BİLETLERİM */}
       {activeTab === "tickets" && (
-        <div className="profile-panel">
+        <div className="profile-panel" {...getPanelProps("tickets")}>
           <h2 className="profile-section-title">Güncel Biletler</h2>
           {currentTickets.length === 0 ? (
             <EmptyState
@@ -410,7 +412,7 @@ function ProfilePage() {
 
       {/* İZLEME LİSTEM */}
       {activeTab === "watchlist" && (
-        <div className="profile-panel">
+        <div className="profile-panel" {...getPanelProps("watchlist")}>
           {favoriteMovies.length === 0 ? (
             <EmptyState
               icon="♡"

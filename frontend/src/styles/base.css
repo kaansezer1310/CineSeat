@@ -93,3 +93,31 @@ button {
 .skip-link:focus {
   top: var(--space-4);
 }
+
+/* ═══════════════════════════════════════════════════════
+   Faz 6 — hareket hassasiyeti (prefers-reduced-motion)
+
+   Önceden yalnızca iki bileşen (spinner ve skeleton) bu tercihi
+   onurluyordu; kartların yukarı kayması, ikonların büyümesi, mobil menü
+   ve tüm geçişler hâlâ hareket ediyordu. Bu kural hepsini tek yerden
+   kapatır.
+
+   `!important` burada bilinçli: kuralın istisnasız HER bileşen
+   bildirimini geçmesi gerekiyor, aksi hâlde sonradan yazılan her yeni
+   geçiş sessizce muaf kalırdı.
+
+   Hareket sıfırlanır ama durum değişimi KORUNUR: hover/aktif görünümler
+   anında uygulanır — kullanıcı geri bildirimi kaybolmaz, yalnızca
+   animasyon kalkar. `0.01ms` (0 değil) `transitionend`/`animationend`
+   bekleyen kodun tetiklenmeye devam etmesi içindir.
+   ═══════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

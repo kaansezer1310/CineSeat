@@ -58,7 +58,7 @@
 
 .btn--secondary {
   background: var(--color-background-soft);
-  color: var(--color-purple);
+  color: var(--color-purple-text);
 }
 
 .btn--secondary:hover:not(:disabled) {

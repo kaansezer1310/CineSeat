@@ -74,7 +74,7 @@
   border-radius: 50%;
 
   background: var(--color-success);
-  color: #0c120e;
+  color: var(--color-on-success);
 
   font-size: 1.5rem;
   font-weight: 700;
@@ -107,7 +107,7 @@
   border-radius: 8px;
 
   background: var(--color-yellow);
-  color: #211a0b;
+  color: var(--color-on-accent);
 
   font-weight: 600;
 
@@ -226,7 +226,7 @@
 
 .movie-card-button:hover {
   transform: translateY(-4px);
-  border-color: rgba(208, 172, 89, 0.4);
+  border-color: var(--color-border-strong);
 
   box-shadow: 0 12px 28px var(--color-shadow);
 }
@@ -290,7 +290,7 @@
   place-items: center;
   padding: 0 8px;
 
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--color-overlay-border);
   border-radius: 6px;
 
   background: var(--color-overlay-scrim);
@@ -751,7 +751,7 @@
 .seat-status-secili {
   border-color: var(--color-yellow);
   background: var(--color-yellow);
-  color: #211a0b;
+  color: var(--color-on-accent);
   font-weight: 700;
 }
 
@@ -762,8 +762,8 @@
   background:
     repeating-linear-gradient(
       135deg,
-      rgba(135, 101, 163, 0.55) 0 6px,
-      rgba(135, 101, 163, 0.32) 6px 12px
+      var(--color-seat-locked-stripe) 0 6px,
+      var(--color-seat-locked-stripe-soft) 6px 12px
     );
   color: var(--color-text);
 
@@ -1439,7 +1439,7 @@
 .movie-tab-button-active,
 .movie-tab-button-active:hover {
   background: var(--color-yellow);
-  color: #211a0b;
+  color: var(--color-on-accent);
 }
 
 @media (max-width: 650px) {
@@ -1591,7 +1591,7 @@
   justify-content: center;
   padding: 20px;
 
-  background: rgba(12, 9, 18, 0.82);
+  background: var(--color-overlay-scrim);
 }
 
 .trailer-modal {
@@ -1887,7 +1887,7 @@
 /* Poster üzerindeki (koyu scrim daire) kalp ikonu her iki temada da
    açık kalmalı; global light-tema metin rengini buraya uygulamayız. */
 .movie-poster-wrapper .watchlist-heart-button--active {
-  color: var(--color-header-accent);
+  color: var(--color-on-overlay-accent);
   opacity: 1;
 }
 
@@ -1909,7 +1909,7 @@
   border: 1px solid var(--color-yellow);
   border-radius: 10px;
 
-  background: rgba(208, 172, 89, 0.12);
+  background: var(--color-accent-soft);
   color: var(--color-text);
 }
 

@@ -24,21 +24,9 @@
   position: absolute;
   inset: 0;
 
-  background: linear-gradient(
-    120deg,
-    rgba(250, 248, 252, 0.96) 0%,
-    rgba(250, 248, 252, 0.86) 55%,
-    rgba(250, 248, 252, 0.65) 100%
-  );
-}
-
-:root[data-theme="dark"] .hero::before {
-  background: linear-gradient(
-    120deg,
-    rgba(12, 9, 18, 0.96) 0%,
-    rgba(12, 9, 18, 0.86) 55%,
-    rgba(12, 9, 18, 0.65) 100%
-  );
+  /* Perde temaya gore DEGISIR ama bu dosya temaya DALLANMAZ: iki
+     gradyan da tokens.css'te tanimli (spec §4). */
+  background: var(--gradient-hero-scrim);
 }
 
 .hero-inner {
@@ -57,7 +45,7 @@
   display: inline-block;
   margin-bottom: var(--space-3);
 
-  color: var(--color-purple);
+  color: var(--color-purple-text);
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
@@ -267,7 +255,7 @@
 .nearby-cinema-distance {
   margin: 0;
 
-  color: var(--color-purple);
+  color: var(--color-purple-text);
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
 }
