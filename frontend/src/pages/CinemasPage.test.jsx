@@ -44,7 +44,7 @@ function renderCinemasPage(routes = false) {
       <MemoryRouter initialEntries={["/cinemas"]}>
         {routes ? (
           <Routes>
-            <Route path="/" element={<div>Ana sayfa</div>} />
+            <Route path="/movies" element={<div>Ana sayfa</div>} />
             <Route path="/cinemas" element={<CinemasPage />} />
           </Routes>
         ) : (
