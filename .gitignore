@@ -27,3 +27,6 @@ dist-ssr
 [Oo]bj/
 *.user
 .vs/
+
+# Superpowers brainstorm görsel oturumu (geçici)
+.superpowers/
