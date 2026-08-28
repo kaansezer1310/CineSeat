@@ -123,7 +123,7 @@ function CartPage() {
         </div>
 
         <button
-          className="secondary-button"
+          className="btn btn--secondary btn--sm"
           type="button"
           onClick={handleClearCart}
         >
@@ -295,7 +295,7 @@ function CartPage() {
           )}
 
           <button
-            className="primary-button cart-checkout-button"
+            className="btn btn--primary btn--lg cart-checkout-button"
             type="button"
             onClick={handleCheckout}
           >
