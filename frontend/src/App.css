@@ -51,13 +51,13 @@
 
 .success-page {
   max-width: 620px;
-  margin: 40px auto 0;
-  padding: 48px 32px;
+  margin: var(--space-10) auto 0;
+  padding: var(--space-12) var(--space-8);
 
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: var(--radius-xl);
 
   background: var(--color-surface);
+  box-shadow: var(--shadow-md);
 
   text-align: center;
 }
@@ -67,31 +67,32 @@
 
   width: 56px;
   height: 56px;
-  margin: 0 auto 20px;
+  margin: 0 auto var(--space-5);
 
   place-items: center;
 
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
 
   background: var(--color-success);
-  color: #0c120e;
+  color: var(--color-on-primary);
 
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
 }
 
 .success-page h1 {
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-black);
   line-height: 1.25;
   letter-spacing: -0.01em;
 }
 
 .success-page p {
-  margin: 14px 0 28px;
+  margin: var(--space-4) 0 var(--space-8);
+
   color: var(--color-text-muted);
-  font-weight: 400;
   line-height: 1.55;
 }
 
@@ -1329,23 +1330,23 @@
 }
 
 .checkout-error {
-  margin-bottom: 17px;
-  padding: 14px;
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
 
   border: 1px solid var(--color-error-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 
   background: var(--color-error-bg);
 }
 
 .checkout-error strong {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-2);
 
   color: var(--color-error-text);
 
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
 .checkout-error p {
@@ -1353,8 +1354,7 @@
 
   color: var(--color-text-muted);
 
-  font-size: 0.8rem;
-  font-weight: 400;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -1368,12 +1368,11 @@
   gap: 0;
 
   width: min(100%, 470px);
-  margin: 28px auto;
+  margin: var(--space-8) auto;
 
   overflow: hidden;
 
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 
   background: var(--color-background-soft);
 }
@@ -1382,9 +1381,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 25px;
+  gap: var(--space-6);
 
-  padding: 15px 18px;
+  padding: var(--space-4) var(--space-5);
 
   border-bottom: 1px solid var(--color-border);
 }
@@ -1395,24 +1394,22 @@
 
 .success-reservation-details span {
   color: var(--color-text-muted);
-
-  font-size: 0.86rem;
-  font-weight: 400;
+  font-size: var(--text-sm);
 }
 
 .success-reservation-details strong {
   color: var(--color-text);
 
-  font-size: 0.92rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   text-align: right;
 }
 
 .success-reservation-details div:last-child strong {
-  color: var(--color-yellow-text);
+  color: var(--color-purple);
 
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-black);
 }
 
 .movie-tab-list {
