@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 
 import SeatMap from "../components/seats/SeatMap.jsx";
+import Stepper from "../components/ui/Stepper.jsx";
 import StatusPanel from "../components/ui/StatusPanel.jsx";
 import { SEAT_STATUS, isSeatSelectable } from "../domain/seatStatus.js";
 import {
@@ -419,6 +420,11 @@ function BookingPage() {
                 </p>
             )}
 
+            <Stepper
+                steps={["Koltuk", "Bilet Tipi", "Ödeme"]}
+                currentStepIndex={hasSelectedSeats ? 1 : 0}
+            />
+
             <div className="booking-layout">
                 <SeatMap
                     seats={seatMap.seats}
@@ -526,7 +532,7 @@ function BookingPage() {
                     </div>
 
                     <button
-                        className="primary-button booking-action-button"
+                        className="btn btn--primary btn--lg booking-action-button"
                         type="button"
                         onClick={handleAddToCart}
                         disabled={!canAddToCart}
@@ -536,7 +542,7 @@ function BookingPage() {
 
                     {hasSelectedSeats && (
                         <button
-                            className="clear-selection-button"
+                            className="btn btn--ghost btn--sm clear-selection-button"
                             type="button"
                             onClick={handleClearSelection}
                         >
