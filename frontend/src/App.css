@@ -488,86 +488,97 @@
 }
 
 .session-section {
-  margin-top: 56px;
-  padding-top: 28px;
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
 
   border-top: 1px solid var(--color-border);
 }
 
 .session-section-heading {
-  margin-bottom: 18px;
+  margin-bottom: var(--space-4);
 }
 
 .session-section-heading h2 {
   margin: 0;
 
-  font-size: 1.55rem;
-  font-weight: 700;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
   line-height: 1.25;
   letter-spacing: -0.01em;
 }
 
 .session-section-heading > p {
-  margin: 6px 0 0;
+  margin: var(--space-1) 0 0;
 
   color: var(--color-text-muted);
-  font-size: 0.95rem;
-  font-weight: 400;
+  font-size: var(--text-sm);
+}
+
+.session-date-picker {
+  position: sticky;
+  top: var(--space-16);
+  z-index: 1;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+
+  margin-bottom: var(--space-5);
+  padding-block: var(--space-2);
+
+  background: var(--color-background);
 }
 
 .session-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .session-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 
   width: 100%;
   min-height: 56px;
-  padding: 10px 14px;
+  padding: var(--space-3) var(--space-4);
 
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 
   background: var(--color-surface);
   color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 
   cursor: pointer;
 
   transition:
-    border-color 160ms ease,
-    background 160ms ease;
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .session-button:hover {
-  border-color: var(--color-yellow);
-  background: var(--color-surface-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .session-time {
   color: var(--color-text);
 
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
 }
 
 .session-information {
   color: var(--color-text-muted);
-
-  font-size: 0.85rem;
-  font-weight: 400;
+  font-size: var(--text-sm);
 }
 
 .session-price {
-  color: var(--color-yellow-text);
-
-  font-size: 0.88rem;
-  font-weight: 600;
+  color: var(--color-purple);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
 @media (max-width: 850px) {
