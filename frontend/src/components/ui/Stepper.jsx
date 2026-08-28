@@ -2,7 +2,7 @@ import "./Stepper.css";
 
 function Stepper({ steps, currentStepIndex }) {
   return (
-    <ol className="stepper" aria-label="Bilet alma adımları">
+    <ol className="stepper" role="list" aria-label="Bilet alma adımları">
       {steps.map((label, index) => {
         const state =
           index < currentStepIndex
