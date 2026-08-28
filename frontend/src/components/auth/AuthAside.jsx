@@ -1,4 +1,7 @@
-import heroPoster from "../../assets/hero.png";
+// Gerçek, ücretsiz lisanslı (Unsplash License) bir sinema salonu fotoğrafı —
+// yerel bir dosya olarak depoya kopyalanmak yerine doğrudan bağlanıyor.
+const AUTH_ASIDE_PHOTO_URL =
+  "https://images.unsplash.com/photo-1722321974528-ec8eaf725777?q=80&w=1200&auto=format&fit=crop";
 
 /**
  * Faz 4 — Giriş/Kayıt sayfalarının sağındaki dekoratif marka paneli
@@ -11,7 +14,11 @@ import heroPoster from "../../assets/hero.png";
 function AuthAside({ title, text }) {
   return (
     <aside className="auth-aside" aria-hidden="true">
-      <img src={heroPoster} alt="" className="auth-aside-image" />
+      <img
+        src={AUTH_ASIDE_PHOTO_URL}
+        alt=""
+        className="auth-aside-image"
+      />
 
       <div className="auth-aside-content">
         <span className="auth-aside-eyebrow">CineSeat</span>

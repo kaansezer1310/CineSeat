@@ -28,7 +28,7 @@ function CitySelector() {
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        📍 Şehir Seç
+        Şehir Seç
       </button>
 
       {isOpen && (

@@ -13,7 +13,6 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import movieService from "../services/movieService.js";
-import campaignService from "../services/campaignService.js";
 import { cityResource } from "../services/locationService.js";
 import cinemaService from "../services/cinemaService.js";
 import HomePage from "./HomePage.jsx";
@@ -21,14 +20,6 @@ import HomePage from "./HomePage.jsx";
 vi.mock("../services/movieService.js", async () => {
   const actual = await vi.importActual("../services/movieService.js");
   return { default: { ...actual.default, getMovies: vi.fn() } };
-});
-
-vi.mock("../services/campaignService.js", async () => {
-  const actual = await vi.importActual("../services/campaignService.js");
-  return {
-    ...actual,
-    default: { ...actual.default, getActiveCampaigns: vi.fn() },
-  };
 });
 
 vi.mock("../services/locationService.js", () => ({
@@ -100,7 +91,6 @@ describe("HomePage — Hero ve hızlı bilet şeridi", () => {
     vi.clearAllMocks();
     movieService.getMovies.mockResolvedValue(MOVIES);
     cityResource.list.mockResolvedValue(CITIES);
-    campaignService.getActiveCampaigns.mockResolvedValue([]);
     cinemaService.getCinemas.mockResolvedValue([]);
   });
 
@@ -174,7 +164,6 @@ describe("HomePage — Vizyondaki Filmler ve Yakında rayları", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cityResource.list.mockResolvedValue(CITIES);
-    campaignService.getActiveCampaigns.mockResolvedValue([]);
     cinemaService.getCinemas.mockResolvedValue([]);
   });
 
@@ -230,70 +219,6 @@ describe("HomePage — Vizyondaki Filmler ve Yakında rayları", () => {
   });
 });
 
-describe("HomePage — Kampanyalar", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    movieService.getMovies.mockResolvedValue(MOVIES);
-    cityResource.list.mockResolvedValue(CITIES);
-    cinemaService.getCinemas.mockResolvedValue([]);
-  });
-
-  it("aktif kampanyaları kart olarak gösterir", async () => {
-    campaignService.getActiveCampaigns.mockResolvedValue([
-      {
-        id: 1,
-        name: "Hafta Sonu İndirimi",
-        type: "Percentage",
-        value: 20,
-        minCartTotal: 0,
-        membersOnly: false,
-        isActive: true,
-      },
-    ]);
-
-    renderHomePage();
-
-    expect(
-      await screen.findByText("Hafta Sonu İndirimi")
-    ).toBeInTheDocument();
-    expect(screen.getByText("%20")).toBeInTheDocument();
-    expect(screen.getByText("Tüm sepetlerde geçerli")).toBeInTheDocument();
-  });
-
-  it("yalnızca üyelere özel kampanyada rozet gösterir", async () => {
-    campaignService.getActiveCampaigns.mockResolvedValue([
-      {
-        id: 2,
-        name: "Üye Kampanyası",
-        type: "FixedAmount",
-        value: 50,
-        minCartTotal: 100,
-        membersOnly: true,
-        isActive: true,
-      },
-    ]);
-
-    renderHomePage();
-
-    expect(
-      await screen.findByText("Yalnızca üyelere özel")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("100.00 TL ve üzeri sepetlerde geçerli")
-    ).toBeInTheDocument();
-  });
-
-  it("aktif kampanya yoksa Kampanyalar bölümünü hiç göstermez", async () => {
-    campaignService.getActiveCampaigns.mockResolvedValue([]);
-
-    renderHomePage();
-
-    await screen.findByTestId("hero-stat-movies");
-
-    expect(screen.queryByText("Kampanyalar")).not.toBeInTheDocument();
-  });
-});
-
 describe("HomePage — Sana Yakın Sinemalar ve Nasıl Çalışır", () => {
   const originalGeolocation = navigator.geolocation;
 
@@ -301,7 +226,6 @@ describe("HomePage — Sana Yakın Sinemalar ve Nasıl Çalışır", () => {
     vi.clearAllMocks();
     movieService.getMovies.mockResolvedValue(MOVIES);
     cityResource.list.mockResolvedValue(CITIES);
-    campaignService.getActiveCampaigns.mockResolvedValue([]);
     cinemaService.getCinemas.mockResolvedValue([
       {
         id: 1,

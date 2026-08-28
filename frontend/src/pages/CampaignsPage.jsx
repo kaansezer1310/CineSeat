@@ -50,7 +50,6 @@ function CampaignsPage() {
 
       {!isLoading && !error && campaigns.length === 0 && (
         <EmptyState
-          icon="🎟️"
           title="Şu anda aktif kampanya bulunmuyor."
           description="Yeni kampanyalar eklendiğinde burada listelenecek."
           action={

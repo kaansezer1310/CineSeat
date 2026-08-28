@@ -151,14 +151,6 @@ describe("Header", () => {
     ).toBeInTheDocument();
   });
 
-  it("mobil menü tetikleyicisini render eder", () => {
-    renderHeader();
-
-    expect(
-      screen.getByRole("button", { name: "Menüyü aç" })
-    ).toBeInTheDocument();
-  });
-
   it("bir film detay sayfasındayken Filmler bağlantısını aktif işaretler", () => {
     renderHeader("/movies/42");
 

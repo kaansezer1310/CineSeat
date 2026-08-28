@@ -3,18 +3,19 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import movieService from "../services/movieService.js";
-import campaignService, {
-  formatCampaignValue,
-} from "../services/campaignService.js";
 import { cityResource } from "../services/locationService.js";
 import useNearestCinemas from "../hooks/useNearestCinemas.js";
 import Rail from "../components/ui/Rail.jsx";
 import RailMovieCard from "../components/movies/RailMovieCard.jsx";
 import StatusPanel from "../components/ui/StatusPanel.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
-import heroPoster from "../assets/hero.png";
 
 import "./home.css";
+
+// Gerçek, ücretsiz lisanslı (Unsplash License) bir sinema salonu fotoğrafı —
+// yerel bir dosya olarak depoya kopyalanmak yerine doğrudan bağlanıyor.
+const HERO_PHOTO_URL =
+  "https://images.unsplash.com/photo-1722321974501-059dff03e970?q=80&w=1600&auto=format&fit=crop";
 
 const HOW_IT_WORKS_STEPS = [
   {
@@ -118,12 +119,6 @@ function HomePage() {
     staleTime: 30 * 60 * 1000,
   });
 
-  const { data: campaigns = [] } = useQuery({
-    queryKey: ["campaigns", "active"],
-    queryFn: campaignService.getActiveCampaigns,
-    staleTime: 5 * 60 * 1000,
-  });
-
   const {
     cinemas: nearestCinemas,
     isLoading: cinemasLoading,
@@ -175,7 +170,7 @@ function HomePage() {
     <div className="landing">
       <section
         className="hero"
-        style={{ backgroundImage: `url(${heroPoster})` }}
+        style={{ backgroundImage: `url(${HERO_PHOTO_URL})` }}
       >
         <div className="hero-inner">
           <div className="hero-message">
@@ -246,7 +241,7 @@ function HomePage() {
         {moviesLoading ? (
           <StatusPanel variant="loading" title="Filmler yükleniyor…" />
         ) : nowShowingMovies.length === 0 ? (
-          <EmptyState icon="🎬" title="Şu anda vizyonda film bulunmuyor." />
+          <EmptyState title="Şu anda vizyonda film bulunmuyor." />
         ) : (
           nowShowingMovies
             .slice(0, 12)
@@ -269,10 +264,7 @@ function HomePage() {
         {moviesLoading ? (
           <StatusPanel variant="loading" title="Filmler yükleniyor…" />
         ) : comingSoonMovies.length === 0 ? (
-          <EmptyState
-            icon="🎬"
-            title="Yakında vizyona girecek film bulunmuyor."
-          />
+          <EmptyState title="Yakında vizyona girecek film bulunmuyor." />
         ) : (
           comingSoonMovies
             .slice(0, 12)
@@ -286,38 +278,6 @@ function HomePage() {
         )}
       </Rail>
 
-      {campaigns.length > 0 && (
-        <section className="landing-section" aria-label="Kampanyalar">
-          <div className="rail-section-heading">
-            <h2 className="rail-section-title">Kampanyalar</h2>
-          </div>
-
-          <div className="campaign-grid">
-            {campaigns.slice(0, 3).map((campaign) => (
-              <article key={campaign.id} className="campaign-card">
-                <span className="badge badge--accent">
-                  {formatCampaignValue(campaign)}
-                </span>
-
-                <h3 className="campaign-card-title">{campaign.name}</h3>
-
-                <p className="campaign-card-condition">
-                  {campaign.minCartTotal > 0
-                    ? `${campaign.minCartTotal.toFixed(2)} TL ve üzeri sepetlerde geçerli`
-                    : "Tüm sepetlerde geçerli"}
-                </p>
-
-                {campaign.membersOnly && (
-                  <span className="badge badge--neutral">
-                    Yalnızca üyelere özel
-                  </span>
-                )}
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section className="landing-section" aria-label="Sana yakın sinemalar">
         <div className="rail-section-heading">
           <h2 className="rail-section-title">Sana Yakın Sinemalar</h2>
@@ -330,7 +290,6 @@ function HomePage() {
           <StatusPanel variant="loading" title="Sinemalar yükleniyor…" />
         ) : !hasLocation ? (
           <EmptyState
-            icon="📍"
             title="Size en yakın sinemaları göstermek için konum izni gerekiyor."
             description="Tarayıcı konum izni verirsen sana en yakın sinemaları burada gösterebiliriz."
             action={

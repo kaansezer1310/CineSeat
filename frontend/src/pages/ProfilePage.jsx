@@ -376,7 +376,6 @@ function ProfilePage() {
           <h2 className="profile-section-title">Güncel Biletler</h2>
           {currentTickets.length === 0 ? (
             <EmptyState
-              icon="🎫"
               title="Güncel biletiniz bulunmuyor."
               description="Bir seans seçtiğinizde biletiniz burada görünecek."
             />
@@ -392,10 +391,7 @@ function ProfilePage() {
             Geçmiş Biletler
           </h2>
           {pastTickets.length === 0 ? (
-            <EmptyState
-              icon="🗓️"
-              title="Geçmiş biletiniz bulunmuyor."
-            />
+            <EmptyState title="Geçmiş biletiniz bulunmuyor." />
           ) : (
             <div className="profile-ticket-list">
               {pastTickets.map((reservation) => (

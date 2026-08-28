@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>CineSeat Frontend-Backend Entegrasyonu Sunum Akışı</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 16mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    font-size: 10.3pt;
+    line-height: 1.5;
+    color: #1c1e26;
+    margin: 0;
+  }
+  .cover {
+    height: 262mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    page-break-after: always;
+    border-left: 10px solid #5B3E8E;
+    padding-left: 14mm;
+  }
+  .cover .kicker { color: #5B3E8E; font-weight: 700; letter-spacing: 2px; font-size: 10pt; text-transform: uppercase; margin-bottom: 10mm; }
+  .cover h1 { font-size: 28pt; margin: 0 0 6mm 0; line-height: 1.2; color: #14121c; }
+  .cover .subtitle { font-size: 12.5pt; color: #3a3a4a; max-width: 140mm; margin-bottom: 12mm; }
+  .cover .meta { font-size: 9.7pt; color: #555; }
+  .cover .meta div { margin-bottom: 2mm; }
+  .cover .meta b { color: #1c1e26; }
+
+  .slide { page-break-before: always; min-height: 250mm; position: relative; padding-bottom: 12mm; }
+  .slide:first-of-type { page-break-before: auto; }
+  .slide-num {
+    position: absolute; top: 0; right: 0;
+    font-size: 8.5pt; color: #a89bc4; font-weight: 700;
+  }
+  .slide-kicker { font-size: 9pt; color: #5B3E8E; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2mm; }
+  .slide h1 {
+    font-size: 19pt;
+    color: #14121c;
+    margin: 0 0 6mm 0;
+    border-bottom: 3px solid #5B3E8E;
+    padding-bottom: 3mm;
+  }
+  h2 { font-size: 12.5pt; color: #402d68; margin-top: 6mm; margin-bottom: 2.5mm; }
+
+  p { margin: 0 0 3mm 0; text-align: justify; }
+  ul, ol { margin: 0 0 3mm 0; padding-left: 5.5mm; }
+  li { margin-bottom: 1.8mm; }
+  li b { color: #14121c; }
+
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    background: #f1eef8;
+    color: #402d68;
+    padding: 0.5px 4px;
+    border-radius: 3px;
+    font-size: 9.1pt;
+  }
+  pre {
+    background: #1e1e2e;
+    color: #d8d8e8;
+    padding: 3.5mm 4.5mm;
+    border-radius: 4px;
+    border-left: 4px solid #5B3E8E;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 8.3pt;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    page-break-inside: avoid;
+    margin: 2.5mm 0 3.5mm 0;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #c792ea; } .str { color: #c3e88d; } .cmt { color: #7f849c; font-style: italic; } .fn { color: #82aaff; }
+
+  .filecap {
+    font-family: Consolas, monospace; font-size: 8.5pt; color: #5B3E8E;
+    background: #f1eef8; display: inline-block; padding: 1mm 3mm;
+    border-radius: 3px 3px 0 0; margin-bottom: -2.5mm; position: relative; top: 1mm; z-index: 1; font-weight: 600;
+  }
+
+  .speaker {
+    background: #eaf5ee;
+    border-left: 4px solid #2E7D5B;
+    padding: 3mm 4mm;
+    margin: 3mm 0 3.5mm 0;
+    font-size: 9.4pt;
+    page-break-inside: avoid;
+  }
+  .speaker .label { font-weight: 700; color: #205c42; font-size: 8.3pt; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5mm; }
+
+  .note { background: #f1eef8; border-left: 4px solid #5B3E8E; padding: 3mm 4mm; margin: 3mm 0 3.5mm 0; font-size: 9.4pt; page-break-inside: avoid; }
+  .warn { background: #fff4e5; border-left: 4px solid #c98a1f; padding: 3mm 4mm; margin: 3mm 0 3.5mm 0; font-size: 9.4pt; page-break-inside: avoid; }
+
+  .diagram {
+    background: #f8f7fc; border: 1px solid #d8d3e8; border-radius: 4px; padding: 4.5mm;
+    font-family: Consolas, monospace; font-size: 8.4pt; white-space: pre; margin: 2.5mm 0 3.5mm 0;
+    page-break-inside: avoid;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 2.5mm 0 3.5mm 0; font-size: 9.1pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #d8d3e8; padding: 1.8mm 2.5mm; text-align: left; vertical-align: top; }
+  th { background: #5B3E8E; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f8f7fc; }
+
+  .kpi-row { display: flex; gap: 4mm; margin: 3mm 0 4mm 0; }
+  .kpi { flex: 1; background: #f8f7fc; border: 1px solid #d8d3e8; border-radius: 4px; padding: 4mm 3mm; text-align: center; page-break-inside: avoid; }
+  .kpi .num { font-size: 20pt; font-weight: 800; color: #5B3E8E; display: block; }
+  .kpi .lbl { font-size: 8.3pt; color: #555; margin-top: 1mm; }
+
+  .qa { border: 1px solid #d8d3e8; border-radius: 4px; padding: 3mm 4mm; margin-bottom: 3mm; page-break-inside: avoid; }
+  .qa .q { font-weight: 700; color: #14121c; margin-bottom: 1.5mm; }
+  .qa .q::before { content: "S: "; color: #5B3E8E; }
+  .qa .a::before { content: "C: "; color: #2E7D5B; font-weight: 700; }
+
+  .footer-note { font-size: 8pt; color: #888; text-align: center; margin-top: 8mm; }
+  .flow-strip { display: flex; align-items: center; gap: 2mm; margin: 3mm 0 4mm 0; font-size: 8.6pt; flex-wrap: wrap; }
+  .flow-step { background: #5B3E8E; color: #fff; padding: 1.5mm 3mm; border-radius: 3px; font-weight: 600; }
+  .flow-arrow { color: #5B3E8E; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">CineSeat &middot; Direktör Sunumu</div>
+  <h1>Frontend&ndash;Backend<br>Entegrasyonu<br>Sunum Akışı</h1>
+  <div class="subtitle">Backend mimarisinin tamamlanmasının ardından kurulan frontend&ndash;backend bağlantısının yönetim sunumu için hazırlanmış akış &mdash; konuşma notları, kod örnekleri ve rakamlarla.</div>
+  <div class="meta">
+    <div><b>Sunum süresi (önerilen):</b> 12&ndash;15 dakika + soru-cevap</div>
+    <div><b>Hedef kitle:</b> Direktör / teknik olmayan-orta düzey teknik yönetim</div>
+    <div><b>Eşlik eden doküman:</b> CineSeat_Frontend_Backend_Entegrasyon_Raporu.pdf (derinlemesine teknik referans)</div>
+    <div><b>Tarih:</b> 28.08.2026</div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">1 / 16</div>
+  <div class="slide-kicker">Açılış</div>
+  <h1>Bugün Ne Anlatacağız?</h1>
+  <p>Backend mimarisi (Clean Architecture + CQRS) tamamlandı. Bu sunum, o backend&#39;in <b>React tabanlı frontend&#39;e nasıl bağlandığını</b> &mdash; hangi teknik kararların alındığını, bu kararların neden önemli olduğunu ve bağlantının gerçekten çalıştığının nasıl doğrulandığını anlatıyor.</p>
+  <div class="flow-strip">
+    <span class="flow-step">Problem</span><span class="flow-arrow">&rarr;</span>
+    <span class="flow-step">Mimari</span><span class="flow-arrow">&rarr;</span>
+    <span class="flow-step">3 Temel Sözleşme</span><span class="flow-arrow">&rarr;</span>
+    <span class="flow-step">Kritik Akış Örneği</span><span class="flow-arrow">&rarr;</span>
+    <span class="flow-step">Kanıt &amp; Rakamlar</span>
+  </div>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    Buradan başla: &ldquo;Backend ve frontend iki farklı ekip/katman gibi düşünülebilir ama aslında iki ayrı çalıştırılabilir uygulama &mdash; ayrı süreç, ayrı port, hatta ayrı sunucuda çalışabilirler. Bugün onları birbirine bağlayan üç temel sözleşmeyi anlatacağım: güvenlik, kimlik ve veri.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">2 / 16</div>
+  <div class="slide-kicker">Problem Tanımı</div>
+  <h1>İki Ayrı Uygulama, Nasıl Konuşacak?</h1>
+  <div class="diagram">┌─────────────────────────┐        HTTP/JSON        ┌──────────────────────────────┐
+│   React SPA (Vite)      │  ────────────────────▶  │   ASP.NET Core Web API       │
+│   http://localhost:5173 │  Authorization: Bearer   │   http://localhost:5207/api  │
+│                          │  ◀────────────────────  │                               │
+└─────────────────────────┘      JSON gövde          └──────────────────────────────┘</div>
+  <p>Frontend (kullanıcının tarayıcısında çalışan React uygulaması) ve backend (sunucuda çalışan API), <b>ayrı süreçler</b> olarak çalışır ve birbirleriyle yalnızca ağ üzerinden, HTTP istekleriyle konuşur. Bu basit görünen kurulum üç somut mühendislik problemini beraberinde getirir:</p>
+  <ol>
+    <li><b>Tarayıcı güvenliği:</b> Farklı port = farklı &ldquo;origin&rdquo;. Tarayıcı varsayılan olarak bu isteği engeller.</li>
+    <li><b>Kimlik doğrulama:</b> Backend, isteği atan kişinin kim olduğunu her seferinde nasıl bilecek?</li>
+    <li><b>Veri sözleşmesi:</b> İki taraf, aynı veriyi aynı şekilde mi yorumluyor?</li>
+  </ol>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Bu üç problem, her modern web uygulamasında karşımıza çıkar &mdash; CineSeat&#39;e özgü değil. Ama nasıl çözüldükleri, sistemin güvenliğini ve bakımını doğrudan belirliyor. Şimdi üçünü sırayla göstereceğim.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">3 / 16</div>
+  <div class="slide-kicker">Genel Mimari</div>
+  <h1>Kuş Bakışı Mimari</h1>
+  <div class="diagram">Backend (Onion / Clean Architecture + CQRS)      Frontend (React)
+─────────────────────────────────────      ──────────────────────
+Domain      → iş kuralları, hiç bağımlılık   pages/       → ekranlar
+Application → Command/Query + Handler        components/  → yeniden kullanılan UI
+Infrastructure → JWT, parola hash            hooks/       → paylaşılan davranış
+Persistence → EF Core + PostgreSQL           services/ ★  → backend'e giden HER istek</div>
+  <p>Backend, sorumlulukları katmanlara ayıran <b>Onion (Clean) Architecture</b> ile; frontend ise her isteğin tek bir noktadan (<code>services/</code>) geçtiği bir servis katmanı ile kurulmuştur. Backend tarafında her iş eylemi (giriş yapma, koltuk kilitleme, rezervasyon oluşturma) <b>CQRS</b> deseniyle bir Command/Query + Handler ikilisine karşılık gelir.</p>
+  <div class="note"><b>Neden önemli?</b> Bu ayrım sayesinde iki taraf birbirinden <b>bağımsız olarak</b> geliştirilip test edilebiliyor &mdash; backend ekibi veritabanı şemasını değiştirirken frontend&#39;in çalışmayı durdurmaması, ya da tam tersi, sözleşmenin (aşağıda anlatılacak) korunmasına bağlı.</div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">4 / 16</div>
+  <div class="slide-kicker">Temel Taş 1 / 3</div>
+  <h1>CORS &mdash; Kim Kiminle Konuşabilir?</h1>
+  <p><b>CORS</b> (Cross-Origin Resource Sharing), backend&#39;in &ldquo;hangi adresten gelen istekleri kabul ediyorum&rdquo; sorusuna verdiği açık cevaptır. Tanımlanmazsa tarayıcı isteği kendiliğinden engeller &mdash; kod doğru olsa bile.</p>
+  <div class="filecap">backend/Presentation/CineSeat.WebAPI/Program.cs</div>
+  <pre>policy.WithOrigins(<span class="str">"http://localhost:5173"</span>, <span class="str">"http://127.0.0.1:5173"</span>)
+      .AllowAnyHeader()
+      .AllowAnyMethod();</pre>
+  <div class="warn"><b>İnce ama kritik detay:</b> Bu satır, kimlik doğrulamadan (<code>UseAuthentication</code>) <b>önce</b> çalıştırılmalı. Tarayıcı asıl isteği göndermeden önce token&#39;sız bir &ldquo;ön-uçuş&rdquo; isteği (<code>OPTIONS</code>) atar; sıra yanlış olsaydı bu ön-uçuş isteği reddedilir, hata mesajı da yanıltıcı bir &ldquo;CORS hatası&rdquo; gibi görünürdü. Küçük bir sıralama kararı, üretimde saatler süren yanlış teşhise yol açabilecek türden bir detay.</div>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;CORS&#39;u bir güvenlik duvarı gibi düşünün: yalnızca bizim frontend&#39;imizin adresine izin veriyoruz, başka hiçbir web sitesi bu API&#39;yi tarayıcı üzerinden çağıramaz.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">5 / 16</div>
+  <div class="slide-kicker">Temel Taş 2 / 3</div>
+  <h1>JWT &mdash; Kimlik Doğrulama</h1>
+  <div class="diagram">1) Giriş         POST /api/auth/login  { usernameOrEmail, password }
+2) Yanıt         { token, expiresAt, user }
+3) Saklama       sessionStorage["cineseat_user"] = { ...user, token }
+4) Her istek     Header: Authorization: Bearer &lt;token&gt;
+5) Doğrulama     backend imzayı kontrol eder → izin ver / 401 döndür</div>
+  <p>Sistem <b>durum tutmayan (stateless) JWT</b> kullanır: backend, oturumu kendi hafızasında saklamaz. Token&#39;ın kendisi &mdash; imzalı, sahtesi yapılamaz bir şekilde &mdash; kullanıcının kimliğini, rolünü ve izinlerini taşır.</p>
+  <div class="filecap">backend &mdash; JwtTokenService.cs</div>
+  <pre>expires: DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes),
+signingCredentials: <span class="kw">new</span> SigningCredentials(key, SecurityAlgorithms.HmacSha256)</pre>
+  <div class="note"><b>Güvenlik güvencesi:</b> Uygulama açılışında imza anahtarının en az 32 karakter olduğu denetlenir &mdash; kısa bir anahtar HS256 imzasını kırılabilir kılar. Bu kontrol geçmezse <b>uygulama hiç ayağa kalkmaz</b>; zayıf bir yapılandırmayla sessizce çalışmaya devam etmez.</div>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Token, bir tiyatro bileti gibi düşünülebilir: içeriği (kim, hangi yetkiyle) üzerinde yazılı ve sahtesi kolayca anlaşılır. Sunucu her seferinde &#39;bu kişi kim?&#39; diye veritabanına sormak zorunda değil.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">6 / 16</div>
+  <div class="slide-kicker">Temel Taş 3 / 3</div>
+  <h1>Veri Sözleşmesi &mdash; DTO Eşleme</h1>
+  <p>Backend&#39;in gönderdiği veri şekli (DTO) ile frontend&#39;in ihtiyaç duyduğu şekil her zaman birebir aynı olmayabilir. Her frontend servis dosyası, gelen veriyi kendi bileşenlerinin anlayacağı forma çeviren küçük bir &ldquo;çevirmen&rdquo; fonksiyon içerir.</p>
+  <div class="filecap">frontend &mdash; showtimeService.js</div>
+  <pre><span class="kw">function</span> mapShowtimeDto(dto) {
+  <span class="kw">return</span> {
+    id: dto.id, movieId: dto.movieId,
+    basePrice: Number(dto.basePrice) || <span class="fn">0</span>,
+    format: dto.format,
+    hallName: dto.hallName ?? <span class="str">""</span>,
+  };
+}</pre>
+  <div class="note"><b>İş değeri:</b> Backend bir alanı yeniden adlandırsa ya da tipini değiştirse bile, bu değişikliğin etkisi <b>tek bir dosyaya</b> hapsedilir. Bu, iki ekibin birbirini beklemeden, birbirini kırmadan paralel çalışabilmesinin mimari garantisidir &mdash; entegrasyon hataları erken ve tek noktada yakalanır.</div>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Bunu bir çeviri katmanı gibi düşünün: backend kendi diliyle konuşur, frontend kendi diliyle &mdash; aradaki 20 küçük &#39;çevirmen&#39; dosya bu iki dilin hep anlaşmasını sağlıyor.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">7 / 16</div>
+  <div class="slide-kicker">Uçtan Uca Örnek</div>
+  <h1>Bir İsteğin Tam Yolculuğu: Giriş (Login)</h1>
+  <p>Soyut kavramları somutlaştırmak için tek bir isteği baştan sona takip edelim &mdash; bu, projedeki <b>her</b> yazma işleminin (kayıt, rezervasyon, yorum, kampanya) izlediği aynı iskelettir.</p>
+  <div class="diagram">Controller ──▶ MediatR ──▶ ValidationBehavior ──▶ Handler ──▶ DTO ──▶ JSON Yanıt
+(HTTP'yi        (isteği doğru   (kurallar        (iş mantığı,   (temiz
+ devreder)       yere yönlendirir) geçerli mi?)    veritabanı)    veri şekli)</div>
+  <div class="filecap">AuthController.cs</div>
+  <pre>[HttpPost(<span class="str">"login"</span>)]
+<span class="kw">public async</span> Task&lt;IActionResult&gt; Login([FromBody] LoginCommand command)
+    =&gt; Ok(<span class="kw">await</span> _mediator.Send(command));</pre>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Controller'ın kendisi hiçbir iş mantığı içermiyor &mdash; sadece isteği doğru yere yönlendiriyor. Bu, kodun test edilebilirliğini ve okunabilirliğini doğrudan artırıyor.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">8 / 16</div>
+  <div class="slide-kicker">Uçtan Uca Örnek (devam)</div>
+  <h1>Güvenlik: Kasıtlı Belirsiz Hata Mesajı</h1>
+  <div class="filecap">LoginCommandHandler.cs</div>
+  <pre><span class="cmt">// Kullanıcı yok İLE parola yanlış AYNI mesajı döndürür: farklı mesaj
+// vermek saldırgana hangi e-postaların kayıtlı olduğunu sızdırır.</span>
+<span class="kw">if</span> (candidate <span class="kw">is null</span> || !_passwordHasher.Verify(...))
+    <span class="kw">throw new</span> UnauthorizedException(<span class="str">"Kullanıcı adı/e-posta veya parola hatalı."</span>);</pre>
+  <p>Bu tek satır, OWASP&#39;ın kimlik doğrulama en iyi pratiklerinden biri olan <b>user enumeration önleme</b>&#39;yi uyguluyor: &ldquo;bu e-posta kayıtlı değil&rdquo; ile &ldquo;parolanız yanlış&rdquo; arasındaki fark, saldırganlara sistemde kayıtlı e-posta adreslerini tek tek denemeleri için bir araç verirdi.</p>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Bu, entegrasyonun sadece 'çalışması' değil, 'güvenli çalışması' için alınmış bilinçli bir kararın örneği &mdash; küçük görünen bir detay ama gerçek dünyada sık istismar edilen bir açığı kapatıyor.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">9 / 16</div>
+  <div class="slide-kicker">Kritik Mühendislik Problemi</div>
+  <h1>İki Kişi Aynı Koltuğu Aynı Anda Seçerse?</h1>
+  <p>Bilet satışında en kritik teknik risk budur. Çözüm: veritabanında <code>(Seans, Koltuk)</code> çifti üzerinde bir <b>benzersizlik kısıtı</b> ve bunu yöneten bir &ldquo;devralma&rdquo; mantığı.</p>
+  <div class="filecap">LockSeatCommandHandler.cs</div>
+  <pre><span class="kw">var</span> isExpired = existingLock.LockExpiresAt &lt; now;
+<span class="kw">var</span> isSameUser = existingLock.UserId == userId;
+
+<span class="kw">if</span> (!isExpired &amp;&amp; !isSameUser)
+    <span class="kw">throw new</span> ConflictException(<span class="str">"Bu koltuk şu anda başka bir kullanıcı tarafından kilitli."</span>);
+
+<span class="cmt">// Süresi dolmuş ya da aynı kullanıcı → satırı devral / yenile.</span></pre>
+  <div class="note"><b>Nasıl çalışır:</b> Veritabanı iki eşzamanlı kilitleme isteğinden birini otomatik olarak reddeder (benzersizlik kısıtı). Kod bu reddi bir hata olarak kullanıcıya yansıtmaz &mdash; satırı yeniden okur, süresi dolmuş mu diye bakar, dolmuşsa devralır. Bu deseni dağıtık sistemlerde &ldquo;iyimser eşzamanlılık kontrolü&rdquo; olarak adlandırıyoruz.</div>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Bu, e-ticaretin klasik &#39;stokta tek ürün kaldı, iki kişi aynı anda satın almaya çalıştı&#39; problemiyle birebir aynı. Burada koltuklar için çözülmüş durumda ve canlı olarak test edildi.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">10 / 16</div>
+  <div class="slide-kicker">Kalite Güvencesi</div>
+  <h1>Tek Noktadan Hata Yönetimi</h1>
+  <div class="diagram">Backend: TEK try/catch (ExceptionHandlingMiddleware)
+  ValidationException  → 400   NotFoundException → 404
+  UnauthorizedException → 401  ConflictException  → 409
+
+Frontend: TEK çeviri noktası (apiClient.js → toApiError)
+  400/422 → ValidationError   404 → NotFoundError
+  401     → ApiError          409 → ConflictError</div>
+  <p>Backend&#39;de hiçbir controller veya iş mantığı kodu kendi içinde hata yakalamaz; hepsi tek bir merkezi middleware&#39;e akar. Frontend tarafında da bu tutarlı hata gövdesi, tek bir fonksiyonda tipli hata sınıflarına çevrilir. Sonuç: <b>her ekranda tutarlı, öngörülebilir hata davranışı.</b></p>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Bu, 'her sayfa kendi hata mesajını kendi icat ediyor' kaosunu önlüyor &mdash; bakım ve yeni geliştirici onboarding&#39;i açısından doğrudan zaman kazandırıyor.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">11 / 16</div>
+  <div class="slide-kicker">Gerçek Vaka</div>
+  <h1>Yakalanan ve Çözülen Bir Entegrasyon Hatası</h1>
+  <table>
+    <tr><th>Önce</th><th>Sonra</th></tr>
+    <tr><td>Yönetim paneli <code>pageSize=200</code> gönderiyordu</td><td>Backend&#39;in sınırı (100) sayfalar dolaşılarak aşılıyor</td></tr>
+    <tr><td>Backend bunu <b>400</b> ile reddediyordu</td><td>İstek her zaman geçerli sınırlar içinde kalıyor</td></tr>
+    <tr><td>Ekran &ldquo;Seanslar yükleniyor&hellip;&rdquo;da donuyordu</td><td>Seans listesi sorunsuz yükleniyor</td></tr>
+  </table>
+  <div class="note"><b>Neden bu vaka önemli:</b> Sorun ne backend&#39;de ne frontend&#39;de tek başına &mdash; iki tarafın <b>aynı sözleşmeye</b> (sayfa başına en fazla 100 kayıt) sahip olmaması entegrasyon noktasında ortaya çıktı. Bu tür hatalar yalnızca iki tarafı birlikte test ederek yakalanabilir; bu proje bu şekilde test edildi ve düzeltildi.</div>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Bu, entegrasyon testinin neden ayrı bir aşama olarak önemli olduğunun somut kanıtı &mdash; birim testleri iki tarafı da ayrı ayrı 'yeşil' gösterebilirdi, hata yalnızca ikisi birlikte konuştuğunda ortaya çıktı.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">12 / 16</div>
+  <div class="slide-kicker">Rakamlarla</div>
+  <h1>Entegrasyonun Kapsamı</h1>
+  <div class="kpi-row">
+    <div class="kpi"><span class="num">20</span><span class="lbl">Frontend servis dosyası</span></div>
+    <div class="kpi"><span class="num">3</span><span class="lbl">Temel sözleşme (CORS / JWT / DTO)</span></div>
+    <div class="kpi"><span class="num">4</span><span class="lbl">Katmanlı backend mimarisi</span></div>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><span class="num">604</span><span class="lbl">Frontend otomatik test (tamamı geçiyor)</span></div>
+    <div class="kpi"><span class="num">100</span><span class="lbl">Sayfa başına azami kayıt sınırı</span></div>
+    <div class="kpi"><span class="num">5/5</span><span class="lbl">Koltuk kilidi canlı senaryo testi</span></div>
+  </div>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Bu rakamlar, entegrasyonun tek seferlik bir 'bağlantı kuruldu, çalışıyor' işi olmadığını, sürekli test edilen ve büyüyen bir yüzey olduğunu gösteriyor.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">13 / 16</div>
+  <div class="slide-kicker">Kanıt</div>
+  <h1>Canlı Doğrulama &mdash; Sadece Kod Okuması Değil</h1>
+  <p>Bu sunumun arkasındaki iddialar, backend gerçek bir PostgreSQL veritabanına bağlı şekilde ayağa kaldırılarak <b>canlı olarak</b> test edildi:</p>
+  <table>
+    <tr><th>Test</th><th>Sonuç</th></tr>
+    <tr><td>Kayıt &rarr; Giriş &rarr; Profil &rarr; Favoriler uçtan uca akışı</td><td>4/4 istek başarılı</td></tr>
+    <tr><td>Sayfalama sınırı ihlali (3 farklı uçta)</td><td>3/3 doğru şekilde reddedildi</td></tr>
+    <tr><td>Koltuk kilidi: kilitle&rarr;devral&rarr;yenile&rarr;bırak&rarr;tekrar bırak</td><td>5/5 beklenen sonuç</td></tr>
+    <tr><td>Yönetici yetkilendirmesi</td><td>Doğru çalışıyor</td></tr>
+  </table>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;İddia etmek başka, göstermek başka &mdash; bu sunumdaki her teknik iddia gerçek bir çalıştırma ile doğrulandı, varsayımla değil.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">14 / 16</div>
+  <div class="slide-kicker">Özet</div>
+  <h1>Üç Cümlede Entegrasyon</h1>
+  <ol>
+    <li><b>Güvenlik:</b> CORS, yalnızca bizim frontend&#39;imizin backend&#39;e istek atabilmesini garanti ediyor.</li>
+    <li><b>Kimlik:</b> Stateless JWT, oturumu sunucu hafızasında değil, imzalı bir token&#39;da taşıyor.</li>
+    <li><b>Veri:</b> Her serviste tekrar eden bir &ldquo;çevirmen&rdquo; deseni, iki tarafın birbirini kırmadan bağımsız evrilmesini sağlıyor.</li>
+  </ol>
+  <p>Ve en kritik iş akışında &mdash; koltuk kilitleme &mdash; eşzamanlılık sorunu, veritabanı seviyesinde bir kısıt ve bilinçli bir devralma mantığıyla çözülmüş, canlı olarak test edilmiş durumda.</p>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Sonuç: bu sadece 'iki uygulama birbiriyle konuşuyor' değil, güvenli, öngörülebilir ve test edilmiş bir konuşma.&rdquo;
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">15 / 16</div>
+  <div class="slide-kicker">Soru-Cevap Hazırlığı</div>
+  <h1>Olası Sorular ve Hazır Cevaplar</h1>
+  <div class="qa">
+    <div class="q">Backend çökerse frontend ne olur?</div>
+    <div class="a">apiClient.js ağ hatasını yakalayıp kullanıcıya &ldquo;Sunucuya ulaşılamıyor&rdquo; gibi anlaşılır bir mesaj gösterir &mdash; teknik bir hata ekranı değil.</div>
+  </div>
+  <div class="qa">
+    <div class="q">Token çalınırsa ne olur?</div>
+    <div class="a">Token süreli (dakikalarla sınırlı); süre dolunca backend otomatik reddeder ve frontend oturumu düşürür. Uzun ömürlü kalıcı bir anahtar değildir.</div>
+  </div>
+  <div class="qa">
+    <div class="q">Fiyat/indirim hesabını kullanıcı tarayıcıdan değiştirebilir mi?</div>
+    <div class="a">Hayır &mdash; istemci yalnızca bir ön izleme gösterir, bağlayıcı hesap her zaman sunucuda, rezervasyon oluşturulurken yeniden yapılır.</div>
+  </div>
+  <div class="qa">
+    <div class="q">Bu mimari yeni bir ekrana/uç noktaya ne kadar hızlı uyum sağlar?</div>
+    <div class="a">Yeni bir backend uç noktası için: Command/Query + Handler + Validator (yerleşik desen). Frontend&#39;de: bir servis fonksiyonu + bir <code>mapXDto</code>. İkisi de mevcut şablonu takip eder, sıfırdan tasarım gerektirmez.</div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="slide-num">16 / 16</div>
+  <div class="slide-kicker">Kapanış</div>
+  <h1>Teşekkürler</h1>
+  <p>Bu sunumun teknik derinlik gerektiren her iddiası, eşlik eden <b>&ldquo;Frontend&ndash;Backend Entegrasyonu Teknik Raporu&rdquo;</b> dokümanında dosya yolu, sınıf adı ve tam kod parçasıyla belgelenmiştir; sorular için doğrudan referans alınabilir.</p>
+  <div class="speaker">
+    <div class="label">Konuşma Notu</div>
+    &ldquo;Detaylı teknik sorular için elimizde tam bir yazılı referans var &mdash; şimdi sorularınızı alabilirim.&rdquo;
+  </div>
+</div>
+
+<div class="footer-note">CineSeat Frontend&ndash;Backend Entegrasyonu Sunum Akışı &middot; 28.08.2026</div>
+
+</body>
+</html>

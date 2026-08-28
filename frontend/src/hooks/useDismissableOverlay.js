@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Aç/kapa state'i + dışarı tıklama + Escape ile kapanma — UserMenu,
- * CitySelector ve MobileMenu'nün paylaştığı ortak açılır-panel deseni.
+ * Aç/kapa state'i + dışarı tıklama + Escape ile kapanma — UserMenu ve
+ * CitySelector'ın paylaştığı ortak açılır-panel deseni.
  * `containerRef` bağlanmazsa (tam ekran overlay'ler gibi) dışarı-tıklama
  * kontrolü sessizce devre dışı kalır; Escape her durumda çalışır.
  * Açılış anındaki odaklı eleman hatırlanır ve kapanışta ona geri

@@ -181,7 +181,7 @@ function MoviesPage() {
         !isReleaseBannerDismissed && (
           <div className="release-notification-banner" role="status">
             <span>
-              🎬 İzleme listenizden{" "}
+              İzleme listenizden{" "}
               <strong>
                 {recentlyReleasedFavorites
                   .map((movie) => movie.title)

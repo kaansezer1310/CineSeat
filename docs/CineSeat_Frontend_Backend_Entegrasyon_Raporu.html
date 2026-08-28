@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>CineSeat Frontend-Backend Entegrasyonu Teknik Raporu</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    color: #1c1e26;
+    margin: 0;
+  }
+  .cover {
+    height: 245mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    page-break-after: always;
+    border-left: 10px solid #5B3E8E;
+    padding-left: 14mm;
+  }
+  .cover .kicker {
+    color: #5B3E8E;
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 10pt;
+    text-transform: uppercase;
+    margin-bottom: 10mm;
+  }
+  .cover h1 {
+    font-size: 30pt;
+    margin: 0 0 6mm 0;
+    line-height: 1.2;
+    color: #14121c;
+  }
+  .cover .subtitle {
+    font-size: 13pt;
+    color: #3a3a4a;
+    max-width: 140mm;
+    margin-bottom: 14mm;
+  }
+  .cover .meta { font-size: 10pt; color: #555; }
+  .cover .meta div { margin-bottom: 2mm; }
+  .cover .meta b { color: #1c1e26; }
+
+  .toc { page-break-after: always; }
+  .toc h2 { border: none; color: #5B3E8E; }
+  .toc ol { padding-left: 6mm; }
+  .toc li { margin-bottom: 3mm; font-size: 11pt; }
+  .toc .sub { font-size: 9.5pt; color: #555; margin-top: 1mm; list-style: none; }
+
+  section { page-break-before: always; }
+  section:first-of-type { page-break-before: auto; }
+
+  h2 {
+    font-size: 16pt;
+    color: #14121c;
+    border-bottom: 2.5px solid #5B3E8E;
+    padding-bottom: 2mm;
+    margin-top: 0;
+    margin-bottom: 6mm;
+  }
+  h2 .num { color: #5B3E8E; margin-right: 3mm; }
+  h3 {
+    font-size: 12.5pt;
+    color: #402d68;
+    margin-top: 8mm;
+    margin-bottom: 3mm;
+  }
+  h4 { font-size: 11pt; color: #402d68; margin-bottom: 2mm; }
+
+  p { margin: 0 0 3.5mm 0; text-align: justify; }
+  ul, ol { margin: 0 0 3.5mm 0; padding-left: 6mm; }
+  li { margin-bottom: 1.5mm; }
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    background: #f1eef8;
+    color: #402d68;
+    padding: 0.5px 4px;
+    border-radius: 3px;
+    font-size: 9.3pt;
+  }
+  pre {
+    background: #1e1e2e;
+    color: #d8d8e8;
+    padding: 4mm 5mm;
+    border-radius: 4px;
+    border-left: 4px solid #5B3E8E;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 8.4pt;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    page-break-inside: avoid;
+    margin: 3mm 0 4mm 0;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .kw { color: #c792ea; }
+  .str { color: #c3e88d; }
+  .cmt { color: #7f849c; font-style: italic; }
+  .fn { color: #82aaff; }
+  .tag { color: #f78c6c; }
+
+  .filecap {
+    font-family: Consolas, monospace;
+    font-size: 8.7pt;
+    color: #5B3E8E;
+    background: #f1eef8;
+    display: inline-block;
+    padding: 1mm 3mm;
+    border-radius: 3px 3px 0 0;
+    margin-bottom: -3mm;
+    position: relative;
+    top: 1mm;
+    z-index: 1;
+    font-weight: 600;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 3mm 0 5mm 0;
+    font-size: 9.3pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #d8d3e8;
+    padding: 2mm 2.5mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #5B3E8E; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f8f7fc; }
+  td code { white-space: nowrap; }
+
+  .note {
+    background: #f1eef8;
+    border-left: 4px solid #5B3E8E;
+    padding: 3mm 4mm;
+    margin: 3mm 0 4mm 0;
+    font-size: 9.7pt;
+    page-break-inside: avoid;
+  }
+  .note b { color: #402d68; }
+  .warn {
+    background: #fff4e5;
+    border-left: 4px solid #c98a1f;
+    padding: 3mm 4mm;
+    margin: 3mm 0 4mm 0;
+    font-size: 9.7pt;
+    page-break-inside: avoid;
+  }
+  .ok {
+    background: #eaf5ee;
+    border-left: 4px solid #2E7D5B;
+    padding: 3mm 4mm;
+    margin: 3mm 0 4mm 0;
+    font-size: 9.7pt;
+    page-break-inside: avoid;
+  }
+
+  .diagram {
+    background: #f8f7fc;
+    border: 1px solid #d8d3e8;
+    border-radius: 4px;
+    padding: 5mm;
+    font-family: Consolas, monospace;
+    font-size: 8.6pt;
+    white-space: pre;
+    margin: 3mm 0 5mm 0;
+    page-break-inside: avoid;
+    overflow-x: auto;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #5B3E8E;
+    color: #fff;
+    font-size: 8pt;
+    padding: 0.5mm 2.5mm;
+    border-radius: 8px;
+    margin-right: 2mm;
+  }
+  .badge.get { background: #2E7D5B; }
+  .badge.post { background: #B5761F; }
+  .badge.put { background: #4472C4; }
+  .badge.del { background: #C0392B; }
+
+  .footer-note { font-size: 8pt; color: #888; text-align: center; margin-top: 8mm; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">CineSeat &middot; Teknik Entegrasyon Dokümanı</div>
+  <h1>Frontend&ndash;Backend<br>Entegrasyonu<br>Teknik Raporu</h1>
+  <div class="subtitle">Backend mimari aşamasından sonra kurulan frontend&ndash;backend bağlantısının uçtan uca teknik dökümü: hangi dosya, hangi kod, hangi katmanda, ne işe yarıyor.</div>
+  <div class="meta">
+    <div><b>Proje:</b> CineSeat &mdash; Online Sinema Bilet Rezervasyon Sistemi</div>
+    <div><b>Backend:</b> ASP.NET Core Web API &middot; Clean/Onion Architecture &middot; CQRS (MediatR) &middot; PostgreSQL</div>
+    <div><b>Frontend:</b> React 19 &middot; Vite &middot; React Query &middot; React Router</div>
+    <div><b>Kapsam:</b> Kimlik doğrulama, API sözleşmesi, servis katmanı, hata yönetimi, sayfalama, koltuk kilitleme</div>
+    <div><b>Tarih:</b> 28.08.2026</div>
+  </div>
+</div>
+
+<div class="toc">
+  <h2>İçindekiler</h2>
+  <ol>
+    <li>Giriş ve Kapsam</li>
+    <li>Genel Mimari
+      <ul class="sub"><li>2.1 Backend katmanları (Onion/Clean Architecture)</li><li>2.2 CQRS ve MediatR boru hattı</li><li>2.3 Frontend katmanları</li><li>2.4 İki uygulama arasındaki genel şema</li></ul>
+    </li>
+    <li>Ağ Katmanı: Portlar, Ortam Değişkenleri, CORS</li>
+    <li>Kimlik Doğrulama (JWT) &mdash; Uçtan Uca Akış</li>
+    <li>İstek/Yanıt Sözleşmesi (Contract)
+      <ul class="sub"><li>5.1 JSON serileştirme kuralları</li><li>5.2 DTO eşleme deseni</li></ul>
+    </li>
+    <li>Merkezi API İstemcisi: <code>apiClient.js</code></li>
+    <li>Servis Katmanı: Her Dosyanın Görevi</li>
+    <li>CQRS Zinciri &mdash; Uçtan Uca Örnek: Giriş (Login)</li>
+    <li>Hata Yönetimi Zinciri</li>
+    <li>Sayfalama Sözleşmesi</li>
+    <li>Özel Akış: Koltuk Kilitleme (Concurrency)</li>
+    <li>Özel Akış: Kampanya/İndirim Önizlemesi</li>
+    <li>Dosya&ndash;İşlev Referans Tablosu</li>
+    <li>Canlı Doğrulama Notları</li>
+    <li>Sonuç</li>
+  </ol>
+</div>
+
+<section>
+<h2><span class="num">1.</span>Giriş ve Kapsam</h2>
+<p>Bu rapor, CineSeat projesinde backend mimarisinin (Onion/Clean Architecture + CQRS) tamamlanmasının ardından kurulan <b>frontend&ndash;backend entegrasyonunu</b> teknik düzeyde belgeler. Amaç, iki bağımsız uygulamanın (ayrı süreç, ayrı port, ayrı repo dizini) birbirleriyle nasıl haberleştiğini; hangi dosyanın bu haberleşmede hangi sorumluluğu taşıdığını; kimlik doğrulama, hata yönetimi, veri sözleşmesi ve eşzamanlılık (concurrency) gibi kritik noktaların nasıl çözüldüğünü somut kod örnekleriyle ortaya koymaktır.</p>
+<p>Rapor, projeyi hiç görmemiş ama genel web/API kavramlarına hakim bir okuyucunun anlayabileceği ayrıntıda yazılmıştır; aynı zamanda gerçek dosya yolları, gerçek sınıf/fonksiyon adları ve gerçek kod parçaları içerir, böylece teknik bir sunumda doğrudan referans olarak kullanılabilir.</p>
+<div class="note"><b>Kapsam dışı:</b> Bu rapor backend'in iç iş mantığını (domain kuralları, veritabanı şeması) veya frontend'in UI/tasarım kararlarını detaylandırmaz; yalnızca <b>iki tarafın birbirine nasıl bağlandığını</b> konu alır.</div>
+</section>
+
+<section>
+<h2><span class="num">2.</span>Genel Mimari</h2>
+
+<h3>2.1 Backend Katmanları (Onion / Clean Architecture)</h3>
+<p>Backend, bağımlılıkların içe doğru aktığı klasik <b>Onion Architecture</b> ile yapılandırılmıştır. Her katman yalnızca kendinden içeride olanı bilir; dış katmanlar (Infrastructure, Presentation) hiçbir zaman iç katmanlara (Domain) sızmaz.</p>
+<div class="diagram">backend/
+├── Core/
+│   ├── CineSeat.Domain/            (en iç katman: Entity, Enum)
+│   └── CineSeat.Application/       (CQRS: Command/Query, Handler, DTO,
+│                                     Validator, Repository arayüzleri)
+├── Infrastructure/
+│   ├── CineSeat.Infrastructure/    (JWT üretimi, parola hash&#39;leme)
+│   └── CineSeat.Persistence/       (EF Core, PostgreSQL, Migration&#39;lar,
+│                                     Repository implementasyonları)
+└── Presentation/
+    └── CineSeat.WebAPI/            (Controller&#39;lar, Middleware,
+                                      Program.cs &mdash; HTTP&#39;nin tek giriş noktası)</div>
+<p><b>Neden bu ayrım?</b> <code>CineSeat.Application</code>, veritabanının PostgreSQL olduğunu ya da HTTP ile mi yoksa başka bir taşıyıcıyla mı çağrıldığını bilmez &mdash; yalnızca arayüzler (<code>IUserReadRepository</code>, <code>ITokenService</code> gibi) üzerinden çalışır. Somut implementasyonlar (EF Core sorguları, JWT kütüphanesi) dışarıdaki katmanlarda yaşar ve <code>Program.cs</code>&#39;te bağımlılık enjeksiyonu (DI) ile içeri "takılır". Bu sayede iş mantığı test edilirken gerçek bir veritabanına ihtiyaç duyulmaz.</p>
+
+<h3>2.2 CQRS ve MediatR Boru Hattı</h3>
+<p>Uygulama katmanı, <b>CQRS</b> (Command Query Responsibility Segregation) deseniyle yazılmıştır: her HTTP isteği bir <code>Command</code> (veri değiştiren: giriş, kilitleme, rezervasyon oluşturma) ya da bir <code>Query</code>&#39;e (veri okuyan: film listesi, seans listesi) karşılık gelir. Bu nesneler, <b>MediatR</b> kütüphanesi aracılığıyla ilgili <code>Handler</code>&#39;a yönlendirilir; controller&#39;lar iş mantığını hiç bilmez, yalnızca isteği MediatR&#39;a "gönderir" (<code>_mediator.Send(command)</code>).</p>
+<div class="diagram">HTTP İstek
+   │
+   ▼
+Controller  ──Send(Command)──▶  MediatR
+                                    │
+                                    ▼
+                        ValidationBehavior&lt;TRequest,TResponse&gt;
+                        (FluentValidation kurallarını çalıştırır;
+                         hata varsa Handler&#39;a hiç girilmez)
+                                    │
+                                    ▼
+                              CommandHandler
+                        (iş mantığı, repository çağrıları)
+                                    │
+                                    ▼
+                                  DTO
+                                    │
+                                    ▼
+                        Controller ──Ok(dto)──▶ HTTP Yanıt (JSON)</div>
+<p>Bu boru hattının en önemli kazancı: <b>doğrulama kodu hiçbir handler&#39;ın içinde tekrar yazılmaz.</b> Yeni bir <code>Command</code> için bir <code>Validator</code> sınıfı eklemek yeterlidir &mdash; <code>ValidationBehavior</code> onu otomatik olarak bulur ve devreye sokar (bkz. Bölüm 8).</p>
+
+<h3>2.3 Frontend Katmanları</h3>
+<div class="diagram">frontend/src/
+├── pages/            (rota başına bir sayfa bileşeni &mdash; ör. PaymentPage.jsx)
+├── components/       (yeniden kullanılan UI parçaları &mdash; ör. Stepper, Header)
+├── context/           (AuthProvider &mdash; oturum durumu, React Context ile global)
+├── hooks/            (useCart, useCountdown, useTabs gibi paylaşılan davranışlar)
+└── services/         (★ BU RAPORUN KONUSU: backend&#39;e giden HER istek buradan geçer)</div>
+<p>Frontend tarafında backend ile konuşan tek katman <code>frontend/src/services/</code> dizinidir. Sayfa bileşenleri (React Query <code>useQuery</code>/<code>useMutation</code> ile) doğrudan bu servis fonksiyonlarını çağırır; hiçbir bileşen <code>fetch()</code>&#39;i doğrudan kullanmaz. Bu, backend&#39;in URL yapısı değişse bile yalnızca ilgili servis dosyasının güncellenmesi gerektiği anlamına gelir.</p>
+
+<h3>2.4 İki Uygulama Arasındaki Genel Şema</h3>
+<div class="diagram">┌─────────────────────────┐        HTTP/JSON        ┌──────────────────────────────┐
+│   React SPA (Vite)      │  ────────────────────▶  │   ASP.NET Core Web API       │
+│   http://localhost:5173 │  Authorization: Bearer   │   http://localhost:5207/api  │
+│                          │  ◀────────────────────  │                               │
+│  pages/ → services/ →   │      JSON gövde          │  Controller → MediatR →      │
+│  apiClient.js → fetch() │                          │  Handler → EF Core →         │
+└─────────────────────────┘                          │  PostgreSQL                  │
+                                                       └──────────────────────────────┘</div>
+<p>İki uygulama <b>tamamen ayrı süreçlerdir</b> ve yalnızca HTTP üzerinden, JSON gövdeli isteklerle konuşur. Bu ayrım, aşağıdaki üç teknik problemi doğurur ve bu raporun geri kalanı bu üçünün nasıl çözüldüğünü anlatır: <b>(1) Tarayıcı güvenliği (CORS)</b>, <b>(2) Kimlik doğrulama (JWT)</b>, <b>(3) Veri sözleşmesi (DTO/Contract)</b>.</p>
+</section>
+
+<section>
+<h2><span class="num">3.</span>Ağ Katmanı: Portlar, Ortam Değişkenleri, CORS</h2>
+<p>Frontend geliştirme sunucusu (Vite) varsayılan olarak <code>5173</code> portunda, backend ise <code>5207</code> portunda (bkz. <code>launchSettings.json</code>) çalışır. Farklı port = farklı <b>origin</b> demektir ve tarayıcılar, güvenlik gereği, bir origin&#39;den başka bir origin&#39;e yapılan <code>fetch()</code> isteklerini varsayılan olarak engeller (Same-Origin Policy). Bu engeli açıkça kaldırmak için backend&#39;in <b>CORS</b> (Cross-Origin Resource Sharing) politikası tanımlaması gerekir.</p>
+
+<div class="filecap">backend/Presentation/CineSeat.WebAPI/Program.cs</div>
+<pre><span class="kw">const</span> <span class="kw">string</span> FrontendCorsPolicy = <span class="str">"FrontendCorsPolicy"</span>;
+builder.Services.AddCors(options =&gt;
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =&gt;
+    {
+        policy.WithOrigins(<span class="str">"http://localhost:5173"</span>, <span class="str">"http://127.0.0.1:5173"</span>)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+<span class="cmt">// ...
+// CORS, kimlik doğrulamadan ÖNCE gelmeli — tarayıcı asıl isteği göndermeden
+// önce bir "preflight" (OPTIONS) isteği atar, bu istek hiç token taşımaz.</span>
+app.UseCors(FrontendCorsPolicy);
+app.UseAuthentication();
+app.UseAuthorization();</pre>
+
+<div class="note"><b>Neden middleware sırası önemli?</b> Tarayıcı, <code>Authorization</code> header&#39;ı taşıyan &ldquo;asıl&rdquo; isteği göndermeden önce header&#39;sız bir <code>OPTIONS</code> ön-uçuş (preflight) isteği gönderir. Eğer <code>UseCors</code>, <code>UseAuthentication</code>&#39;dan sonra çağrılsaydı, bu token&#39;sız preflight isteği kimlik doğrulama katmanına takılıp <b>401</b> ile reddedilir, tarayıcı da bunu bir CORS hatası olarak yorumlardı &mdash; hata mesajı yanıltıcı olurdu.</p></div>
+
+<p>Frontend tarafında backend&#39;in adresi tek bir yerde, ortam değişkeni olarak tanımlıdır:</p>
+<div class="filecap">frontend/src/services/apiClient.js</div>
+<pre><span class="kw">const</span> API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || <span class="str">"http://localhost:5207/api"</span>;</pre>
+<p>Bu satır sayesinde geliştirme, test ve üretim ortamları arasında geçiş yapmak için tek bir <code>.env</code> dosyasındaki <code>VITE_API_BASE_URL</code> değeri değiştirilir &mdash; kod hiçbir yerde elle güncellenmez.</p>
+
+<table>
+<tr><th>Ortam</th><th>Frontend adresi</th><th>Backend adresi</th><th>Kaynak</th></tr>
+<tr><td>Geliştirme (dev)</td><td><code>http://localhost:5173</code></td><td><code>http://localhost:5207/api</code></td><td>Vite varsayılanı / <code>launchSettings.json</code></td></tr>
+<tr><td>Üretim (prod)</td><td>Statik dosya sunucusu / CDN</td><td><code>VITE_API_BASE_URL</code> ile geçersiz kılınır</td><td><code>frontend/.env.production</code></td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">4.</span>Kimlik Doğrulama (JWT) &mdash; Uçtan Uca Akış</h2>
+<p>Sistem, oturum durumunu sunucuda saklamayan (stateless) bir <b>JWT (JSON Web Token, HS256 imzalı)</b> modeli kullanır. Akış şu şekilde işler:</p>
+<div class="diagram">1) POST /api/auth/login  { usernameOrEmail, password }
+        │
+        ▼  (LoginCommandHandler: parola hash doğrulama)
+2) Yanıt: { token, expiresAt, user: {...} }
+        │
+        ▼  (AuthProvider.jsx: sessionStorage&#39;a yazılır)
+3) sessionStorage["cineseat_user"] = { ...user, token }
+        │
+        ▼  (sonraki HER istekte apiClient.js token&#39;ı okur)
+4) Her istek → Header: Authorization: Bearer &lt;token&gt;
+        │
+        ▼  (backend: JwtBearer middleware doğrular)
+5a) Geçerli  → [Authorize] ile işaretli endpoint&#39;e giriş izni
+5b) Geçersiz/süresi dolmuş → 401 → apiClient.js oturumu düşürür</div>
+
+<h3>4.1 Backend: Token Üretimi</h3>
+<div class="filecap">backend/Infrastructure/CineSeat.Infrastructure/Security/JwtTokenService.cs</div>
+<pre><span class="kw">public</span> AccessTokenDto CreateAccessToken(
+    <span class="kw">long</span> userId, <span class="kw">string</span> username, <span class="kw">string</span> email,
+    <span class="kw">string</span> roleName, IEnumerable&lt;<span class="kw">string</span>&gt; permissions)
+{
+    <span class="kw">var</span> claims = <span class="kw">new</span> List&lt;Claim&gt;
+    {
+        <span class="kw">new</span>(ClaimTypes.NameIdentifier, userId.ToString()),  <span class="cmt">// ICurrentUserService.UserId bunu okur</span>
+        <span class="kw">new</span>(ClaimTypes.Name, username),
+        <span class="kw">new</span>(ClaimTypes.Email, email),
+        <span class="kw">new</span>(ClaimTypes.Role, roleName),                     <span class="cmt">// [Authorize(Roles="Admin")] bunu okur</span>
+        <span class="kw">new</span>(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
+    claims.AddRange(permissions.Select(p =&gt; <span class="kw">new</span> Claim(PermissionClaimTypes.Permission, p)));
+
+    <span class="kw">var</span> key = <span class="kw">new</span> SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
+    <span class="kw">var</span> credentials = <span class="kw">new</span> SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    <span class="kw">var</span> token = <span class="kw">new</span> JwtSecurityToken(
+        issuer: _settings.Issuer, audience: _settings.Audience,
+        claims: claims, notBefore: DateTime.UtcNow,
+        expires: DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes),
+        signingCredentials: credentials);
+    <span class="cmt">// ...</span>
+}</pre>
+<p>Token&#39;a gömülen <b>claim&#39;ler</b> (kullanıcı kimliği, rol, izin listesi) sayesinde her istekte veritabanına gidip &ldquo;bu kullanıcının izinleri neler?&rdquo; diye sormaya gerek kalmaz &mdash; imzalı token zaten bu bilgiyi taşır. <code>Program.cs</code>&#39;te uygulama açılışında anahtar uzunluğu da denetlenir:</p>
+<pre><span class="kw">if</span> (jwtSettings.Key.Length &lt; <span class="fn">32</span>)
+    <span class="kw">throw new</span> InvalidOperationException(<span class="str">"Jwt:Key en az 32 karakter olmalıdır."</span>);
+<span class="cmt">// HS256 anahtarı kısa olursa imza güvenliği çöker; sessizce geçmek yerine
+// uygulama açılışta patlasın.</span></pre>
+
+<h3>4.2 Frontend: Token&#39;ın Saklanması ve Her İstekte Eklenmesi</h3>
+<div class="filecap">frontend/src/services/apiClient.js</div>
+<pre><span class="kw">function</span> getStoredToken() {
+  <span class="kw">const</span> raw = sessionStorage.getItem(USER_STORAGE_KEY);  <span class="cmt">// "cineseat_user"</span>
+  <span class="kw">if</span> (!raw) <span class="kw">return</span> <span class="kw">null</span>;
+  <span class="kw">const</span> parsed = JSON.parse(raw);
+  <span class="kw">return</span> parsed?.token ?? <span class="kw">null</span>;
+}
+
+<span class="kw">async function</span> apiRequest(path, { method = <span class="str">"GET"</span>, body, headers } = {}) {
+  <span class="kw">const</span> token = getStoredToken();
+  <span class="kw">const</span> response = <span class="kw">await</span> fetch(<span class="str">`${API_BASE_URL}${path}`</span>, {
+    method,
+    headers: {
+      ...(body !== <span class="kw">undefined</span> ? { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> } : {}),
+      ...(token ? { Authorization: <span class="str">`Bearer ${token}`</span> } : {}),
+      ...headers,
+    },
+    body: body !== <span class="kw">undefined</span> ? JSON.stringify(body) : <span class="kw">undefined</span>,
+  });
+  <span class="cmt">// ...</span>
+}</pre>
+<p><b>Kritik nokta:</b> Token, ayrı bir <code>token</code> alanında değil, kullanıcı nesnesinin (<code>AuthProvider</code>&#39;ın <code>sessionStorage</code>&#39;a yazdığı) <b>içine gömülü</b> tutulur. Bu, <code>apiClient.js</code>&#39;in React&#39;i (hook, context, router) hiç tanımadan &mdash; yalnızca <code>sessionStorage</code>&#39;ı okuyarak &mdash; token&#39;a erişebilmesini sağlar. Böylece HTTP katmanı ile UI durum yönetimi birbirinden tamamen bağımsız kalır.</p>
+
+<h3>4.3 Oturum Düşürme (401 Yakalama)</h3>
+<div class="filecap">frontend/src/services/apiClient.js &amp; frontend/src/context/AuthProvider.jsx</div>
+<pre><span class="cmt">// apiClient.js — 401 geldiğinde React'e haber verecek geri çağrım</span>
+<span class="kw">let</span> onUnauthorized = <span class="kw">null</span>;
+<span class="kw">export function</span> setUnauthorizedHandler(handler) { onUnauthorized = handler; }
+
+<span class="cmt">// ... apiRequest içinde:</span>
+<span class="kw">if</span> (response.status === <span class="fn">401</span> &amp;&amp; token &amp;&amp; onUnauthorized) {
+  onUnauthorized();  <span class="cmt">// yalnızca ELİMİZDE bir token varken gelen 401 "süresi doldu" demektir</span>
+}
+
+<span class="cmt">// AuthProvider.jsx — mount olurken kendini kaydeder</span>
+useEffect(() =&gt; {
+  setUnauthorizedHandler(() =&gt; {
+    setIsSessionExpired(<span class="kw">true</span>);
+    clearSession();  <span class="cmt">// sessionStorage temizlenir, sepet sıfırlanır</span>
+  });
+  <span class="kw">return</span> () =&gt; setUnauthorizedHandler(<span class="kw">null</span>);
+}, [clearSession]);</pre>
+<div class="note"><b>Neden bu dolaylı (callback) tasarım?</b> <code>apiClient.js</code>, servis katmanının en altında, React&#39;ten habersiz saf bir JavaScript modülüdür. Ama token süresi dolduğunda kullanıcıyı çıkış yaptırmak React state&#39;ini (Context) değiştirmeyi gerektirir. <code>setUnauthorizedHandler</code> bu iki dünyayı birbirine bağımlı kılmadan köprüler: <code>apiClient.js</code> React&#39;i import etmez, yalnızca &ldquo;birisi beni dinliyorsa haber ver&rdquo; der.</div>
+</section>
+
+<section>
+<h2><span class="num">5.</span>İstek/Yanıt Sözleşmesi (Contract)</h2>
+
+<h3>5.1 JSON Serileştirme Kuralları</h3>
+<p>Backend C# tarafında <code>PascalCase</code> property adları kullanır (<code>UserId</code>, <code>ShowtimeId</code>); frontend JavaScript tarafı ise <code>camelCase</code> bekler (<code>userId</code>, <code>showtimeId</code>). Bu dönüşüm ASP.NET Core&#39;un varsayılan <code>System.Text.Json</code> serileştiricisi tarafından otomatik yapılır. Ayrıca enum&#39;lar sayı olarak değil, <b>ad olarak</b> taşınır:</p>
+<div class="filecap">backend/Presentation/CineSeat.WebAPI/Program.cs</div>
+<pre>builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =&gt;
+        options.JsonSerializerOptions.Converters.Add(
+            <span class="kw">new</span> JsonStringEnumConverter()));
+<span class="cmt">// Enum'lar JSON'da sayı değil ad olarak taşınır ("Adult", "IMAX").
+// Sayı taşındığında istemci tarafında ayrı bir eşleme tablosu tutmak
+// gerekiyordu; enum'a yeni değer eklendiğinde iki taraf sessizce ayrışırdı.</span></pre>
+<p>Örnek: <code>ScreeningFormat.IMAX</code> enum değeri, JSON gövdesinde sayısal <code>2</code> değil, doğrudan <code>"IMAX"</code> string&#39;i olarak gelir/gider &mdash; frontend&#39;in <code>SCREENING_FORMATS</code> listesindeki <code>value</code> alanlarıyla birebir eşleşir (<code>showtimeService.js</code>).</p>
+
+<h3>5.2 DTO Eşleme Deseni</h3>
+<p>Backend her <code>Query</code>/<code>Command</code> için özel bir <b>DTO</b> (Data Transfer Object) döner &mdash; hiçbir zaman EF Core entity&#39;si doğrudan JSON&#39;a serileştirilmez (entity&#39;ler ilişkisel referanslar taşır, sonsuz döngüye ve gereksiz veri sızıntısına yol açar). Frontend tarafında ise her servis dosyası, gelen DTO&#39;yu kendi bileşenlerinin beklediği şekle çeviren bir <code>mapXDto</code> fonksiyonu içerir:</p>
+<div class="filecap">frontend/src/services/showtimeService.js</div>
+<pre><span class="kw">function</span> mapShowtimeDto(dto) {
+  <span class="kw">return</span> {
+    id: dto.id,
+    movieId: dto.movieId,
+    hallId: dto.hallId,
+    startDatetime: dto.startDatetime,
+    basePrice: Number(dto.basePrice) || <span class="fn">0</span>,
+    format: dto.format,
+    hallName: dto.hallName ?? <span class="str">""</span>,
+    cinemaName: dto.cinemaName ?? <span class="str">""</span>,
+    totalSeats: dto.totalSeats ?? <span class="fn">0</span>,
+  };
+}</pre>
+<div class="note"><b>Neden bu ekstra katman?</b> Backend&#39;in DTO şekli değişse (bir alan yeniden adlandırılsa, tipi değişse) bile, bu değişiklik yalnızca ilgili <code>mapXDto</code> fonksiyonunda düzeltilir; sayfa bileşenleri hiç etkilenmez. Bu, backend ve frontend&#39;in <b>bağımsız olarak evrilebilmesini</b> sağlayan en önemli mimari karardır.</div>
+</section>
+
+<section>
+<h2><span class="num">6.</span>Merkezi API İstemcisi: <code>apiClient.js</code></h2>
+<p><code>frontend/src/services/apiClient.js</code>, tüm servis dosyalarının kullandığı <b>tek giriş noktasıdır</b>. Base URL, Authorization header&#39;ı ve hata çevirisi burada merkezi olarak yapılır &mdash; hiçbir servis dosyası <code>fetch</code> veya token detayını bilmek zorunda kalmaz.</p>
+<div class="filecap">frontend/src/services/apiClient.js</div>
+<pre><span class="kw">export const</span> apiClient = {
+  get: (path) =&gt; apiRequest(path),
+  post: (path, body) =&gt; apiRequest(path, { method: <span class="str">"POST"</span>, body }),
+  put: (path, body) =&gt; apiRequest(path, { method: <span class="str">"PUT"</span>, body }),
+  del: (path) =&gt; apiRequest(path, { method: <span class="str">"DELETE"</span> }),
+};</pre>
+<p>Ağ hatalarını (backend hiç ayakta değilse) da tek noktada, kullanıcının anlayacağı bir mesaja çevirir:</p>
+<pre><span class="kw">const</span> response = <span class="kw">await</span> fetch(...).catch(() =&gt; {
+  <span class="kw">throw new</span> ApiError(
+    <span class="str">"Sunucuya ulaşılamıyor. Backend çalışıyor mu kontrol edin."</span>,
+    { status: <span class="fn">0</span>, code: <span class="str">"NETWORK_ERROR"</span> }
+  );
+});</pre>
+<p>Bu satır, kimlik bilgileri doğru olsa bile backend kapalıysa kullanıcıya belirsiz bir <code>TypeError: Failed to fetch</code> yerine anlamlı bir mesaj gösterilmesini sağlar &mdash; geliştirme sırasında en sık karşılaşılan &ldquo;bağlantı sorunu&rdquo; senaryosu tam olarak budur.</p>
+</section>
+
+<section>
+<h2><span class="num">7.</span>Servis Katmanı: Her Dosyanın Görevi</h2>
+<p>Frontend, backend ile konuşan mantığı 20 servis dosyasına böler; her dosya tek bir kaynak/özellik alanından sorumludur (Single Responsibility). Aşağıdaki tablo her dosyanın görevini ve çağırdığı temel uç noktaları listeler.</p>
+<table>
+<tr><th>Dosya</th><th>Sorumluluk</th><th>Örnek Uç Noktalar</th></tr>
+<tr><td><code>apiClient.js</code></td><td>Merkezi HTTP istemcisi, token ekleme, hata çevirisi</td><td>(tüm isteklerin geçtiği ortak katman)</td></tr>
+<tr><td><code>authService.js</code></td><td>Giriş/kayıt, backend↔frontend rol eşlemesi</td><td><span class="badge post">POST</span><code>/auth/login</code>, <code>/auth/register</code></td></tr>
+<tr><td><code>movieService.js</code></td><td>Film kataloğu, filtreleme</td><td><span class="badge get">GET</span><code>/movies</code></td></tr>
+<tr><td><code>cinemaService.js</code></td><td>Sinema/şehir/ilçe listeleri</td><td><span class="badge get">GET</span><code>/cinemas</code></td></tr>
+<tr><td><code>showtimeService.js</code></td><td>Seans listeleme (sinema kırılımında), CRUD (admin)</td><td><code>/showtimes/by-cinema/{id}</code></td></tr>
+<tr><td><code>seatService.js</code></td><td>Koltuk haritası, kilitleme/yenileme/bırakma</td><td><code>/showtimes/{id}/seats</code>, <code>/seatlocks</code></td></tr>
+<tr><td><code>seatLockStorage.js</code></td><td>Aktif kilitlerin <code>localStorage</code>&#39;da saklanması (sayfa yenilense de kilit bilgisi kaybolmaz)</td><td>&mdash; (yalnızca istemci tarafı)</td></tr>
+<tr><td><code>reservationService.js</code></td><td>Rezervasyon (bilet) oluşturma</td><td><span class="badge post">POST</span><code>/reservations</code></td></tr>
+<tr><td><code>campaignService.js</code></td><td>Kampanya listeleme + istemci tarafı indirim ÖN İZLEMESİ</td><td><code>/campaigns/active</code>, <code>/campaigns</code> (admin)</td></tr>
+<tr><td><code>pricing.js</code></td><td>Sepet/kalem toplamı hesaplama (saf fonksiyonlar, backend&#39;e gitmez)</td><td>&mdash;</td></tr>
+<tr><td><code>paymentAdapter.js</code></td><td>Ödeme simülasyonu (kart no. deseniyle başarı/red/hata üretir)</td><td>&mdash; (backend&#39;e bağlı değil, demo amaçlı)</td></tr>
+<tr><td><code>commentService.js</code></td><td>Film yorum/puanlama</td><td><code>/comments</code></td></tr>
+<tr><td><code>favoriteService.js</code></td><td>İzleme listesi (favoriler)</td><td><code>/favorites</code></td></tr>
+<tr><td><code>profileService.js</code></td><td>Kullanıcı profili görüntüleme/güncelleme</td><td><code>/profile</code></td></tr>
+<tr><td><code>userService.js</code></td><td>Yönetim: kullanıcı listesi, rol atama</td><td><code>/users</code>, <code>/roles</code></td></tr>
+<tr><td><code>venueService.js</code></td><td>Yönetim: salon/koltuk düzeni</td><td><code>/halls</code></td></tr>
+<tr><td><code>locationService.js</code></td><td>Konum bazlı en yakın sinema hesaplama (Haversine, istemci tarafı)</td><td>&mdash;</td></tr>
+<tr><td><code>adminResource.js</code></td><td>Yönetim CRUD ekranları için jenerik sayfalama yardımcıları (<code>fetchAllPages</code>)</td><td>(tüm <code>/admin</code>-benzeri listeleme uçları)</td></tr>
+<tr><td><code>validation.js</code></td><td>Form doğrulama kuralları (istemci tarafı, backend FluentValidation&#39;ı yansıtır)</td><td>&mdash;</td></tr>
+<tr><td><code>errors.js</code></td><td>Tipli hata sınıfları (<code>ApiError</code>, <code>ValidationError</code>, <code>NotFoundError</code>, <code>ConflictError</code>, <code>ForbiddenError</code>)</td><td>&mdash;</td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">8.</span>CQRS Zinciri &mdash; Uçtan Uca Örnek: Giriş (Login)</h2>
+<p>En küçük parçaya kadar takip edilebilir bir örnek olarak <b>giriş (login)</b> isteğinin backend içindeki tam yolculuğu:</p>
+
+<h3>8.1 Controller &mdash; HTTP&#39;yi MediatR&#39;a Devreder</h3>
+<div class="filecap">backend/Presentation/CineSeat.WebAPI/Controllers/AuthController.cs</div>
+<pre>[ApiController]
+[Route(<span class="str">"api/[controller]"</span>)]
+<span class="kw">public class</span> AuthController : ControllerBase
+{
+    <span class="kw">private readonly</span> IMediator _mediator;
+
+    [HttpPost(<span class="str">"login"</span>)]
+    <span class="kw">public async</span> Task&lt;IActionResult&gt; Login([FromBody] LoginCommand command)
+        =&gt; Ok(<span class="kw">await</span> _mediator.Send(command));
+}</pre>
+<p>Controller, iş mantığı hakkında <b>hiçbir şey bilmez</b>. Yalnızca gelen JSON gövdesini <code>LoginCommand</code>&#39;a otomatik bağlar (model binding) ve MediatR&#39;a gönderir.</p>
+
+<h3>8.2 Command &mdash; İsteğin Şekli</h3>
+<div class="filecap">backend/Core/CineSeat.Application/Features/Auth/Commands/Login/LoginCommand.cs</div>
+<pre><span class="kw">public class</span> LoginCommand : IRequest&lt;AuthResultDto&gt;
+{
+    <span class="kw">public string</span> UsernameOrEmail { get; set; } = <span class="str">""</span>;
+    <span class="kw">public string</span> Password { get; set; } = <span class="str">""</span>;
+}</pre>
+
+<h3>8.3 Validator &mdash; ValidationBehavior Tarafından Otomatik Bulunur</h3>
+<div class="filecap">.../Login/LoginCommandValidator.cs</div>
+<pre><span class="kw">public class</span> LoginCommandValidator : AbstractValidator&lt;LoginCommand&gt;
+{
+    <span class="kw">public</span> LoginCommandValidator()
+    {
+        RuleFor(x =&gt; x.UsernameOrEmail).NotEmpty().MaximumLength(<span class="fn">150</span>);
+        RuleFor(x =&gt; x.Password).NotEmpty().MaximumLength(<span class="fn">100</span>);
+    }
+}</pre>
+<div class="filecap">backend/Core/CineSeat.Application/Common/Behaviors/ValidationBehavior.cs</div>
+<pre><span class="kw">public class</span> ValidationBehavior&lt;TRequest, TResponse&gt; : IPipelineBehavior&lt;TRequest, TResponse&gt;
+{
+    <span class="kw">public async</span> Task&lt;TResponse&gt; Handle(TRequest request, RequestHandlerDelegate&lt;TResponse&gt; next, CancellationToken ct)
+    {
+        <span class="kw">if</span> (!_validators.Any()) <span class="kw">return await</span> next();  <span class="cmt">// bu isteğin validator'ı yoksa doğrudan geç</span>
+
+        <span class="kw">var</span> results = <span class="kw">await</span> Task.WhenAll(_validators.Select(v =&gt; v.ValidateAsync(<span class="kw">new</span> ValidationContext&lt;TRequest&gt;(request), ct)));
+        <span class="kw">var</span> failures = results.SelectMany(r =&gt; r.Errors).ToList();
+
+        <span class="kw">if</span> (failures.Count &gt; <span class="fn">0</span>)
+            <span class="kw">throw new</span> ValidationException(failures);  <span class="cmt">// Handler'a hiç girilmez; middleware bunu 400'e çevirir</span>
+
+        <span class="kw">return await</span> next();
+    }
+}</pre>
+
+<h3>8.4 Handler &mdash; İş Mantığı</h3>
+<div class="filecap">.../Login/LoginCommandHandler.cs</div>
+<pre><span class="kw">public async</span> Task&lt;AuthResultDto&gt; Handle(LoginCommand request, CancellationToken ct)
+{
+    <span class="kw">var</span> identifier = request.UsernameOrEmail.Trim().ToLower();
+    <span class="kw">var</span> candidate = <span class="kw">await</span> _queryExecutor.FirstOrDefaultAsync(
+        _userRead.GetWhere(u =&gt; u.Email.ToLower() == identifier || u.Username.ToLower() == identifier, tracking: <span class="kw">false</span>)
+            .Select(u =&gt; <span class="kw">new</span> { u.Id, u.Name, u.PasswordHash, u.PasswordSalt, RoleName = u.Role.Name, ... }), ct);
+
+    <span class="cmt">// Kullanıcı yok İLE parola yanlış AYNI mesajı döndürür: farklı mesaj
+    // vermek saldırgana hangi e-postaların kayıtlı olduğunu sızdırır.</span>
+    <span class="kw">if</span> (candidate <span class="kw">is null</span> || !_passwordHasher.Verify(request.Password, candidate.PasswordHash, candidate.PasswordSalt))
+        <span class="kw">throw new</span> UnauthorizedException(<span class="str">"Kullanıcı adı/e-posta veya parola hatalı."</span>);
+
+    <span class="kw">var</span> token = _tokenService.CreateAccessToken(candidate.Id, candidate.Username, candidate.Email, candidate.RoleName, candidate.Permissions);
+    <span class="kw">return new</span> AuthResultDto { Token = token.Token, ExpiresAt = token.ExpiresAt, User = <span class="kw">new</span> AuthUserDto { ... } };
+}</pre>
+<div class="ok"><b>Güvenlik notu:</b> &ldquo;Kullanıcı bulunamadı&rdquo; ile &ldquo;parola yanlış&rdquo; durumları <b>kasıtlı olarak</b> aynı hata mesajını (<code>UnauthorizedException</code>) üretir. Bu, bir saldırganın deneme-yanılma ile sistemde kayıtlı e-posta adreslerini tespit etmesini (user enumeration) engeller &mdash; OWASP&#39;ın kimlik doğrulama en iyi pratiklerinden biridir.</div>
+
+<h3>8.5 Frontend Tarafı &mdash; Yanıtın Karşılanması</h3>
+<div class="filecap">frontend/src/services/authService.js</div>
+<pre><span class="kw">login</span>: <span class="kw">async</span> (email, password) =&gt; {
+  <span class="kw">const</span> result = <span class="kw">await</span> apiClient.post(<span class="str">"/auth/login"</span>, { usernameOrEmail: email, password });
+  <span class="kw">return</span> mapAuthResult(result);  <span class="cmt">// backend'in { token, user } şeklini AuthProvider'ın beklediği şekle çevirir</span>
+},</pre>
+<p>Bu tek örnek &mdash; controller → command → validator → handler → DTO → frontend mapping &mdash; projedeki <b>her</b> yazma işlemi (kayıt, kilitleme, rezervasyon, yorum ekleme, kampanya oluşturma) için birebir aynı iskeleti izler; yalnızca isimler ve iş kuralları değişir.</p>
+</section>
+
+<section>
+<h2><span class="num">9.</span>Hata Yönetimi Zinciri</h2>
+<p>Backend&#39;de <b>tek bir try/catch noktası</b> vardır: <code>ExceptionHandlingMiddleware</code>. Hiçbir controller veya handler kendi içinde hata yakalamaz; bunun yerine anlamlı özel exception türleri (<code>NotFoundException</code>, <code>ConflictException</code>, <code>UnauthorizedException</code>, <code>ValidationException</code>) fırlatır ve middleware bunları HTTP durum koduna + tutarlı bir JSON gövdesine çevirir.</p>
+<div class="filecap">backend/Presentation/CineSeat.WebAPI/Middleware/ExceptionHandlingMiddleware.cs</div>
+<pre><span class="kw">catch</span> (ValidationException ex) {  <span class="cmt">// → 400, { title, status, errors: {alan: [mesaj,...]} }</span>
+<span class="kw">catch</span> (NotFoundException ex) {    <span class="cmt">// → 404, { title, status, detail }</span>
+<span class="kw">catch</span> (UnauthorizedException ex) { <span class="cmt">// → 401, { title, status, detail }</span>
+<span class="kw">catch</span> (ConflictException ex) {   <span class="cmt">// → 409, { title, status, detail }</span>
+<span class="kw">catch</span> (Exception ex) {           <span class="cmt">// → 500, loglanır, gövde kullanıcıya iç detay sızdırmaz</span></pre>
+<p>Frontend tarafında bu tutarlı gövde, <code>apiClient.js</code>&#39;in <code>toApiError()</code> fonksiyonunda aynı durum kodlarına göre <b>tipli hata sınıflarına</b> çevrilir:</p>
+<div class="filecap">frontend/src/services/apiClient.js</div>
+<pre><span class="kw">switch</span> (response.status) {
+  <span class="kw">case</span> <span class="fn">400</span>: <span class="kw">case</span> <span class="fn">422</span>: <span class="kw">return new</span> ValidationError(message);
+  <span class="kw">case</span> <span class="fn">401</span>: <span class="kw">return new</span> ApiError(message, { status: <span class="fn">401</span>, code: <span class="str">"UNAUTHORIZED"</span> });
+  <span class="kw">case</span> <span class="fn">403</span>: <span class="kw">return new</span> ForbiddenError(message);
+  <span class="kw">case</span> <span class="fn">404</span>: <span class="kw">return new</span> NotFoundError(message);
+  <span class="kw">case</span> <span class="fn">409</span>: <span class="kw">return new</span> ConflictError(message);
+  <span class="kw">default</span>:  <span class="kw">return new</span> ApiError(message, { status: response.status });
+}</pre>
+<div class="note">Bu iki uç (backend middleware ↔ frontend <code>toApiError</code>) birbirinin <b>aynası</b>dır. Sayfa bileşenleri <code>err.message</code>&#39;i okur ve kullanıcıya gösterir; hangi HTTP durumunun hangi Türkçe mesaja karşılık geldiğini hiç bilmek zorunda kalmazlar.</div>
+</section>
+
+<section>
+<h2><span class="num">10.</span>Sayfalama Sözleşmesi</h2>
+<p>Listeleme uçları (<code>/movies</code>, <code>/comments</code>, <code>/showtimes/by-cinema/{id}</code> vb.) sayfalı (<code>PagedResult&lt;T&gt;</code>) yanıt döner ve sunucu tarafında <b>sayfa başına en fazla 100 kayıt</b> ile sınırlıdır (FluentValidation ile doğrulanır). Frontend&#39;in jenerik yardımcı fonksiyonu bu sınırı otomatik gözetir:</p>
+<div class="filecap">frontend/src/services/adminResource.js</div>
+<pre><span class="kw">export const</span> MAX_PAGE_SIZE = <span class="fn">100</span>;
+
+<span class="kw">export async function</span> fetchAllPages(basePath, params = {}) {
+  <span class="cmt">// Çağıran belirli bir sayfa istediyse ona karışılmaz.
+  // Aksi halde MAX_PAGE_SIZE'la sayfa sayfa dolaşıp tüm kayıtları toplar.</span>
+  <span class="kw">const</span> collected = [];
+  query.set(<span class="str">"pageSize"</span>, String(MAX_PAGE_SIZE));
+  <span class="kw">for</span> (<span class="kw">let</span> pageNumber = <span class="fn">1</span>; pageNumber &lt;= MAX_PAGES; pageNumber += <span class="fn">1</span>) {
+    query.set(<span class="str">"pageNumber"</span>, String(pageNumber));
+    <span class="kw">const</span> result = <span class="kw">await</span> request();
+    <span class="cmt">// ... sayfaları birleştirip totalPages'e ulaşınca durur</span>
+  }
+}</pre>
+<div class="warn"><b>Gerçek vaka (bu entegrasyonda yakalanan bir hata):</b> Yönetim panelindeki seans listesi eskiden <code>pageSize=200</code> gönderiyordu; backend&#39;in doğrulayıcısı bunu reddedip <b>400</b> döndürüyor, ekran &ldquo;Seanslar yükleniyor&hellip;&rdquo; durumunda sonsuza kadar kalıyordu. Çözüm sınırı yükseltmek değil, <b>sayfaları dolaşmak</b> oldu &mdash; çünkü bir sinemanın seansları rahatlıkla 100&#39;ü aşabiliyor. Bu, istemci ile sunucunun aynı sözleşmeye (100 sınırı) sahip olması gerektiğinin somut bir örneğidir.</div>
+<table>
+<tr><th>Alan</th><th>Tip</th><th>Açıklama</th></tr>
+<tr><td><code>items</code></td><td>Array</td><td>O sayfadaki kayıtlar</td></tr>
+<tr><td><code>totalCount</code></td><td>number</td><td>Toplam kayıt sayısı (tüm sayfalar)</td></tr>
+<tr><td><code>page</code></td><td>number</td><td>Geçerli sayfa numarası</td></tr>
+<tr><td><code>pageSize</code></td><td>number</td><td>Sayfa başına kayıt (&le; 100)</td></tr>
+<tr><td><code>totalPages</code></td><td>number</td><td><code>ceil(totalCount / pageSize)</code></td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">11.</span>Özel Akış: Koltuk Kilitleme (Concurrency)</h2>
+<p>Bilet satın alma akışının en kritik teknik problemi budur: <b>iki farklı kullanıcı aynı koltuğu aynı anda seçerse ne olur?</b> Çözüm, backend&#39;de veritabanı seviyesinde bir <b>benzersizlik kısıtı</b> (<code>(ShowtimeId, SeatId)</code> üzerinde UNIQUE) ve bunu yöneten bir &ldquo;devralma&rdquo; (takeover) mantığıdır.</p>
+
+<h3>11.1 Frontend &mdash; Ödeme Sayfasına Girişte Kilit Alma</h3>
+<div class="filecap">frontend/src/pages/PaymentPage.jsx</div>
+<pre><span class="cmt">// Koltukları kilitle. Sepet ödeme sırasında değişmediği için bu etki
+// yalnızca girişte bir kez çalışır.</span>
+useEffect(() =&gt; {
+  <span class="kw">async function</span> acquireLocks() {
+    <span class="kw">const</span> acquired = [];
+    <span class="kw">try</span> {
+      <span class="kw">for</span> (<span class="kw">const</span> item <span class="kw">of</span> state.items) {
+        <span class="kw">const</span> locks = <span class="kw">await</span> seatService.lockSeats({
+          showtimeId: item.sessionId,
+          seatIds: item.seats.map((seat) =&gt; seat.seatId),
+        });
+        acquired.push(...locks);
+      }
+    } <span class="kw">catch</span> (error) {
+      <span class="kw">await</span> seatService.releaseLocks(acquired.map((lock) =&gt; lock.id));  <span class="cmt">// kısmi başarıyı geri al</span>
+      setLockError(error.message || <span class="str">"Seçtiğiniz koltuklardan biri artık müsait değil."</span>);
+      <span class="kw">return</span>;
+    }
+    <span class="cmt">// ...</span>
+  }
+}, []);</pre>
+
+<h3>11.2 Backend &mdash; Devralma (Takeover) Mantığı</h3>
+<div class="filecap">backend/Core/CineSeat.Application/Features/SeatLocks/Commands/LockSeat/LockSeatCommandHandler.cs</div>
+<pre><span class="kw">var</span> existingLock = <span class="kw">await</span> _lockRead.GetSingleAsync(sl =&gt; sl.ShowtimeId == ... &amp;&amp; sl.SeatId == ..., tracking: <span class="kw">true</span>, ct);
+
+<span class="kw">if</span> (existingLock <span class="kw">is null</span>)
+{
+    <span class="kw">var</span> newLock = <span class="kw">new</span> SeatLock { ShowtimeId = ..., SeatId = ..., UserId = userId, LockExpiresAt = now.AddMinutes(...) };
+    <span class="kw">await</span> _lockWrite.AddAsync(newLock, ct);
+    <span class="kw">try</span> { <span class="kw">await</span> _lockWrite.SaveAsync(ct); <span class="kw">return</span> ToDto(newLock); }
+    <span class="kw">catch</span> (ConflictException)
+    {
+        <span class="cmt">// YARIŞ: okuma ile yazma arasında BAŞKA bir istek aynı (ShowtimeId, SeatId)
+        // satırını ekledi ve benzersiz dizin bizimkini reddetti. Bu her zaman
+        // gerçek bir çakışma DEĞİL: aynı kullanıcı aynı koltuğu eş zamanlı iki
+        // kez isteyebiliyor (React'in geliştirme modunda efekti iki kez
+        // çalıştırması bunu düzenli olarak tetikliyordu).</span>
+        _lockWrite.Detach(newLock);
+        existingLock = <span class="kw">await</span> _lockRead.GetSingleAsync(...);
+        <span class="kw">if</span> (existingLock <span class="kw">is null</span>) <span class="kw">throw</span>;
+    }
+}
+
+<span class="kw">var</span> isExpired = existingLock.LockExpiresAt &lt; now;
+<span class="kw">var</span> isSameUser = existingLock.UserId == userId;
+
+<span class="kw">if</span> (!isExpired &amp;&amp; !isSameUser)
+    <span class="kw">throw new</span> ConflictException(<span class="str">"Bu koltuk şu anda başka bir kullanıcı tarafından kilitli."</span>);
+
+<span class="cmt">// Süresi dolmuş ya da aynı kullanıcı → satırı devral / yenile.</span>
+existingLock.UserId = userId;
+existingLock.LockExpiresAt = now.AddMinutes(...);
+_lockWrite.Update(existingLock);
+<span class="kw">await</span> _lockWrite.SaveAsync(ct);</pre>
+<div class="ok"><b>Neden bu tasarım sağlam?</b> Kilit satırı benzersizlik kısıtıyla korunur, bu yüzden iki eşzamanlı istek aynı satırı <b>aynı anda</b> oluşturamaz &mdash; veritabanı bunlardan birini reddeder. Kod, bu reddi bir hata olarak kullanıcıya yansıtmak yerine yakalar, satırı yeniden okur ve &ldquo;süresi dolmuş mu / benim mi?&rdquo; sorusuna göre devam eder. Bu, dağıtık sistemlerde <b>iyimser eşzamanlılık kontrolü</b> (optimistic concurrency) desenine örnektir.</div>
+
+<h3>11.3 Bırakma &mdash; Kasıtlı İdempotentlik</h3>
+<p>Kilit bırakma (<code>DELETE /seatlocks/{id}</code>) işlemi, kilit zaten yoksa veya başka birine geçmişse dahi hep <b>204</b> döner (hata fırlatmaz). Frontend&#39;deki <code>releaseLocks</code> bir temizlik işidir; kilidin süresi zaten dolmuşsa gösterilecek bir hata yoktur:</p>
+<pre><span class="cmt">// Kilitleri bırakır. Temizlik işi olduğu için tek tek hatalar yutulur.</span>
+<span class="kw">async function</span> releaseLocks(lockIds = []) {
+  <span class="kw">await</span> Promise.all(lockIds.map((lockId) =&gt; apiClient.del(<span class="str">`/seatlocks/${lockId}`</span>).catch(() =&gt; <span class="kw">null</span>)));
+}</pre>
+</section>
+
+<section>
+<h2><span class="num">12.</span>Özel Akış: Kampanya/İndirim Önizlemesi</h2>
+<p>Sepet ve ödeme sayfalarında görünen indirim tutarı, güvenlik açısından öğretici bir mimari kararı örnekler: <b>istemci hiçbir zaman bağlayıcı bir tutar hesaplayıp sunucuya göndermez.</b></p>
+<div class="filecap">frontend/src/services/campaignService.js</div>
+<pre><span class="cmt">/**
+ * Kampanyalar artık backend'den geliyor. İndirimin BAĞLAYICI hesabı da
+ * backend'de yapılır (rezervasyon oluşturulurken); buradaki hesap yalnızca
+ * sepette ÖN İZLEME içindir — istemciden gelen tutar sunucuya gönderilmez,
+ * yalnızca seçilen kampanyanın `id`'si gönderilir.
+ */</span></pre>
+<p>Frontend, backend&#39;in kural setini (yüzde/sabit tutar, minimum sepet tutarı, sadece üyelere özel) birebir yansıtan saf fonksiyonlarla <b>aynı sonucu tahmin eder</b> &mdash; ama nihai doğrulama ve tahsilat her zaman sunucuda, <code>ReservationCommandHandler</code> tarafından yapılır. Kullanıcı tarayıcı konsolundan istemci tarafı hesabı manipüle etse dahi, sunucu kendi hesabını yeniden yapar ve göndereni değil kendi sonucunu esas alır.</p>
+<div class="note"><b>Kalem bazında hesap:</b> Backend her seans için ayrı bir rezervasyon oluşturur ve kampanya koşullarını (özellikle <code>minCartTotal</code>) o rezervasyonun kendi ara toplamına göre doğrular. Bu nedenle istemci de indirim ön izlemesini <b>sepetin tamamına değil, her kaleme (seansa) ayrı ayrı</b> uygulamak zorundadır (<code>planCampaignsPerItem</code>) &mdash; aksi halde ekranda görünen ön izleme ile ödeme anında sunucunun uyguladığı tutar birbirini tutmaz.</div>
+</section>
+
+<section>
+<h2><span class="num">13.</span>Dosya&ndash;İşlev Referans Tablosu</h2>
+<p>Bu tablo, entegrasyonda rol oynayan en önemli dosyaları katman ve görevleriyle birlikte tek bakışta özetler.</p>
+<table>
+<tr><th>Katman</th><th>Dosya</th><th>Görev</th></tr>
+<tr><td rowspan="4">Backend &mdash; Presentation</td><td><code>Program.cs</code></td><td>DI kurulumu, CORS, JWT middleware, pipeline sırası</td></tr>
+<tr><td><code>Middleware/ExceptionHandlingMiddleware.cs</code></td><td>Tek merkezi hata yakalama → tutarlı JSON gövdesi</td></tr>
+<tr><td><code>Controllers/*.cs</code></td><td>HTTP → MediatR köprüsü, iş mantığı içermez</td></tr>
+<tr><td><code>Services/BearerSecuritySchemeTransformer.cs</code></td><td>Swagger/OpenAPI&#39;de Bearer şeması tanımı</td></tr>
+<tr><td rowspan="4">Backend &mdash; Application</td><td><code>Features/*/Commands|Queries/*</code></td><td>Her iş eylemi için Command/Query + Handler + Validator üçlüsü</td></tr>
+<tr><td><code>Common/Behaviors/ValidationBehavior.cs</code></td><td>MediatR boru hattında otomatik doğrulama</td></tr>
+<tr><td><code>Common/Exceptions/*.cs</code></td><td>Katmanlar arası anlamlı hata türleri</td></tr>
+<tr><td><code>Repositories/*.cs</code> (arayüzler)</td><td>Application&#39;ın veri erişimini soyutlaması</td></tr>
+<tr><td rowspan="2">Backend &mdash; Infrastructure</td><td><code>Security/JwtTokenService.cs</code></td><td>JWT üretimi (HS256)</td></tr>
+<tr><td><code>Persistence/Repositories/*.cs</code></td><td>EF Core ile somut veri erişimi</td></tr>
+<tr><td rowspan="3">Frontend &mdash; Servis Katmanı</td><td><code>services/apiClient.js</code></td><td>Tüm isteklerin geçtiği tek HTTP katmanı</td></tr>
+<tr><td><code>services/*Service.js</code> (20 dosya)</td><td>Kaynak bazlı istek + DTO&rarr;model eşleme</td></tr>
+<tr><td><code>services/errors.js</code></td><td>Backend hata koduna karşılık gelen tipli sınıflar</td></tr>
+<tr><td rowspan="3">Frontend &mdash; Durum/Bağlam</td><td><code>context/AuthProvider.jsx</code></td><td>Oturum durumu, 401 dinleyicisi kaydı</td></tr>
+<tr><td><code>hooks/useCart.js</code></td><td>Sepet durumu (istemci tarafı, backend&#39;e yalnızca checkout&#39;ta gider)</td></tr>
+<tr><td><code>hooks/useCountdown.js</code></td><td>Koltuk kilidi geri sayımı (UI, backend&#39;in <code>lockExpiresAt</code>&#39;ine göre)</td></tr>
+</table>
+</section>
+
+<section>
+<h2><span class="num">14.</span>Canlı Doğrulama Notları</h2>
+<p>Bu rapor yalnızca statik kod incelemesine dayanmaz; entegrasyonun gerçekten çalıştığı, backend gerçek bir PostgreSQL veritabanına bağlı şekilde ayağa kaldırılarak <b>canlı olarak</b> doğrulanmıştır. Doğrulanan akışlar:</p>
+<table>
+<tr><th>Akış</th><th>Adımlar</th><th>Sonuç</th></tr>
+<tr><td>CORS ön-uçuş</td><td><code>OPTIONS /api/movies</code>, <code>Origin: http://localhost:5173</code></td><td>204 &mdash; beklenen</td></tr>
+<tr><td>Kayıt &rarr; Giriş &rarr; Profil &rarr; Favoriler</td><td><code>POST /auth/register</code> &rarr; <code>POST /auth/login</code> &rarr; <code>GET /profile</code> &rarr; <code>GET /favorites</code> (token ile)</td><td>4/4 istek 200</td></tr>
+<tr><td>Yönetici uçları</td><td><code>GET /users</code>, <code>GET /roles</code> (admin token ile)</td><td>200 &mdash; yetkilendirme doğru çalışıyor</td></tr>
+<tr><td>Sayfalama sınırı</td><td><code>pageSize=200</code> ile <code>/movies</code>, <code>/comments</code>, <code>/showtimes/by-cinema/1</code></td><td>3/3 istek 400 &mdash; doğrulayıcı doğru reddediyor</td></tr>
+<tr><td>Koltuk kilidi yaşam döngüsü</td><td>kilitle &rarr; aynı koltuğu tekrar kilitle (devral) &rarr; yenile &rarr; bırak &rarr; tekrar bırak</td><td>5/5 adım beklenen kod (200/200/200/204/204)</td></tr>
+</table>
+<div class="ok">Sonuç: entegrasyonun temel taşlarında (CORS, JWT, sayfalama sözleşmesi, koltuk kilidi eşzamanlılığı) canlı, çalışan bir sistemde doğrulanmış bir sorun bulunmamaktadır.</div>
+</section>
+
+<section>
+<h2><span class="num">15.</span>Sonuç</h2>
+<p>CineSeat&#39;te frontend ve backend, birbirinden tamamen bağımsız iki uygulama olarak geliştirilmiş; aralarındaki bağlantı üç temel sözleşme üzerine kurulmuştur:</p>
+<ol>
+<li><b>Ağ/güvenlik sözleşmesi:</b> CORS politikası ile hangi origin&#39;in istek atabileceği açıkça tanımlanmıştır.</li>
+<li><b>Kimlik sözleşmesi:</b> Stateless JWT, her istekte <code>Authorization: Bearer</code> header&#39;ı ile taşınır; oturum sunucuda değil token&#39;ın kendisinde yaşar.</li>
+<li><b>Veri sözleşmesi:</b> Backend DTO&#39;ları ile frontend&#39;in <code>mapXDto</code> fonksiyonları arasındaki eşleme, iki tarafın birbirinden bağımsız evrilmesine izin verir; hata gövdeleri ve sayfalama şekli tutarlı ve öngörülebilirdir.</li>
+</ol>
+<p>Bu üç sözleşmenin her biri kod üzerinde somut, isimlendirilebilir bir karşılığa sahiptir (<code>Program.cs</code>&#39;teki <code>AddCors</code>, <code>apiClient.js</code>&#39;teki <code>getStoredToken</code>, her serviste tekrar eden <code>mapXDto</code> deseni) ve bu rapor boyunca gösterildiği gibi, en kritik iş akışında (koltuk kilitleme) dahi eşzamanlılık sorunları bilinçli ve test edilmiş bir tasarımla çözülmüştür.</p>
+</section>
+
+<div class="footer-note">CineSeat Frontend&ndash;Backend Entegrasyonu Teknik Raporu &middot; 28.08.2026</div>
+
+</body>
+</html>

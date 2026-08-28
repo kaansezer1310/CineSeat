@@ -11,7 +11,7 @@ namespace CineSeat.Persistence.Data;
 /// NEDEN AYRI BIR SINIF: <see cref="DbInitializer"/> uygulamanin CALISABILMESI
 /// icin zorunlu referans verisini ekler (rol, izin, admin, sehir/ilce) ve her
 /// ortamda calisir. Buradaki veri ise yalnizca demo/gelistirme icindir —
-/// canliya cikildiginda "Neon Yagmuru" diye bir filmin veritabaninda olmasi
+/// canliya cikildiginda ornek film/sinema katalogunun veritabaninda olmasi
 /// istenmez. Bu yuzden cagrisi Program.cs'te ortam kontrolune baglidir.
 ///
 /// Idempotent: her adim once "zaten var mi" diye bakar, tekrar tekrar
@@ -103,6 +103,168 @@ public static class DemoDataSeeder
                 Latitude = 39.9208m,
                 Longitude = 32.8541m,
                 Halls = new[] { "Salon A", "Salon B" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Konak",
+                District = "Konak",
+                Address = "Cumhuriyet Bulvarı No:22, Konak/İzmir",
+                Latitude = 38.4189m,
+                Longitude = 27.1287m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Nilufer",
+                District = "Nilüfer",
+                Address = "İzmir Yolu Caddesi No:60, Nilüfer/Bursa",
+                Latitude = 40.2106m,
+                Longitude = 28.9636m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Muratpasa",
+                District = "Muratpaşa",
+                Address = "Işıklar Caddesi No:10, Muratpaşa/Antalya",
+                Latitude = 36.8841m,
+                Longitude = 30.7056m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Seyhan",
+                District = "Seyhan",
+                Address = "Turhan Cemal Beriker Bulvarı No:15, Seyhan/Adana",
+                Latitude = 37.0000m,
+                Longitude = 35.3213m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Selcuklu",
+                District = "Selçuklu",
+                Address = "Mevlana Caddesi No:20, Selçuklu/Konya",
+                Latitude = 37.8746m,
+                Longitude = 32.4932m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Sehitkamil",
+                District = "Şehitkamil",
+                Address = "İncilipınar Mahallesi No:8, Şehitkamil/Gaziantep",
+                Latitude = 37.0662m,
+                Longitude = 37.3833m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Yenisehir",
+                District = "Yenişehir",
+                Address = "İstiklal Caddesi No:8, Yenişehir/Mersin",
+                Latitude = 36.8000m,
+                Longitude = 34.6333m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Melikgazi",
+                District = "Melikgazi",
+                Address = "Sivas Caddesi No:33, Melikgazi/Kayseri",
+                Latitude = 38.7205m,
+                Longitude = 35.4826m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Tepebasi",
+                District = "Tepebaşı",
+                Address = "Espark Yolu No:1, Tepebaşı/Eskişehir",
+                Latitude = 39.7767m,
+                Longitude = 30.5206m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Ilkadim",
+                District = "İlkadım",
+                Address = "Gazi Caddesi No:44, İlkadım/Samsun",
+                Latitude = 41.2867m,
+                Longitude = 36.3300m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Izmit",
+                District = "İzmit",
+                Address = "Hürriyet Caddesi No:12, İzmit/Kocaeli",
+                Latitude = 40.7654m,
+                Longitude = 29.9408m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Ortahisar",
+                District = "Ortahisar",
+                Address = "Kahramanmaraş Caddesi No:7, Ortahisar/Trabzon",
+                Latitude = 41.0027m,
+                Longitude = 39.7168m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Pamukkale",
+                District = "Pamukkale",
+                Address = "2. Ticari Yol No:9, Pamukkale/Denizli",
+                Latitude = 37.7765m,
+                Longitude = 29.0864m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Eyyubiye",
+                District = "Eyyübiye",
+                Address = "Sarayönü Caddesi No:18, Eyyübiye/Şanlıurfa",
+                Latitude = 37.1591m,
+                Longitude = 38.7969m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Yesilyurt",
+                District = "Yeşilyurt",
+                Address = "Fuzuli Caddesi No:25, Yeşilyurt/Malatya",
+                Latitude = 38.3552m,
+                Longitude = 38.3095m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Ipekyolu",
+                District = "İpekyolu",
+                Address = "Cumhuriyet Caddesi No:14, İpekyolu/Van",
+                Latitude = 38.4891m,
+                Longitude = 43.4089m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Kayapinar",
+                District = "Kayapınar",
+                Address = "Ofis Caddesi No:6, Kayapınar/Diyarbakır",
+                Latitude = 37.9144m,
+                Longitude = 40.2306m,
+                Halls = new[] { "Salon 1", "Salon 2" }
+            },
+            new
+            {
+                CinemaName = "CineSeat Sehzadeler",
+                District = "Şehzadeler",
+                Address = "Doğu Caddesi No:19, Şehzadeler/Manisa",
+                Latitude = 38.6191m,
+                Longitude = 27.4289m,
+                Halls = new[] { "Salon 1", "Salon 2" }
             }
         };
 
@@ -263,10 +425,9 @@ public static class DemoDataSeeder
     /// Sabit bir bitis tarihi yazilsaydi seed birkac ay sonra calistirildiginda
     /// tum filmler arsive duser, katalog bos gorunurdu.
     ///
-    /// AFISLER: gercek film afisleri telifli goreseldir, depoya kopyalanmasi
-    /// dogru olmaz. public/posters/ altinda ayni adlarla tasarlanmis yer
-    /// tutucu afisler var; gercek afis dosyalari ayni adla konursa kod
-    /// degismeden calisir.
+    /// AFISLER: gercek film afisleri telifli goreseldir. TMDB'nin (The Movie
+    /// Database) herkese acik gorsel CDN'ine dogrudan baglantiyla
+    /// gosteriliyor — repoya hicbir gorsel dosyasi kopyalanmiyor.
     /// </summary>
     private static async Task<List<Movie>> SeedMoviesAsync(
         ApplicationDbContext context, Dictionary<string, Genre> genres)
@@ -281,61 +442,270 @@ public static class DemoDataSeeder
 
         var definitions = new[]
         {
+            // --- Vizyonda ---
             new
             {
-                Title = "Toy Story 5",
-                Duration = (short)102,
+                Title = "The Godfather",
+                Duration = (short)175,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/vseIVRdN4xasYwStQIi6SI7DcEu.jpg",
+                Description = "Sicilyali koklere sahip guclu bir ailenin basindaki adam, "
+                    + "iktidarini korumak icin acimasiz bir dunyada yol almak zorunda kalir.",
+                StartDate = new DateTime(2026, 2, 13, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 180,
+                Genres = new[] { "Dram", "Gerilim" }
+            },
+            new
+            {
+                Title = "Interstellar",
+                Duration = (short)169,
+                AgeLimit = (short)13,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/xbiycuc84TrieEWwkkuH2hoEa9S.jpg",
+                Description = "Dunyanin yasanmaz hale geldigi bir gelecekte, bir grup kasif "
+                    + "insanlik icin yeni bir yuva bulmak amaciyla uzayin derinliklerine "
+                    + "yolculuk eder.",
+                StartDate = new DateTime(2026, 3, 6, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 160,
+                Genres = new[] { "Bilim Kurgu", "Dram" }
+            },
+            new
+            {
+                Title = "Oppenheimer",
+                Duration = (short)181,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/mmZi0tyPFfbcCqEsJIPxVldCPOL.jpg",
+                Description = "Bir bilim insaninin, insanligin kaderini degistirecek bir "
+                    + "silahi gelistirirken yasadigi agir vicdani hesaplasma anlatilir.",
+                StartDate = new DateTime(2026, 3, 27, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 150,
+                Genres = new[] { "Dram", "Gerilim" }
+            },
+            new
+            {
+                Title = "The Grand Budapest Hotel",
+                Duration = (short)100,
+                AgeLimit = (short)13,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/hYdclrAOjWtxTgE7PZy102hTYAf.jpg",
+                Description = "Gorkemli bir dag otelinin efsanevi konsiyerji, sadik "
+                    + "cirağiyla birlikte tuhaf ve komik bir miras davasina suruklenir.",
+                StartDate = new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 110,
+                Genres = new[] { "Komedi", "Dram" }
+            },
+            new
+            {
+                Title = "The Dark Knight",
+                Duration = (short)152,
+                AgeLimit = (short)13,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/7IPCEr7ifdH5CtU97QG7XgAAtOp.jpg",
+                Description = "Bir sehri karanliga gommeye calisan kaotik bir suclu ile "
+                    + "maskeli bir koruyucu, tum sinirlarin zorlandigi bir mucadeleye girer.",
+                StartDate = new DateTime(2026, 4, 24, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 140,
+                Genres = new[] { "Aksiyon", "Gerilim" }
+            },
+            new
+            {
+                Title = "Parasite",
+                Duration = (short)133,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/nx7TmJDMkgyBc09DVo5ze52Wt3F.jpg",
+                Description = "Yoksul bir aile, zengin bir hanenin hayatina sizdikca "
+                    + "beklenmedik ve gerilimli sonuclarla karsilasir.",
+                StartDate = new DateTime(2026, 5, 8, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 120,
+                Genres = new[] { "Dram", "Gerilim" }
+            },
+            new
+            {
+                Title = "Toy Story",
+                Duration = (short)81,
                 AgeLimit = (short)0,
                 Language = "Turkce Dublaj",
-                Poster = "/posters/toy-story-5.svg",
-                Description = "Woody ve Buzz, oyuncaklarin yerini ekranlarin "
-                    + "aldigi bir cocuk odasinda yeniden birlesir.",
-                StartDate = new DateTime(2026, 6, 19, 0, 0, 0, DateTimeKind.Utc),
-                RunDays = 120,
+                Poster = "https://image.tmdb.org/t/p/w500/4KAtscEx3Pt9YPpNuK3BO6irQn1.jpg",
+                Description = "Bir cocuk odasindaki oyuncaklar, aralarina katilan parlak "
+                    + "yeni bir oyuncakla birlikte dostlugun sinandigi bir maceraya "
+                    + "suruklenir.",
+                StartDate = new DateTime(2026, 5, 22, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 130,
                 Genres = new[] { "Animasyon", "Komedi" }
             },
             new
             {
-                Title = "The Odyssey",
-                Duration = (short)172,
+                Title = "La La Land",
+                Duration = (short)128,
                 AgeLimit = (short)13,
                 Language = "Ingilizce",
-                Poster = "/posters/the-odyssey.svg",
-                Description = "Christopher Nolan'in Homeros uyarlamasi: "
-                    + "Odysseus'un Truva sonrasi eve donus yolculugu, "
-                    + "bastan sona IMAX 70mm kameralarla cekildi.",
-                StartDate = new DateTime(2026, 7, 17, 0, 0, 0, DateTimeKind.Utc),
-                RunDays = 100,
-                Genres = new[] { "Dram", "Aksiyon" }
+                Poster = "https://image.tmdb.org/t/p/w500/xDBZNak6HyOEjKIbrjqDxllWXRn.jpg",
+                Description = "Hayallerinin pesinden kosan bir muzisyen ve bir oyuncu "
+                    + "adayi, Los Angeles'ta ask ile tutku arasinda bir denge kurmaya calisir.",
+                StartDate = new DateTime(2026, 6, 5, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 110,
+                Genres = new[] { "Dram", "Komedi" }
             },
             new
             {
-                Title = "Spider-Man: Brand New Day",
-                Duration = (short)145,
+                Title = "Barbie",
+                Duration = (short)114,
                 AgeLimit = (short)13,
                 Language = "Ingilizce",
-                Poster = "/posters/spider-man-brand-new-day.svg",
-                Description = "Kendisini kimsenin hatirlamadigi bir dunyada tam "
-                    + "zamanli Orumcek Adam olan Peter Parker, eski "
-                    + "arkadaslarinin onsuz devam edisiyle yuzlesir.",
-                StartDate = new DateTime(2026, 7, 31, 0, 0, 0, DateTimeKind.Utc),
+                Poster = "https://image.tmdb.org/t/p/w500/o1BB6Cimho6R72QzJDwcwnCkp2a.jpg",
+                Description = "Mukemmel bir dunyada yasayan bir oyuncak bebek, gercek "
+                    + "dunyayla tanisinca kendi kimligini sorgulamaya baslar.",
+                StartDate = new DateTime(2026, 6, 19, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 110,
+                Genres = new[] { "Komedi" }
+            },
+            new
+            {
+                Title = "Get Out",
+                Duration = (short)104,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/2Uo7WiwHKb27i8Qskqy4arxaoLz.jpg",
+                Description = "Sevgilisinin ailesini ziyarete giden genc bir adam, sicak "
+                    + "karsilamanin ardinda saklanan rahatsiz edici bir sirri kesfeder.",
+                StartDate = new DateTime(2026, 6, 26, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 90,
+                Genres = new[] { "Gerilim" }
+            },
+            new
+            {
+                Title = "Inside Out 2",
+                Duration = (short)96,
+                AgeLimit = (short)0,
+                Language = "Turkce Dublaj",
+                Poster = "https://image.tmdb.org/t/p/w500/xYqeUheNCep7ll9AotOcclGhP0X.jpg",
+                Description = "Genc bir kizin zihnindeki duygular, ergenlikle birlikte "
+                    + "gelen yeni ve karmasik hislerle bas etmeyi ogrenir.",
+                StartDate = new DateTime(2026, 7, 3, 0, 0, 0, DateTimeKind.Utc),
                 RunDays = 100,
+                Genres = new[] { "Animasyon", "Komedi" }
+            },
+            new
+            {
+                Title = "Mad Max: Fury Road",
+                Duration = (short)121,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/mnKUoJFdNbQVs4f7nEGW6p7CgsA.jpg",
+                Description = "Issiz bir colde hayatta kalmaya calisan bir gezgin, zalim "
+                    + "bir despottan kacan bir grup kadina yardim etmek icin tehlikeli "
+                    + "bir yolculuga ortak olur.",
+                StartDate = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 90,
                 Genres = new[] { "Aksiyon", "Bilim Kurgu" }
             },
             new
             {
-                Title = "Dune: Part Three",
-                Duration = (short)166,
+                Title = "Godzilla Minus One",
+                Duration = (short)125,
                 AgeLimit = (short)13,
                 Language = "Ingilizce",
-                Poster = "/posters/dune-part-three.svg",
-                Description = "Denis Villeneuve'un Frank Herbert uyarlamasinin "
-                    + "kapanis bolumu. Paul Atreides'in imparatorlugu ve "
-                    + "kehanetin bedeli.",
-                // Vizyon tarihi ileride: "Yakinda" sekmesi bos kalmasin.
+                Poster = "https://image.tmdb.org/t/p/w500/dHiXX2YPkkxQ8XvR49xuX0XoGar.jpg",
+                Description = "Savasin yikintilari arasinda yeniden ayaga kalkmaya "
+                    + "calisan bir halk, denizlerden gelen devasa bir tehditle yuzlesir.",
+                StartDate = new DateTime(2026, 7, 17, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 100,
+                Genres = new[] { "Bilim Kurgu", "Aksiyon" }
+            },
+            new
+            {
+                Title = "Spider-Man: Across the Spider-Verse",
+                Duration = (short)140,
+                AgeLimit = (short)13,
+                Language = "Turkce Dublaj",
+                Poster = "https://image.tmdb.org/t/p/w500/2k49onFB4SnbMWgczIhf1JWl6Tr.jpg",
+                Description = "Genc bir kahraman, sonsuz sayida paralel evrenden gecerken "
+                    + "kendi kaderiyle ilgili zor bir secimle yuzlesir.",
+                StartDate = new DateTime(2026, 7, 24, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 100,
+                Genres = new[] { "Animasyon", "Aksiyon" }
+            },
+            new
+            {
+                Title = "Coco",
+                Duration = (short)105,
+                AgeLimit = (short)0,
+                Language = "Turkce Dublaj",
+                Poster = "https://image.tmdb.org/t/p/w500/f9Ro5x36UTDdHFrhnHeXqlhBVRF.jpg",
+                Description = "Muzige tutkun genc bir cocuk, ailesinin gecmisindeki sirri "
+                    + "ogrenmek icin oluler diyarina uzanan beklenmedik bir yolculuga cikar.",
+                StartDate = new DateTime(2026, 8, 7, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 100,
+                Genres = new[] { "Animasyon", "Dram" }
+            },
+            new
+            {
+                Title = "Zootopia",
+                Duration = (short)109,
+                AgeLimit = (short)0,
+                Language = "Turkce Dublaj",
+                Poster = "https://image.tmdb.org/t/p/w500/cL6gPwwhcYIGdrpj6vzIaKlb5zQ.jpg",
+                Description = "Hayvanlarin bir arada yasadigi modern bir sehirde, hirsli "
+                    + "genc bir polis memuru kendini buyuk bir gizemin icinde bulur.",
+                StartDate = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 95,
+                Genres = new[] { "Animasyon", "Komedi" }
+            },
+            // --- Yakinda ---
+            new
+            {
+                Title = "Dune: Part Two",
+                Duration = (short)165,
+                AgeLimit = (short)13,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/tihf8Trht9zP3scmUQfvGlAY9FU.jpg",
+                Description = "Col gezegeninde surgundeki genc bir lider, halkiyla "
+                    + "birlikte gelecegini sekillendirecek buyuk bir mucadeleye atilir.",
+                StartDate = new DateTime(2026, 9, 25, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 100,
+                Genres = new[] { "Bilim Kurgu", "Aksiyon" }
+            },
+            new
+            {
+                Title = "John Wick: Chapter 4",
+                Duration = (short)170,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/6jS780bEkQRPLEPWvZ0MGQ0EI4j.jpg",
+                Description = "Efsanevi bir suikastci, ozgurlugunu kazanmak icin dunyanin "
+                    + "dort bir yanindaki guclu dusmanlarina karsi amansiz bir mucadeleye girer.",
+                StartDate = new DateTime(2026, 10, 16, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 100,
+                Genres = new[] { "Aksiyon", "Gerilim" }
+            },
+            new
+            {
+                Title = "Deadpool & Wolverine",
+                Duration = (short)128,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/fVr2X3jnoeLuZ2v0L1O8MOdOiSz.jpg",
+                Description = "Sivri dilli bir kahraman, huysuz bir mutantla zorunlu bir "
+                    + "is birligine girerek cok evrenli bir tehlikeye karsi savasir.",
+                StartDate = new DateTime(2026, 11, 13, 0, 0, 0, DateTimeKind.Utc),
+                RunDays = 100,
+                Genres = new[] { "Aksiyon", "Komedi" }
+            },
+            new
+            {
+                Title = "Everything Everywhere All at Once",
+                Duration = (short)140,
+                AgeLimit = (short)16,
+                Language = "Ingilizce",
+                Poster = "https://image.tmdb.org/t/p/w500/vt5Fd1wouNEL7HN3TQ0PMls4auE.jpg",
+                Description = "Siradan bir kadin, ailesini ve evrenini kurtarmak icin "
+                    + "sonsuz paralel yasamlar arasinda sicramayi ogrenir.",
                 StartDate = new DateTime(2026, 12, 18, 0, 0, 0, DateTimeKind.Utc),
-                RunDays = 90,
-                Genres = new[] { "Bilim Kurgu", "Dram" }
+                RunDays = 100,
+                Genres = new[] { "Bilim Kurgu", "Komedi" }
             }
         };
 

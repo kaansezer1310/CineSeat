@@ -2,7 +2,6 @@ import { Link, NavLink } from "react-router-dom";
 
 import CartButton from "./CartButton.jsx";
 import CitySelector from "./CitySelector.jsx";
-import MobileMenu from "./MobileMenu.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
 import UserMenu from "./UserMenu.jsx";
 import PermissionGate from "../routing/PermissionGate.jsx";
@@ -51,8 +50,6 @@ function Header() {
           <CartButton />
           <ThemeToggle />
         </div>
-
-        <MobileMenu />
       </div>
     </header>
   );
