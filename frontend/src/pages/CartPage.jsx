@@ -9,6 +9,7 @@ import {
   getTicketTypeLabel,
   isValidTicketType,
 } from "../domain/ticketType.js";
+import Stepper from "../components/ui/Stepper.jsx";
 import useCart from "../hooks/useCart.js";
 import useAuth from "../hooks/useAuth.js";
 import { calcItemTotal, calcSubtotal, formatPrice } from "../services/pricing.js";
@@ -120,6 +121,11 @@ function CartPage() {
             Seçtiğin seansları ve koltukları kontrol
             edebilirsin.
           </p>
+
+          <Stepper
+            steps={["Koltuk", "Bilet Tipi", "Ödeme"]}
+            currentStepIndex={1}
+          />
         </div>
 
         <button

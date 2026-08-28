@@ -341,11 +341,13 @@ function PaymentPage() {
         {isLocking ? (
           <p>Koltuklarınız ayrılıyor…</p>
         ) : (
-          <div className="payment-countdown" role="status">
+          <div className="payment-countdown">
             <span className="payment-countdown-label">
               Koltuklarınız için kalan süre
             </span>
-            <span className="payment-countdown-time">{formatTime()}</span>
+            <span className="payment-countdown-time" aria-hidden="true">
+              {formatTime()}
+            </span>
           </div>
         )}
 

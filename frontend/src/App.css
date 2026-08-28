@@ -1315,7 +1315,7 @@
     flex-direction: column;
   }
 
-  .cart-page-heading .secondary-button {
+  .cart-page-heading .btn {
     align-self: flex-start;
   }
 
