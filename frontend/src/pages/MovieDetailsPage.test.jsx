@@ -424,8 +424,8 @@ describe("MovieDetailsPage — Sekmeler (Seanslar/Hakkında/Yorumlar)", () => {
 
     expect(screen.getByText("Açıklama.")).toBeInTheDocument();
     expect(
-      screen.queryByText("Bu filme ait aktif seans bulunmuyor.")
-    ).not.toBeInTheDocument();
+      screen.getByText("Bu filme ait aktif seans bulunmuyor.")
+    ).not.toBeVisible();
   });
 
   it("sekme değişse de üstteki film başlığı ve fragman butonu kaybolmaz", async () => {
@@ -440,5 +440,28 @@ describe("MovieDetailsPage — Sekmeler (Seanslar/Hakkında/Yorumlar)", () => {
     expect(
       screen.getByRole("button", { name: "▶ Fragman İzle" })
     ).toBeInTheDocument();
+  });
+
+  it("Seanslar sekmesinden ayrılıp geri dönünce seçili tarih korunur", async () => {
+    sessionService.getSessionsByMovieId.mockResolvedValue([
+      { id: 1, date: "13 Temmuz", time: "14:00", hallName: "Salon 1", price: 120 },
+      { id: 2, date: "14 Temmuz", time: "18:00", hallName: "Salon 2", price: 140 },
+    ]);
+
+    renderMovieDetailsPage();
+
+    await screen.findByRole("tab", { name: "Seanslar" });
+
+    fireEvent.click(screen.getByRole("tab", { name: "14 Temmuz" }));
+    expect(
+      screen.getByRole("tab", { name: "14 Temmuz" })
+    ).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Seanslar" }));
+
+    expect(
+      screen.getByRole("tab", { name: "14 Temmuz" })
+    ).toHaveAttribute("aria-selected", "true");
   });
 });

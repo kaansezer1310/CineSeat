@@ -149,7 +149,7 @@ function MovieDetailsPage() {
         />
       )}
 
-      <div className="movie-tab-list" role="tablist">
+      <div className="movie-tab-list" role="tablist" aria-label="Film detay sekmeleri">
         {DETAIL_TABS.map((tab) => {
           const isActive = tab.id === activeTab;
 
@@ -172,45 +172,45 @@ function MovieDetailsPage() {
         })}
       </div>
 
-      {activeTab === "sessions" && (
+      <div hidden={activeTab !== "sessions"}>
         <SessionList
           sessions={sessions}
           onSessionSelect={handleSessionSelect}
         />
-      )}
+      </div>
 
-      {activeTab === "about" && (
-        <div className="movie-details-about">
-          <p className="movie-details-description">
-            {movie.description}
+      <div className="movie-details-about" hidden={activeTab !== "about"}>
+        <p className="movie-details-description">
+          {movie.description}
+        </p>
+
+        <div className="movie-details-note">
+          <strong>Film hakkında</strong>
+
+          <p>
+            Seans seçiminin ardından salonun koltuk
+            planına yönlendirileceksin.
           </p>
-
-          <div className="movie-details-note">
-            <strong>Film hakkında</strong>
-
-            <p>
-              Seans seçiminin ardından salonun koltuk
-              planına yönlendirileceksin.
-            </p>
-          </div>
         </div>
-      )}
+      </div>
 
-      {activeTab === "comments" && (
-        <section className="movie-details-social">
-          <h2>Değerlendirmeler</h2>
+      {/* T10: puan ve yorum tek kayıt — ayrı bir puanlama bölümü yok,
+          yıldız yorum formunun içinde. REQ-11 gereği yalnızca vizyondaki
+          filmlerde değerlendirme yapılabilir; vizyona girmemiş bir filme
+          puan verilemez. */}
+      <section className="movie-details-social" hidden={activeTab !== "comments"}>
+        <h2>Değerlendirmeler</h2>
 
-          {movieService.isMovieReleased(movie) ? (
-            <CommentForm movieId={movie.id} />
-          ) : (
-            <p className="comment-guest-hint">
-              Film vizyona girdiğinde puan verebilir ve yorum yazabilirsin.
-            </p>
-          )}
+        {movieService.isMovieReleased(movie) ? (
+          <CommentForm movieId={movie.id} />
+        ) : (
+          <p className="comment-guest-hint">
+            Film vizyona girdiğinde puan verebilir ve yorum yazabilirsin.
+          </p>
+        )}
 
-          <CommentList movieId={movie.id} />
-        </section>
-      )}
+        <CommentList movieId={movie.id} />
+      </section>
     </section>
   );
 }
