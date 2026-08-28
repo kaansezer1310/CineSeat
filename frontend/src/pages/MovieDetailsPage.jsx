@@ -14,12 +14,19 @@ import movieService from "../services/movieService.js";
 import sessionService from "../services/sessionService.js";
 import useWatchlist from "../hooks/useWatchlist.js";
 
+const DETAIL_TABS = [
+  { id: "sessions", label: "Seanslar" },
+  { id: "about", label: "Hakkında" },
+  { id: "comments", label: "Yorumlar" },
+];
+
 function MovieDetailsPage() {
   const { movieId } = useParams();
   const navigate = useNavigate();
   const { toggleFavorite, isFavorite } = useWatchlist();
 
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("sessions");
 
   const numericMovieId = Number(movieId);
 
@@ -78,7 +85,15 @@ function MovieDetailsPage() {
   }
 
   return (
-    <section>
+    <section className="movie-details-page">
+      {movie.poster && (
+        <div
+          className="movie-details-backdrop"
+          style={{ backgroundImage: `url(${movie.poster})` }}
+          aria-hidden="true"
+        />
+      )}
+
       <div className="movie-details-layout">
         <div className="movie-details-poster-wrapper">
           <MoviePoster
@@ -105,14 +120,10 @@ function MovieDetailsPage() {
           </div>
 
           <div className="movie-details-meta">
-            <span>{movie.releaseYear}</span>
-            <span>{movie.duration} dakika</span>
-            <span>{movie.ageRating}</span>
+            <span className="chip">{movie.releaseYear}</span>
+            <span className="chip">{movie.duration} dakika</span>
+            <span className="chip">{movie.ageRating}</span>
           </div>
-
-          <p className="movie-details-description">
-            {movie.description}
-          </p>
 
           <button
             className="secondary-button trailer-open-button"
@@ -127,15 +138,6 @@ function MovieDetailsPage() {
           >
             ▶ Fragman İzle
           </button>
-
-          <div className="movie-details-note">
-            <strong>Film hakkında</strong>
-
-            <p>
-              Seans seçiminin ardından salonun koltuk
-              planına yönlendirileceksin.
-            </p>
-          </div>
         </div>
       </div>
 
@@ -147,28 +149,68 @@ function MovieDetailsPage() {
         />
       )}
 
-      <SessionList
-        sessions={sessions}
-        onSessionSelect={handleSessionSelect}
-      />
+      <div className="movie-tab-list" role="tablist">
+        {DETAIL_TABS.map((tab) => {
+          const isActive = tab.id === activeTab;
 
-      {/* T10: puan ve yorum tek kayıt — ayrı bir puanlama bölümü yok,
-          yıldız yorum formunun içinde. REQ-11 gereği yalnızca vizyondaki
-          filmlerde değerlendirme yapılabilir; vizyona girmemiş bir filme
-          puan verilemez. */}
-      <section className="movie-details-social">
-        <h2>Değerlendirmeler</h2>
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={
+                isActive
+                  ? "movie-tab-button movie-tab-button-active"
+                  : "movie-tab-button"
+              }
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-        {movieService.isMovieReleased(movie) ? (
-          <CommentForm movieId={movie.id} />
-        ) : (
-          <p className="comment-guest-hint">
-            Film vizyona girdiğinde puan verebilir ve yorum yazabilirsin.
+      {activeTab === "sessions" && (
+        <SessionList
+          sessions={sessions}
+          onSessionSelect={handleSessionSelect}
+        />
+      )}
+
+      {activeTab === "about" && (
+        <div className="movie-details-about">
+          <p className="movie-details-description">
+            {movie.description}
           </p>
-        )}
 
-        <CommentList movieId={movie.id} />
-      </section>
+          <div className="movie-details-note">
+            <strong>Film hakkında</strong>
+
+            <p>
+              Seans seçiminin ardından salonun koltuk
+              planına yönlendirileceksin.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "comments" && (
+        <section className="movie-details-social">
+          <h2>Değerlendirmeler</h2>
+
+          {movieService.isMovieReleased(movie) ? (
+            <CommentForm movieId={movie.id} />
+          ) : (
+            <p className="comment-guest-hint">
+              Film vizyona girdiğinde puan verebilir ve yorum yazabilirsin.
+            </p>
+          )}
+
+          <CommentList movieId={movie.id} />
+        </section>
+      )}
     </section>
   );
 }

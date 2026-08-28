@@ -388,22 +388,44 @@
   }
 }
 
+.movie-details-page {
+  position: relative;
+  z-index: 0;
+}
+
+.movie-details-backdrop {
+  position: absolute;
+  top: calc(-1 * var(--space-8));
+  left: 0;
+  right: 0;
+  z-index: -1;
+
+  height: 380px;
+  border-radius: var(--radius-xl);
+
+  background-size: cover;
+  background-position: center 25%;
+  filter: blur(40px) saturate(1.1);
+  opacity: 0.4;
+
+  mask-image: linear-gradient(180deg, black 0%, transparent 90%);
+  -webkit-mask-image: linear-gradient(180deg, black 0%, transparent 90%);
+}
+
 .movie-details-layout {
   display: grid;
   grid-template-columns: minmax(250px, 340px) 1fr;
-  gap: clamp(35px, 6vw, 80px);
+  gap: clamp(var(--space-8), 6vw, var(--space-16));
   align-items: center;
 }
 
 .movie-details-poster-wrapper {
   overflow: hidden;
 
-  border: 1px solid var(--color-border-strong);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 
   background: var(--color-surface);
-
-  box-shadow: 0 16px 36px var(--color-shadow-strong);
+  box-shadow: var(--shadow-lg);
 }
 
 .movie-details-poster {
@@ -415,76 +437,64 @@
   object-fit: cover;
 }
 
+.movie-details-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
 .movie-details-content h1 {
   margin: 0;
 
   color: var(--color-text);
 
-  font-size: clamp(2.1rem, 5.5vw, 4.2rem);
-  font-weight: 700;
+  font-size: var(--text-5xl);
+  font-weight: var(--weight-black);
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .movie-details-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 
-  margin: 20px 0;
+  margin: var(--space-5) 0;
 }
 
-.movie-details-meta span {
-  display: inline-flex;
-  min-height: 30px;
-  align-items: center;
-
-  padding: 0 10px;
-
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-
-  background: var(--color-surface);
-
-  color: var(--color-text-muted);
-
-  font-size: 0.85rem;
-  font-weight: 500;
+.movie-details-meta .chip {
+  cursor: default;
 }
 
 .movie-details-description {
   max-width: 700px;
-  margin: 0;
+  margin: 0 0 var(--space-5);
 
   color: var(--color-text-muted);
 
-  font-size: 1.05rem;
-  font-weight: 400;
+  font-size: var(--text-md);
+  font-weight: var(--weight-regular);
   line-height: 1.55;
 }
 
 .movie-details-note {
   max-width: 620px;
-  margin-top: 24px;
-  padding: 16px 18px;
+
+  padding: var(--space-4) var(--space-5);
 
   border-left: 2px solid var(--color-border-strong);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 
   background: var(--color-background-soft);
 }
 
 .movie-details-note strong {
   color: var(--color-text);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .movie-details-note p {
-  margin: 8px 0 0;
-
-  color: var(--color-text-muted);
-  font-weight: 400;
-  line-height: 1.55;
+  margin: var(--space-2) 0 0;
 }
 
 .session-section {

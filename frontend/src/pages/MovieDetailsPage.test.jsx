@@ -218,6 +218,9 @@ describe("MovieDetailsPage — Fragman modalı (1.3.8)", () => {
 
 // T10: puan ve yorum tek kayıt. Yıldız artık yorum formunun içinde ve
 // puan zorunlu, metin isteğe bağlı. Ayrı `ratingService` kaldırıldı.
+// Faz 3b: yorum formu/listesi artık "Yorumlar" sekmesinin altında —
+// varsayılan sekme "Seanslar" olduğu için her testte önce sekmeye
+// tıklanması gerekiyor.
 describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -233,6 +236,7 @@ describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
     renderMovieDetailsPage();
 
     await screen.findByRole("heading", { name: "Neon Yağmuru" });
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
 
     expect(
       await screen.findByText(
@@ -247,6 +251,7 @@ describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
     renderMovieDetailsPage();
 
     await screen.findByRole("heading", { name: "Neon Yağmuru" });
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
 
     expect(
       await screen.findByRole("button", { name: "Gönder" })
@@ -262,6 +267,7 @@ describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
     renderMovieDetailsPage();
 
     await screen.findByRole("heading", { name: "Neon Yağmuru" });
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
 
     fireEvent.click(
       await screen.findByRole("button", { name: "4 yıldız ver" })
@@ -286,6 +292,7 @@ describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
     renderMovieDetailsPage();
 
     await screen.findByRole("heading", { name: "Neon Yağmuru" });
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
 
     fireEvent.click(
       await screen.findByRole("button", { name: "5 yıldız ver" })
@@ -321,6 +328,9 @@ describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
 
     renderMovieDetailsPage();
 
+    await screen.findByRole("heading", { name: "Neon Yağmuru" });
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
+
     expect(
       await screen.findByText(
         "Yorum yazılmamış, yalnızca puan verilmiş."
@@ -344,6 +354,9 @@ describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
     ]);
 
     renderMovieDetailsPage();
+
+    await screen.findByRole("heading", { name: "Neon Yağmuru" });
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
 
     await screen.findByText("Fena değildi.");
 
@@ -369,10 +382,63 @@ describe("MovieDetailsPage — Değerlendirmeler (T10)", () => {
 
     renderMovieDetailsPage();
 
+    await screen.findByRole("heading", { name: "Neon Yağmuru" });
+    fireEvent.click(screen.getByRole("tab", { name: "Yorumlar" }));
+
     await screen.findByText("Kendi yorumum.");
 
     expect(
       screen.getByRole("button", { name: "Sil" })
+    ).toBeInTheDocument();
+  });
+});
+
+describe("MovieDetailsPage — Sekmeler (Seanslar/Hakkında/Yorumlar)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.clear();
+    movieService.getMovieById.mockResolvedValue(movieWithTrailer);
+    sessionService.getSessionsByMovieId.mockResolvedValue([]);
+    commentService.getCommentsByMovieId.mockResolvedValue([]);
+  });
+
+  it("varsayılan olarak Seanslar sekmesi aktiftir", async () => {
+    renderMovieDetailsPage();
+
+    const sessionsTab = await screen.findByRole("tab", {
+      name: "Seanslar",
+    });
+
+    expect(sessionsTab).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.getByText("Bu filme ait aktif seans bulunmuyor.")
+    ).toBeInTheDocument();
+  });
+
+  it("Hakkında sekmesine geçince film açıklamasını gösterir", async () => {
+    renderMovieDetailsPage();
+
+    await screen.findByRole("tab", { name: "Seanslar" });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Hakkında" }));
+
+    expect(screen.getByText("Açıklama.")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Bu filme ait aktif seans bulunmuyor.")
+    ).not.toBeInTheDocument();
+  });
+
+  it("sekme değişse de üstteki film başlığı ve fragman butonu kaybolmaz", async () => {
+    renderMovieDetailsPage();
+
+    await screen.findByRole("tab", { name: "Seanslar" });
+    fireEvent.click(screen.getByRole("tab", { name: "Hakkında" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Neon Yağmuru" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "▶ Fragman İzle" })
     ).toBeInTheDocument();
   });
 });
