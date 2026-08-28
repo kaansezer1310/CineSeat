@@ -121,7 +121,11 @@ describe("CartPage", () => {
     mockNavigate.mockReset();
   });
 
-  it("her koltuğun mevcut bilet tipini gösterir", async () => {
+  function ticketTypeRow(seatLabel) {
+    return screen.getByText(`${seatLabel} koltuğu`).closest("li");
+  }
+
+  it("her koltuğun bilet tipini salt okunur olarak gösterir (booking'de zaten seçildi)", async () => {
     renderCartPage();
 
     await screen.findByRole("heading", {
@@ -129,37 +133,18 @@ describe("CartPage", () => {
     });
 
     expect(
-      screen.getByLabelText("A1 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.ADULT);
+      within(ticketTypeRow("A1")).getByText("Yetişkin")
+    ).toBeInTheDocument();
     expect(
-      screen.getByLabelText("A2 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.STUDENT);
+      within(ticketTypeRow("A2")).getByText("Öğrenci")
+    ).toBeInTheDocument();
     expect(
-      screen.getByLabelText("A3 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.CHILD);
-  });
+      within(ticketTypeRow("A3")).getByText("Çocuk")
+    ).toBeInTheDocument();
 
-  it("bir koltuğun tipini diğerlerini bozmadan değiştirir", async () => {
-    renderCartPage();
-
-    await screen.findByRole("heading", {
-      name: "Sepetim",
-    });
-
-    fireEvent.change(
-      screen.getByLabelText("A2 koltuğu bilet tipi"),
-      { target: { value: TICKET_TYPE.ADULT } }
-    );
-
-    expect(
-      screen.getByLabelText("A1 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.ADULT);
-    expect(
-      screen.getByLabelText("A2 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.ADULT);
-    expect(
-      screen.getByLabelText("A3 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.CHILD);
+    // Sepette artık düzenlenebilir bir bilet tipi kontrolü yok — tip
+    // BookingPage'de sepete eklenirken kesinleşir.
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
   it("Yetişkin, Öğrenci ve Çocuk tiplerinin bir arada kalmasına izin verir", async () => {
@@ -170,14 +155,14 @@ describe("CartPage", () => {
     });
 
     expect(
-      screen.getByLabelText("A1 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.ADULT);
+      within(ticketTypeRow("A1")).getByText("Yetişkin")
+    ).toBeInTheDocument();
     expect(
-      screen.getByLabelText("A2 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.STUDENT);
+      within(ticketTypeRow("A2")).getByText("Öğrenci")
+    ).toBeInTheDocument();
     expect(
-      screen.getByLabelText("A3 koltuğu bilet tipi")
-    ).toHaveValue(TICKET_TYPE.CHILD);
+      within(ticketTypeRow("A3")).getByText("Çocuk")
+    ).toBeInTheDocument();
 
     const summary = screen.getByRole("complementary");
 

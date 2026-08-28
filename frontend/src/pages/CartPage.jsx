@@ -4,11 +4,7 @@ import {
 } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
-import {
-  TICKET_TYPE_LIST,
-  getTicketTypeLabel,
-  isValidTicketType,
-} from "../domain/ticketType.js";
+import { getTicketTypeLabel } from "../domain/ticketType.js";
 import Stepper from "../components/ui/Stepper.jsx";
 import useCart from "../hooks/useCart.js";
 import useAuth from "../hooks/useAuth.js";
@@ -64,25 +60,6 @@ function CartPage() {
   function handleClearCart() {
     dispatch({
       type: "CLEAR_CART",
-    });
-  }
-
-  function handleTicketTypeChange(
-    sessionId,
-    seatId,
-    ticketType
-  ) {
-    if (!isValidTicketType(ticketType)) {
-      return;
-    }
-
-    dispatch({
-      type: "UPDATE_TICKET_TYPE",
-      payload: {
-        sessionId,
-        seatId,
-        ticketType,
-      },
     });
   }
 
@@ -194,55 +171,20 @@ function CartPage() {
                     </span>
 
                     <ul className="ticket-type-list">
-                      {item.seats.map((seat) => {
-                        const selectId =
-                          `cart-ticket-type-${item.sessionId}-${seat.seatId}`;
+                      {item.seats.map((seat) => (
+                        <li
+                          className="ticket-type-row"
+                          key={`${item.sessionId}-${seat.seatId}`}
+                        >
+                          <span className="ticket-type-row-label">
+                            {seat.seatLabel ?? seat.seatId} koltuğu
+                          </span>
 
-                        return (
-                          <li
-                            className="ticket-type-row"
-                            key={`${item.sessionId}-${seat.seatId}`}
-                          >
-                            <label htmlFor={selectId}>
-                              {seat.seatLabel ?? seat.seatId} koltuğu
-                              <span className="visually-hidden">
-                                {" "}
-                                bilet tipi
-                              </span>
-                            </label>
-
-                            <div className="ticket-type-select-wrap">
-                              <select
-                                className="ticket-type-select"
-                                id={selectId}
-                                value={seat.ticketType}
-                                onChange={(event) => {
-                                  handleTicketTypeChange(
-                                    item.sessionId,
-                                    seat.seatId,
-                                    event.target.value
-                                  );
-                                }}
-                              >
-                                {TICKET_TYPE_LIST.map(
-                                  (optionType) => {
-                                    return (
-                                      <option
-                                        key={optionType}
-                                        value={optionType}
-                                      >
-                                        {getTicketTypeLabel(
-                                          optionType
-                                        )}
-                                      </option>
-                                    );
-                                  }
-                                )}
-                              </select>
-                            </div>
-                          </li>
-                        );
-                      })}
+                          <strong className="ticket-type-value">
+                            {getTicketTypeLabel(seat.ticketType)}
+                          </strong>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 </div>
