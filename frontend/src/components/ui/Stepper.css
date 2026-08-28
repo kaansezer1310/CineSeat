@@ -1,0 +1,73 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  margin: 0 0 var(--space-8);
+  padding: 0;
+
+  list-style: none;
+}
+
+.stepper-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stepper-step:not(:last-child)::after {
+  content: "";
+  display: inline-block;
+
+  width: 32px;
+  height: 2px;
+  margin-inline: var(--space-2);
+
+  background: var(--color-border);
+}
+
+.stepper-number {
+  display: grid;
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-background-soft);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+.stepper-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.stepper-step--current .stepper-number {
+  background: var(--color-purple);
+  color: var(--color-on-primary);
+}
+
+.stepper-step--current .stepper-label {
+  color: var(--color-text);
+}
+
+.stepper-step--complete .stepper-number {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.stepper-step--complete .stepper-label {
+  color: var(--color-text);
+}
+
+@media (max-width: 480px) {
+  .stepper-label {
+    display: none;
+  }
+}
