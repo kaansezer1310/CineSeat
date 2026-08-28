@@ -38,16 +38,21 @@ function CartPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const appliedCampaign = campaignService.pickBestCampaign(
+  const campaignPlan = campaignService.planCampaignsPerItem(
     campaigns,
-    subtotal,
-    user
+    state.items,
+    user,
+    calcItemTotal
   );
-  const discountAmount = campaignService.calculateDiscount(
-    appliedCampaign,
-    subtotal
-  );
+  const discountAmount = campaignPlan.discountTotal;
   const cartTotal = subtotal - discountAmount;
+  const appliedCampaigns = [
+    ...new Map(
+      campaignPlan.lines
+        .filter((line) => line.campaign)
+        .map((line) => [line.campaign.id, line.campaign])
+    ).values(),
+  ];
 
   function handleRemoveItem(itemId) {
     dispatch({
@@ -286,9 +291,11 @@ function CartPage() {
             <strong>{formatPrice(subtotal)} TL</strong>
           </div>
           
-          {appliedCampaign && discountAmount > 0 && (
+          {appliedCampaigns.length > 0 && discountAmount > 0 && (
             <div className="cart-summary-row cart-summary-row--discount">
-              <span>{appliedCampaign.name}</span>
+              <span>
+                {appliedCampaigns.map((campaign) => campaign.name).join(", ")}
+              </span>
               <strong>-{formatPrice(discountAmount)} TL</strong>
             </div>
           )}

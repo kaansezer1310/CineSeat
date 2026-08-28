@@ -117,9 +117,14 @@
     transform 150ms ease;
 }
 
-.primary-button:hover {
+.primary-button:hover:not(:disabled) {
   background: var(--color-yellow-hover);
   transform: translateY(-1px);
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .page-heading-row {
@@ -577,7 +582,7 @@
 }
 
 .session-price {
-  color: var(--color-purple);
+  color: var(--color-purple-text);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
 }
@@ -629,7 +634,7 @@
 }
 
 .back-link:hover {
-  color: var(--color-purple);
+  color: var(--color-purple-text);
 }
 
 .booking-meta {
@@ -794,8 +799,8 @@
   border: 1px dashed var(--color-warn);
   background: repeating-linear-gradient(
     135deg,
-    var(--color-accent-soft) 0 6px,
-    transparent 6px 12px
+    var(--color-seat-locked-stripe) 0 6px,
+    var(--color-seat-locked-stripe-soft) 6px 12px
   );
   color: var(--color-text);
 
@@ -2653,7 +2658,7 @@
 
 /* Ödeme ekranı — kart markası ve hata ipuçları */
 .payment-card-brand {
-  color: var(--color-purple);
+  color: var(--color-purple-text);
   font-weight: var(--weight-semibold);
 }
 
