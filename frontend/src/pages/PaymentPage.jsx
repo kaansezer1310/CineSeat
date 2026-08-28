@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useCart from "../hooks/useCart.js";
 import useAuth from "../hooks/useAuth.js";
 import useCountdown from "../hooks/useCountdown.js";
+import Stepper from "../components/ui/Stepper.jsx";
 import seatService from "../services/seatService.js";
 import reservationService from "../services/reservationService.js";
 import { calcSubtotal, formatPrice } from "../services/pricing.js";
@@ -332,16 +333,21 @@ function PaymentPage() {
       <div className="page-heading">
         <h1>Ödeme</h1>
 
-        <p>
-          {isLocking ? (
-            "Koltuklarınız ayrılıyor…"
-          ) : (
-            <>
-              Koltuklarınız <strong>{formatTime()}</strong> boyunca geçici
-              olarak kilitlendi.
-            </>
-          )}
-        </p>
+        <Stepper
+          steps={["Koltuk", "Bilet Tipi", "Ödeme"]}
+          currentStepIndex={2}
+        />
+
+        {isLocking ? (
+          <p>Koltuklarınız ayrılıyor…</p>
+        ) : (
+          <div className="payment-countdown" role="status">
+            <span className="payment-countdown-label">
+              Koltuklarınız için kalan süre
+            </span>
+            <span className="payment-countdown-time">{formatTime()}</span>
+          </div>
+        )}
 
         <p className="payment-demo-notice" role="note">
           Bu bir <strong>demo ödemedir</strong>. Gerçek bir tahsilat yapılmaz

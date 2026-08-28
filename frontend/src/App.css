@@ -1658,33 +1658,59 @@
 }
 
 /* Ödeme sayfası — kart/ziyaretçi formu */
+.payment-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+
+  border-radius: var(--radius-pill);
+
+  background: var(--color-accent-soft);
+}
+
+.payment-countdown-label {
+  color: var(--color-yellow-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.payment-countdown-time {
+  color: var(--color-yellow-text);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+  font-variant-numeric: tabular-nums;
+}
+
 .payment-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 310px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-6);
   align-items: start;
 }
 
 .payment-form {
-  padding: 22px;
+  padding: var(--space-6);
 
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
 
   background: var(--color-surface);
+  box-shadow: var(--shadow-md);
 }
 
 .form-group-section {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--space-5);
 }
 
 .form-group-section h2 {
   margin: 0;
 
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
   line-height: 1.25;
   letter-spacing: -0.01em;
 }
@@ -3045,27 +3071,27 @@
 
 /* Ödeme ekranı — kart markası ve hata ipuçları */
 .payment-card-brand {
-  color: var(--color-yellow-text);
-  font-weight: 600;
+  color: var(--color-purple);
+  font-weight: var(--weight-semibold);
 }
 
 .payment-error-hint,
 .payment-summary-note {
-  margin: 10px 0 0;
+  margin: var(--space-2) 0 0;
 
   color: var(--color-text-muted);
 
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .payment-demo-notice {
-  padding: 10px 14px;
-  margin-top: 12px;
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-3);
 
   border: 1px dashed var(--color-border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 
   color: var(--color-text-muted);
 
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
