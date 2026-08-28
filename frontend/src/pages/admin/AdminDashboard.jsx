@@ -1,11 +1,86 @@
 import { useEffect, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { CSVLink } from "react-csv";
 
 import reservationService from "../../services/reservationService.js";
 import PageHeader from "../../components/ui/PageHeader.jsx";
 import StatCard from "../../components/ui/StatCard.jsx";
 import StatusPanel from "../../components/ui/StatusPanel.jsx";
+
+// --- Grafik ortak ayarlari -------------------------------------------------
+// Cubuk kalinligi capleniyor: iki filmlik bir veri setinde cubuklar aksi halde
+// panelin yarisi kadar genisliyordu.
+const BAR_MAX = 24;
+const BAR_RADIUS = [4, 4, 0, 0];
+const CHART_MARGIN = { top: 20, right: 8, bottom: 0, left: 0 };
+
+// Az sayida cubukta degeri okumak icin fareyle gezinmek gerekmesin. Her
+// noktaya etiket koymak gurultu olurdu; sinir buyudukce etiketler birbirine
+// girecegi icin yalnizca kucuk veri setlerinde gosteriliyor.
+const DIRECT_LABEL_LIMIT = 6;
+
+const LABEL_STYLE = { fill: "var(--color-text-muted)", fontSize: 12 };
+
+// Eksen ve izgara geri planda kalmali; veri onde olsun.
+const AXIS_PROPS = {
+  tickLine: false,
+  axisLine: false,
+  tick: { fontSize: 12, fill: "var(--color-text-muted)" },
+};
+
+const TOOLTIP_PROPS = {
+  // Varsayilan imlec acik gri bir dikdortgen ciziyordu; koyu temada beyaz bir
+  // blok gibi gorunup "secili" izlenimi veriyordu. Iki temada da calisan,
+  // notr ve saydam bir vurgu.
+  cursor: { fill: "rgba(128, 128, 128, 0.14)" },
+  contentStyle: {
+    background: "var(--color-surface)",
+    border: "1px solid var(--color-border-strong)",
+    borderRadius: "10px",
+    fontSize: "0.85rem",
+  },
+  labelStyle: { color: "var(--color-text)", fontWeight: 600 },
+  itemStyle: { color: "var(--color-text-muted)" },
+};
+
+function formatAxisNumber(value) {
+  return Number(value).toLocaleString("tr-TR");
+}
+
+/**
+ * Tek serilik bir grafigi baslik ve durum yonetimiyle sarar.
+ *
+ * Efsane (legend) yok: tek seri oldugunda baslik zaten seriyi adlandiriyor,
+ * ikinci bir etiket gurultuden ibaret olurdu.
+ */
+function ChartCard({ title, isLoading, isEmpty, children }) {
+  return (
+    <section className="admin-chart-card">
+      <h2 className="admin-chart-title">{title}</h2>
+
+      {isLoading ? (
+        <StatusPanel variant="loading" title="Rapor hazirlaniyor..." />
+      ) : isEmpty ? (
+        <p className="admin-chart-empty">
+          Henuz tamamlanmis bir rezervasyon yok.
+        </p>
+      ) : (
+        <ResponsiveContainer width="100%" height={240}>
+          {children}
+        </ResponsiveContainer>
+      )}
+    </section>
+  );
+}
 
 // Rapor artık gerçek rezervasyon verisinden üretiliyor
 // (GET /api/reservations, reservation.read izniyle korunuyor). Önceden bu
@@ -85,7 +160,7 @@ export default function AdminDashboard() {
   return (
     <div className="admin-dashboard">
       <PageHeader
-        title="📊 İstatistikler & Raporlar"
+        title="İstatistikler & Raporlar"
         description="Tamamlanmış rezervasyonlardan üretilen film bazlı satış raporu."
         actions={
           <CSVLink
@@ -94,7 +169,7 @@ export default function AdminDashboard() {
             filename="cineseat-satis-raporu.csv"
             className="admin-btn admin-btn-export"
           >
-            📥 CSV Olarak İndir
+            CSV Olarak İndir
           </CSVLink>
         }
       />
@@ -123,24 +198,63 @@ export default function AdminDashboard() {
         />
       </div>
 
-      <div className="admin-chart-container">
-        <h2>Film Bazlı Satış Grafiği</h2>
-        {isLoading ? (
-          <StatusPanel variant="loading" title="Rapor hazırlanıyor…" />
-        ) : stats.length === 0 ? (
-          <p>Henüz tamamlanmış bir rezervasyon yok.</p>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stats}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="bilet" fill="#8884d8" name="Satılan Bilet" />
-              <Bar dataKey="gelir" fill="#82ca9d" name="Gelir (TL)" />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+      {/* Bilet ADEDI ile GELIR ayri grafiklerde. Onceden ikisi tek eksende
+          gruplu cubuklardi; olcekleri birbirinden cok uzak oldugu icin (adet
+          onlu, gelir binli) bilet cubuklari gelirin yaninda gorunmez
+          kaliyordu. Ayni eksende farkli olcekli iki olcu okunamaz. */}
+      <div className="admin-chart-grid">
+        <ChartCard
+          title="Film başına satılan bilet"
+          isLoading={isLoading}
+          isEmpty={stats.length === 0}
+        >
+          <BarChart data={stats} margin={CHART_MARGIN}>
+            <CartesianGrid vertical={false} className="chart-grid" />
+            <XAxis dataKey="name" {...AXIS_PROPS} />
+            <YAxis {...AXIS_PROPS} width={36} allowDecimals={false} />
+            <Tooltip {...TOOLTIP_PROPS} />
+            <Bar
+              dataKey="bilet"
+              name="Satılan bilet"
+              className="chart-bar-1"
+              radius={BAR_RADIUS}
+              maxBarSize={BAR_MAX}
+            >
+              {stats.length <= DIRECT_LABEL_LIMIT && (
+                <LabelList dataKey="bilet" position="top" style={LABEL_STYLE} />
+              )}
+            </Bar>
+          </BarChart>
+        </ChartCard>
+
+        <ChartCard
+          title="Film başına gelir (TL)"
+          isLoading={isLoading}
+          isEmpty={stats.length === 0}
+        >
+          <BarChart data={stats} margin={CHART_MARGIN}>
+            <CartesianGrid vertical={false} className="chart-grid" />
+            <XAxis dataKey="name" {...AXIS_PROPS} />
+            <YAxis {...AXIS_PROPS} width={56} tickFormatter={formatAxisNumber} />
+            <Tooltip {...TOOLTIP_PROPS} />
+            <Bar
+              dataKey="gelir"
+              name="Gelir (TL)"
+              className="chart-bar-2"
+              radius={BAR_RADIUS}
+              maxBarSize={BAR_MAX}
+            >
+              {stats.length <= DIRECT_LABEL_LIMIT && (
+                <LabelList
+                  dataKey="gelir"
+                  position="top"
+                  style={LABEL_STYLE}
+                  formatter={formatAxisNumber}
+                />
+              )}
+            </Bar>
+          </BarChart>
+        </ChartCard>
       </div>
     </div>
   );

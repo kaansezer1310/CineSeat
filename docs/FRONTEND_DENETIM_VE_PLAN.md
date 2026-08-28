@@ -63,8 +63,8 @@ girildiğinde rezervasyon kayboluyor, iki kullanıcı aynı koltuğu alabiliyor.
 
 ```
 reservationService.js → localStorage anahtarı "cineseat-reservations"
-seatService.js        → dosya içi sabit dizi (initialReservedSeats)
-campaignService.js    → dosya içi MOCK_CAMPAIGNS
+seatService.js → dosya içi sabit dizi (initialReservedSeats)
+campaignService.js → dosya içi MOCK_CAMPAIGNS
 ```
 
 #### K2 · Admin paneline arayüzden girilemiyor
@@ -95,17 +95,17 @@ her şey — servisler ve bazı servis olmayan bileşenler — mock veride çal�
 
 | Alan | Frontend | Backend'de karşılığı |
 |---|---|---|
-| Kimlik doğrulama | ✅ `authService.js` — gerçek API | Auth |
-| Filmler | ✅ `movieService.js` — gerçek API | Movies |
-| Seanslar | ❌ `sessionService.js` → `src/data/` | Showtimes |
-| Yorumlar | ❌ `commentService.js` → `src/data/` | Comments |
-| Puanlar | ❌ `ratingService.js` → localStorage | ⚠️ Ayrı modül **yok** — `Comment.Rating` |
-| Koltuklar | ❌ `seatService.js` → dosya içi mock | Seats + SeatLocks |
-| Rezervasyon | ❌ `reservationService.js` → localStorage | Reservations |
-| Kampanyalar | ❌ `campaignService.js` → dosya içi mock | Campaigns |
-| **Favoriler** | ❌ `WatchlistProvider.jsx` → localStorage | UserFavorites |
-| **Sinemalar** | ❌ `CinemasPage.jsx` → dosya içi `const CINEMAS` | Cinemas + Cities + Districts |
-| **Profil düzenleme** | ❌ Frontend'de **hiç yok** | `PUT /api/profile` |
+| Kimlik doğrulama | [x] `authService.js` — gerçek API | Auth |
+| Filmler | [x] `movieService.js` — gerçek API | Movies |
+| Seanslar | [yok] `sessionService.js` → `src/data/` | Showtimes |
+| Yorumlar | [yok] `commentService.js` → `src/data/` | Comments |
+| Puanlar | [yok] `ratingService.js` → localStorage | [dikkat] Ayrı modül **yok** — `Comment.Rating` |
+| Koltuklar | [yok] `seatService.js` → dosya içi mock | Seats + SeatLocks |
+| Rezervasyon | [yok] `reservationService.js` → localStorage | Reservations |
+| Kampanyalar | [yok] `campaignService.js` → dosya içi mock | Campaigns |
+| **Favoriler** | [yok] `WatchlistProvider.jsx` → localStorage | UserFavorites |
+| **Sinemalar** | [yok] `CinemasPage.jsx` → dosya içi `const CINEMAS` | Cinemas + Cities + Districts |
+| **Profil düzenleme** | [yok] Frontend'de **hiç yok** | `PUT /api/profile` |
 
 Son üç satır servis dosyası değil, o yüzden ilk taramada gözden kaçmıştı —
 ama aynı sorunu taşıyorlar. Pratik sonuçları:
@@ -114,7 +114,7 @@ ama aynı sorunu taşıyorlar. Pratik sonuçları:
 - **Sinemalar** ekranı veritabanındaki gerçek sinema kayıtlarını göstermiyor.
 - **Profil** bilgileri görüntülenebiliyor ama güncellenemiyor.
 
-> ✅ **T10 kararı:** Puan `Comment.Rating` alanında kalacak; yorum metni isteğe
+> [x] **T10 kararı:** Puan `Comment.Rating` alanında kalacak; yorum metni isteğe
 > bağlı olacak. Ayrı `ratingService` kaldırılacak.
 
 ---
@@ -127,7 +127,7 @@ ve 7 sütunlu tablo dar ekranda yatay taşmaya sebep oluyor.
 
 ```
 admin.css → 245 satır, @media kuralı: 0
-App.css   → 2423 satır, @media kuralı: 12   (karşılaştırma)
+App.css → 2423 satır, @media kuralı: 12 (karşılaştırma)
 ```
 
 #### Y2 · Giriş sonrası hedef sayfaya dönülmüyor
@@ -137,7 +137,7 @@ yönlendirildiğine dair açıklama da gösterilmiyor.
 
 ```
 LoginPage.jsx:22 ve :58 → navigate("/", { replace: true })
-ProtectedRoute.jsx:21   → hedef konum saklanmıyor
+ProtectedRoute.jsx:21 → hedef konum saklanmıyor
 ```
 
 #### Y3 · Dört CSS sınıfı tanımsız
@@ -160,7 +160,7 @@ Silme onayı ve başarı mesajları için `alert()` / `confirm()` kullanılıyor
 Temaya uymuyor, mobilde kötü duruyor, sayfayı bloke ediyor.
 
 ```
-AdminMovieForm.jsx  → 4 çağrı (satır 48, 71, 74, 79)
+AdminMovieForm.jsx → 4 çağrı (satır 48, 71, 74, 79)
 AdminMoviesPage.jsx → 3 çağrı (satır 19, 23, 27)
 ```
 
@@ -172,7 +172,7 @@ Liste ekranında her film için ayrı istek atmamak adına tür alanı boş bır
 movieService.js:52 → genre: genres.length > 0 ? … : ""
 ```
 
-> ✅ **T1 kararı:** Tür listesi `MovieDto`'ya eklenecek; filtre kaldırılmayacak.
+> [x] **T1 kararı:** Tür listesi `MovieDto`'ya eklenecek; filtre kaldırılmayacak.
 
 ---
 
@@ -184,8 +184,8 @@ ediliyor. Sekmeye geçildiğinde adres değişmiyor: bağlantı paylaşılamıyo
 tuşu beklendiği gibi çalışmıyor, `/cinemas` rotasına menüden hiç ulaşılamıyor.
 
 ```
-App.jsx:45     → <Route path="/cinemas" …>
-HomePage.jsx:13 → import CinemasPage   (sekme içeriği olarak)
+App.jsx:45 → <Route path="/cinemas" …>
+HomePage.jsx:13 → import CinemasPage (sekme içeriği olarak)
 ```
 
 #### O2 · Grafik kütüphaneleri her ziyaretçiye iniyor
@@ -203,12 +203,12 @@ birlikte değişmiyor.
 
 ```
 15 adet style={{…}} → Layout, MovieCard, SeatMap, CartPage,
-                       CinemasPage, MovieDetailsPage, PaymentErrorPage, ProfilePage
+ CinemasPage, MovieDetailsPage, PaymentErrorPage, ProfilePage
 ```
 
 #### O4 · Rota adları iki dil arasında gidip geliyor
 ```
-Türkçe   → /odeme, /odeme-hata
+Türkçe → /odeme, /odeme-hata
 İngilizce → /booking, /cart, /success, /movies, /cinemas, /profile
 ```
 
@@ -246,9 +246,9 @@ dönük öğelerde. Durum renkleri (başarı / uyarı / hata) vurgu renginden ay
 tutulmalı.
 
 ```
-#0c0912  zemin        #1b1425  yüzey
-#d0ac59  eylem        #8765a3  ikincil
-#71947c  olumlu       #d77b82  hata
+#0c0912 zemin #1b1425 yüzey
+#d0ac59 eylem #8765a3 ikincil
+#71947c olumlu #d77b82 hata
 ```
 
 ### 3.3 Tipografi
@@ -349,10 +349,10 @@ senaryolarıyla inceleyecek.
 **Kişi 1 — Admin kabuğu, raporlar ve içerik**
 
 - [~] Kenar çubuğunu **Raporlar / Katalog / Salonlar / Kullanıcılar** olarak böl; görünürlüğü izinlere bağla
-  <br>→ Bölümlü ve izne bağlı menü altyapısı hazır; Raporlar ve Katalog bağlanmış durumda. Salonlar/Kullanıcılar bölümleri, ekranları yazılınca `AdminLayout.jsx` içindeki `NAVIGATION_SECTIONS` dizisine eklenecek.
+ <br>→ Bölümlü ve izne bağlı menü altyapısı hazır; Raporlar ve Katalog bağlanmış durumda. Salonlar/Kullanıcılar bölümleri, ekranları yazılınca `AdminLayout.jsx` içindeki `NAVIGATION_SECTIONS` dizisine eklenecek.
 - [ ] Dashboard'u gerçek veri sözleşmesine hazırla; doluluk ızgarasını ekle, çubuk grafiği ikinci sıraya al
 - [~] Film listesi ve formunu `DataTable` + iki sütunlu, alan bazlı doğrulanan form düzenine geçir
-  <br>→ Liste `DataTable`'a, form iki sütunlu düzene geçti; etiketler `htmlFor`/`id` ile bağlandı. Alan bazlı doğrulama mesajları, `Toast`/`ConfirmDialog` (Kişi 2 · Faz 2) ile birlikte yapılacak.
+ <br>→ Liste `DataTable`'a, form iki sütunlu düzene geçti; etiketler `htmlFor`/`id` ile bağlandı. Alan bazlı doğrulama mesajları, `Toast`/`ConfirmDialog` (Kişi 2 · Faz 2) ile birlikte yapılacak.
 - [ ] Yorum moderasyonu ekranını ve izinli moderasyon eylemlerini ekle
 - [ ] Kullanıcı listeleme/yönetim ekranlarını ve izinli eylemleri ekle
 - [x] Tüm bu ekranların dar ekranda tablo yerine karta dönüşmesini sağla
@@ -383,7 +383,7 @@ modülün arayüz entegrasyonunu bitirir.
 
 - [x] **T1:** `MovieDto`'ya tür listesini ekle; liste sorgusunu ve testlerini güncelle
 - [x] **T2:** Koltuk/seans DTO'larını `SeatId` + `HallId` ile kesinleştir; `SeatLock` edinme, yenileme ve bırakma akışını test et
-  <br>→ Düzeltme (24 Ağustos): önceki not "sözleşme tamamlandı" diyordu ama **yenileme ucu yoktu**. `POST /api/seatlocks/renew` eklendi. Ayrıca koltuk haritası için `GET /api/showtimes/{id}/seats` eklendi (salon koltukları + seans bazlı durum). Backend entegrasyon testleri hâlâ bekliyor.
+ <br>→ Düzeltme (24 Ağustos): önceki not "sözleşme tamamlandı" diyordu ama **yenileme ucu yoktu**. `POST /api/seatlocks/renew` eklendi. Ayrıca koltuk haritası için `GET /api/showtimes/{id}/seats` eklendi (salon koltukları + seans bazlı durum). Backend entegrasyon testleri hâlâ bekliyor.
 - [x] **T3:** Sayfalama ile tarih/film/durum filtresi sunan `GET /api/reservations` ucunu ekle ve **`reservation.read` policy'siyle** koru
 - [x] **T5:** Tüm admin controller eylemlerini ilgili izin policy'lerine geçir; yalnızca UI gizlemeye güvenme
 - [x] **T7:** Kalıcı silme yerine `IsDeleted = true` kullanan arşivleme akışını tamamla; gereken kayıtlar için geri alma ucunu ekle
@@ -457,39 +457,39 @@ birleştirildi.
 İki hat da izin katmanını paralel yazdı; birleştirmede tek sözleşme bırakıldı:
 
 - `src/constants/permissions.js` tek kaynak. (Kişi 1'in geçici
-  `src/domain/permissions.js` dosyası kaldırıldı.)
+ `src/domain/permissions.js` dosyası kaldırıldı.)
 - Yetki **yalnızca** izin listesinden geliyor. Backend artık izinleri JWT
-  claim'i olarak gönderdiği için "admin rolü = tam yetki" geri düşüşü
-  kaldırıldı; izinsiz bir admin hesabı panele giremez.
+ claim'i olarak gönderdiği için "admin rolü = tam yetki" geri düşüşü
+ kaldırıldı; izinsiz bir admin hesabı panele giremez.
 - `AuthProvider` → `permissions` + `hasPermission`.
 - `ProtectedRoute` → `allowedRoles`, `requiredPermissions`, `permissionMode`
-  ("all" | "any") destekliyor; **giriş gerekiyor** ile **yetki yok** durumlarını
-  ayırıyor: misafir `/login`'e hedefi `state.from` ile taşıyarak, yetkisi
-  olmayan oturum `/forbidden`'a gidiyor.
+ ("all" | "any") destekliyor; **giriş gerekiyor** ile **yetki yok** durumlarını
+ ayırıyor: misafir `/login`'e hedefi `state.from` ile taşıyarak, yetkisi
+ olmayan oturum `/forbidden`'a gidiyor.
 - `PermissionGate` koşullu arayüz öğeleri için (ör. ana menüdeki **Yönetim**
-  bağlantısı).
+ bağlantısı).
 - Panele giriş `ADMIN_PERMISSIONS` + `permissionMode="any"`, her admin alt
-  ağacı ayrıca kendi izniyle korunuyor.
+ ağacı ayrıca kendi izniyle korunuyor.
 
 **Eklenen arayüz yapı taşları**
 
 - `src/components/ui/` — `PageHeader`, `DataTable`, `EmptyState`.
 - `DataTable` sıralama (`aria-sort`), yükleniyor iskeleti, boş durum ve dar
-  ekranda kart görünümü sağlıyor; DOM tek `<table>` kaldığı için başlık-hücre
-  ilişkisi bozulmuyor.
+ ekranda kart görünümü sağlıyor; DOM tek `<table>` kaldığı için başlık-hücre
+ ilişkisi bozulmuyor.
 
 **Sıradaki işler**
 
 - `alert()` / `confirm()` çağrıları yerinde duruyor; `Toast` ve `ConfirmDialog`
-  Kişi 2 · Faz 2 kapsamında.
+ Kişi 2 · Faz 2 kapsamında.
 - Dashboard hâlâ `localStorage` rezervasyonlarından besleniyor (K4). `GET
-  /api/reservations` (T3) hazır olduğu için bu artık Kişi 1'in Faz 4 işi:
-  dashboard ve rezervasyon ekranlarını bu uca bağlamak.
+ /api/reservations` (T3) hazır olduğu için bu artık Kişi 1'in Faz 4 işi:
+ dashboard ve rezervasyon ekranlarını bu uca bağlamak.
 - Frontend servisleri (seans, koltuk, rezervasyon, kampanya, yorum, favori,
-  profil, sinema) hâlâ mock veride; backend uçları hazır.
+ profil, sinema) hâlâ mock veride; backend uçları hazır.
 - Sinema/salon, seans, kampanya, yorum moderasyonu ve kullanıcı yönetimi
-  admin ekranları yazılınca `AdminLayout.jsx` içindeki `NAVIGATION_SECTIONS`
-  dizisine eklenecek.
+ admin ekranları yazılınca `AdminLayout.jsx` içindeki `NAVIGATION_SECTIONS`
+ dizisine eklenecek.
 
 ---
 

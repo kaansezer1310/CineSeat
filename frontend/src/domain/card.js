@@ -35,20 +35,42 @@ export const CARD_BRANDS = {
   },
 };
 
+/**
+ * Hicbir kart bundan uzun degil (Visa'nin en uzun bicimi 19 hane). Marka
+ * henuz anlasilmadiginda kullanilan ust sinir.
+ */
+export const MAX_CARD_DIGITS = 19;
+
 /** Girilen metinden yalnızca rakamları alır (boşluk, tire vs. atılır). */
 export function normalizeCardNumber(value) {
   return String(value ?? "").replace(/\D/g, "");
 }
 
-/** "4111 1111 1111 1111" biçiminde gruplar; Amex 4-6-5 düzenindedir. */
-export function formatCardNumber(value) {
-  const digits = normalizeCardNumber(value);
+/** Markaya gore kabul edilebilecek en fazla hane sayisi. */
+function maxDigitsFor(digits) {
   const brand = detectCardBrand(digits);
+
+  return brand
+    ? Math.max(...CARD_BRANDS[brand].lengths)
+    : MAX_CARD_DIGITS;
+}
+
+/**
+ * "4111 1111 1111 1111" biçiminde gruplar; Amex 4-6-5 düzenindedir.
+ *
+ * Fazla haneler ATILIR: girdide sinir yoktu, kullanici kart numarasini
+ * sonsuza kadar yazabiliyordu.
+ */
+export function formatCardNumber(value) {
+  const digits = normalizeCardNumber(value).slice(0, MAX_CARD_DIGITS);
+  const brand = detectCardBrand(digits);
+
+  const capped = digits.slice(0, maxDigitsFor(digits));
 
   const groups =
     brand === "amex"
-      ? [digits.slice(0, 4), digits.slice(4, 10), digits.slice(10, 15)]
-      : digits.match(/.{1,4}/g) ?? [];
+      ? [capped.slice(0, 4), capped.slice(4, 10), capped.slice(10, 15)]
+      : capped.match(/.{1,4}/g) ?? [];
 
   return groups.filter(Boolean).join(" ");
 }

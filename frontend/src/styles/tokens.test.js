@@ -36,7 +36,12 @@ describe("tokens.css", () => {
   });
 
   it("token sözleşmesi için eklenen yeni renk token'larını dark temada tanımlar", () => {
-    expect(css).toContain("--color-purple-dark: #a181ba;");
+    // Faz 6 DÜZELTMESİ: burada #a181ba vardı — tabandan (#8765a3) AÇIK bir
+    // ton. --color-purple-dark birincil butonun HOVER ZEMİNİ olduğu için
+    // üzerindeki beyaz metin 3.30:1'e düşüyordu (WCAG AA 4.5 ister).
+    // Artık gerçekten koyulaşıyor; beyaz metinle 6.76:1.
+    // Kontrastın kendisi contrast.test.js'te doğrulanıyor.
+    expect(css).toContain("--color-purple-dark: #6d4f85;");
     expect(css).toContain("--color-accent-soft: rgba(208, 172, 89, 0.16);");
     expect(css).toContain("--color-warn: #ddbd70;");
   });
@@ -58,9 +63,26 @@ describe("tokens.css", () => {
     );
   });
 
-  it("header ve overlay token'larını temadan bağımsız, orijinal değerleriyle korur", () => {
-    expect(css).toContain("--color-header-background: rgba(12, 9, 18, 0.9);");
+  it("poster katmanı token'larını temadan bağımsız tanımlar", () => {
+    // Poster üzerindeki katman her iki temada da koyu kalır, bu yüzden
+    // dark bloğunda override EDİLMEZ.
     expect(css).toContain("--color-overlay-scrim: rgba(12, 9, 18, 0.82);");
+    expect(css).toContain("--color-on-overlay: #f2edf5;");
+    expect(css).toContain("--color-on-overlay-accent: #d8b662;");
+    expect(css).toContain("--color-overlay-border: rgba(255, 255, 255, 0.14);");
+  });
+
+  it("Faz 6: ölü --color-header-* ailesini tamamen kaldırır", () => {
+    // Faz 1 header'ı açık yüzeye geçirdi; bu token ailesinin son
+    // tüketicisi bir poster katmanı öğesiydi ve yanlış aileyi
+    // kullanıyordu. Artık marka çıpası footer.
+    //
+    // Yorum metinlerini değil, gerçek BİLDİRİMLERİ arıyoruz — dosyadaki
+    // açıklama satırı ailenin neden kaldırıldığını anlatmak için adını
+    // anmaya devam ediyor.
+    const declarations = css.match(/^\s*--color-header-[\w-]+\s*:/gm) ?? [];
+
+    expect(declarations).toEqual([]);
   });
 
   it("footer token'larını temadan bağımsız tanımlar", () => {
@@ -69,5 +91,19 @@ describe("tokens.css", () => {
     expect(css).toContain("--color-footer-text-muted: #A99BBB;");
     expect(css).toContain("--color-footer-heading: #FFFFFF;");
     expect(css).toContain("--color-footer-border: rgba(255, 255, 255, 0.11);");
+  });
+
+  it("Faz 6: her tema için eksiksiz durum ve desen token'ları tanımlar", () => {
+    // Dolgu üzerindeki metin: light'ta yeşil koyu (beyaz metin),
+    // dark'ta yeşil açık (koyu metin).
+    expect(css).toContain("--color-on-success: #FFFFFF;");
+    expect(css).toContain("--color-on-success: #0c120e;");
+
+    // Geçici kilit deseni ve hero perdesi tema başına ayrı.
+    expect(css).toContain("--color-seat-locked-stripe: rgba(91, 62, 142, 0.5);");
+    expect(css).toContain(
+      "--color-seat-locked-stripe: rgba(135, 101, 163, 0.55);"
+    );
+    expect(css.match(/--gradient-hero-scrim:/g)).toHaveLength(2);
   });
 });

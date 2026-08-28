@@ -37,7 +37,7 @@ Kullanıcı: "Projenin güncel halini analiz et, status dosyalarına bak, kod ha
 
 `sessionService.test.js` (yeni, 7 test), `WatchlistProvider.test.jsx` (yeni, 2 test), `ProfilePage.test.jsx` (yeni, 6 test — bu dosyanın hiç testi yoktu), `HomePage.test.jsx` (+3 test, bildirim bandı).
 
-**Sonuç:** `npm run test:run` → 23 dosya / 182 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅. `docs/PLAN.md`, `docs/WBS_GOREV_DAGILIMI.md`, `docs/omer_STATUS.md` güncellendi.
+**Sonuç:** `npm run test:run` → 23 dosya / 182 test [x] · `npm run lint` → 0 hata [x] · `npm run build` → başarılı [x]. `docs/PLAN.md`, `docs/WBS_GOREV_DAGILIMI.md`, `docs/omer_STATUS.md` güncellendi.
 
 ---
 
@@ -65,7 +65,7 @@ Kaan'ın backlog'unu devralan Alptuğ, `main`'in gerisinde kalan eski bir noktad
 
 ---
 
-## Sprint 3 — Kalan 6 görev: 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11 — hepsi ✅
+## Sprint 3 — Kalan 6 görev: 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11 — hepsi [x]
 
 Alp merge'i main'e alındıktan sonra kendi backlog'umun kalanını tek oturumda bitirdim.
 
@@ -88,7 +88,7 @@ Ayrıca test yazarken gerçek bir **test-tuzağı** buldum ve düzelttim: `findB
 
 **Testler (yeni, ~47 test):** `movieService.test.js` +11 (sort/filter), `HomePage.test.jsx` +4, `MovieDetailsPage.test.jsx` yeni dosya +12 (trailer/rating/yorum), `ratingService.test.js` yeni +8, `commentService.test.js` yeni +12.
 
-**Kalite kontrolleri (son hâliyle):** `npm run test:run` → 20 dosya / 164 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+**Kalite kontrolleri (son hâliyle):** `npm run test:run` → 20 dosya / 164 test [x] · `npm run lint` → 0 hata [x] · `npm run build` → başarılı [x].
 
 `docs/PLAN.md` ve `docs/WBS_GOREV_DAGILIMI.md` güncellendi: 44 görevin 37'si bitti, kalan 7'si Ömer'in.
 
@@ -97,8 +97,8 @@ Ayrıca test yazarken gerçek bir **test-tuzağı** buldum ve düzelttim: `findB
 ## Sprint 3 (konsolide backlog) — 1/8: 1.3.6 Yakında 6 ay zaman kısıtı
 
 **Görev:** 1.3.6 — REQ-15 — "Yakında" listesini bugünden itibaren en fazla 6 ay içinde vizyona girecek filmlerle sınırla.
-**Durum:** ✅ Tamamlandı
-**Bağımlılık:** 1.3.1 ✅, 1.3.5 ✅ (ikisi de hazırdı).
+**Durum:** [x] Tamamlandı
+**Bağımlılık:** 1.3.1 [x], 1.3.5 [x] (ikisi de hazırdı).
 
 **Ne yapıldı:**
 - `movieService.js`'e `isWithinComingSoonWindow(movie, referenceDate, monthsAhead = 6)` eklendi — saf (pure) fonksiyon, `isMovieArchived`/`isMovieReleased` ile aynı desende (`parseIsoDateOnly`/`toDateOnly` paylaşılıyor, ISO tarih manuel Y/M/D ile parse ediliyor, timezone off-by-one riski yok). `releaseDate` alanı yoksa `true` döner — `isMovieReleased`'daki güvenli varsayılanla tutarlı (zaten `!isMovieReleased` ile birlikte kullanıldığı için bu dal pratikte devreye girmez, ama fonksiyonun kendi sözleşmesi eksiksiz kalsın diye eklendi).
@@ -107,7 +107,7 @@ Ayrıca test yazarken gerçek bir **test-tuzağı** buldum ve düzelttim: `findB
 
 **Testler (yeni, 4 test, `movieService.test.js`):** pencere içinde / pencere sınırında (tam 6 ay, dahil) / pencere dışında / `releaseDate` yok → `true`.
 
-**Kalite kontrolleri:** `npm run test:run` → 17 dosya / 117 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+**Kalite kontrolleri:** `npm run test:run` → 17 dosya / 117 test [x] · `npm run lint` → 0 hata [x] · `npm run build` → başarılı [x].
 
 > **Not:** Bu doğrulama turunda Bash aracı bir kere `vitest` worker havuzunu ortam kaynak kısıtı yüzünden çökertip "Vitest failed to find the current suite" hatası verdi (tüm 17 suite aynı anda, gerçek bir kod hatası değil). PowerShell'de tekrar çalıştırılınca temiz geçti — gerçek bir regresyon değildi, sadece o anki kabuk/ortam sorunuydu.
 
@@ -139,7 +139,7 @@ Kullanıcı talebiyle: Kaan/Ömer/Berke'nin eskiden **S3'ten S9'a kadar** tek te
 
 Kişiler arası kritik köprüler korundu ve belirginleştirildi: Kaan'ın 1.4.5'i (ara toplam sözleşmesi) benim 1.2.10'umdan önce bitmeli; Kaan'ın 1.4.8'i (ödeme akışı, gerçek rezervasyon verisi üretir) Ömer'in 1.2.6'sından önce bitmeli. Her görevin tam detayı (Kabul/Dosyalar/Bağımlılık) hiçbir bilgi kaybı olmadan `docs/PLAN.md` §5 "SPRINT 3"e taşındı, sadece sprint sınırları kaldırıldı.
 
-`docs/WBS_GOREV_DAGILIMI.md` da bu yeni yapıya göre güncellendi (1.2.1 ✅ işaretlendi, özet sayaç 24/20'ye güncellendi, kişi bazlı tablolar PLAN.md'nin yeni sırasıyla eşleştirildi).
+`docs/WBS_GOREV_DAGILIMI.md` da bu yeni yapıya göre güncellendi (1.2.1 [x] işaretlendi, özet sayaç 24/20'ye güncellendi, kişi bazlı tablolar PLAN.md'nin yeni sırasıyla eşleştirildi).
 
 ---
 
@@ -157,7 +157,7 @@ Kişiler arası kritik köprüler korundu ve belirginleştirildi: Kaan'ın 1.4.5
 - **Tek düşük seviye not (Kaan'ın kendi STATUS'unda da işaretlemiş):** commit'e ilgisiz bir `docs/omer_STATUS.md` eklenmiş — zararsız, sadece kapsam dışı.
 - Ayrı, Kaan'la ilgisiz bir housekeeping: `npm audit`'in bulduğu transitive `brace-expansion` (DoS) zafiyeti `npm audit fix` ile temizlendi, testler tekrar 100/100 doğrulandı.
 
-### ✅ 1.3.5 — Otomatik kategorizasyon ve arşiv (REQ-05)
+### [x] 1.3.5 — Otomatik kategorizasyon ve arşiv (REQ-05)
 
 **Durum:** Tamamlandı, PLAN.md'nin dosya kapsamına sadık kalındı (`movieService.js`, `HomePage.jsx`).
 
@@ -171,7 +171,7 @@ Kişiler arası kritik köprüler korundu ve belirginleştirildi: Kaan'ın 1.4.5
 - `movieService.test.js` — `isMovieArchived`'ın 4 sınır durumu (geçmiş/tam bugün/gelecek/alan yok) + "arşivlenmiş film hâlâ `getMovieById` ile erişilebilir" regresyon testi.
 - `HomePage.test.jsx` — arşivlenmiş filmin ne Vizyonda ne Yakında sekmesinde göründüğünü doğrulayan entegrasyon testi.
 
-**Kalite kontrolleri:** `npm run test:run` → 14 dosya / 100 test ✅ · `npm run lint` → 0 hata ✅ · `npm run build` → başarılı ✅.
+**Kalite kontrolleri:** `npm run test:run` → 14 dosya / 100 test [x] · `npm run lint` → 0 hata [x] · `npm run build` → başarılı [x].
 
 **Bilinçli, açıklanan scope kararı:** `AdminMovieForm.jsx`'e `screeningEndDate` alanı eklenmedi — bu, 1.5.2'nin (admin form) dosya kapsamı, 1.3.5'in değil (tıpkı Sprint 1'de `releaseDate` için yaşanan Y2 boşluğu gibi). Admin panelinden eklenen filmler bu yüzden şimdilik asla otomatik arşivlenmeyecek (güvenli varsayılan, hata değil) — ileride admin formu güncellenirken bu alan da eklenmeli.
 
@@ -210,7 +210,7 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 
 ## Sprint 1 — İzzettin Berke Kuş
 
-### ✅ 1.3.1 — Vizyonda / Yakında sekme yapısı (REQ-08)
+### [x] 1.3.1 — Vizyonda / Yakında sekme yapısı (REQ-08)
 
 **Durum:** Tamamlandı, kendi kendine code review yapıldı, testler+lint+build geçiyor.
 
@@ -228,23 +228,23 @@ Tüm liste, gerekçeler ve "Sprint 2 öncesi yapılacaklar" `docs/SPRINT1_REVIEW
 **Kalite kontrolleri (hepsi yerel olarak çalıştırıldı):**
 | Kontrol | Sonuç |
 |---|---|
-| `npm run test:run` | ✅ 7 dosya / 24 test geçti (21 mevcut + 3 yeni HomePage + değişmeyen movieService eklentisi) |
-| `npm run lint` | ✅ hata yok |
-| `npm run build` | ✅ başarılı |
-| Görsel/tarayıcı kontrolü | ⚠️ **Yapılamadı** — bu ortamda tarayıcı otomasyon aracı yok. Doğrulama `vitest` + `@testing-library/react` ile gerçek DOM (jsdom) üzerinden yapıldı (gerçek render, gerçek click event'leri, gerçek CSS class kontrolü) ama bu, gerçek tarayıcıda görsel kontrolün yerini tutmaz. **Öneri:** Berke ya da bir teammate `npm run dev` ile sayfayı bir kez tarayıcıda gözden geçirsin. |
+| `npm run test:run` | [x] 7 dosya / 24 test geçti (21 mevcut + 3 yeni HomePage + değişmeyen movieService eklentisi) |
+| `npm run lint` | [x] hata yok |
+| `npm run build` | [x] başarılı |
+| Görsel/tarayıcı kontrolü | [dikkat] **Yapılamadı** — bu ortamda tarayıcı otomasyon aracı yok. Doğrulama `vitest` + `@testing-library/react` ile gerçek DOM (jsdom) üzerinden yapıldı (gerçek render, gerçek click event'leri, gerçek CSS class kontrolü) ama bu, gerçek tarayıcıda görsel kontrolün yerini tutmaz. **Öneri:** Berke ya da bir teammate `npm run dev` ile sayfayı bir kez tarayıcıda gözden geçirsin. |
 
 **Kendi kendine code review bulguları (8 açıdan, ~15 aday, verify sonrası):**
 
 | # | Bulgu | Karar |
 |---|---|---|
-| 1 | `MovieCard.jsx`'te iki neredeyse aynı `.movie-card-footer` div'i (ternary) | ✅ **Düzeltildi** — tek wrapper div'e indirildi, sadece iç içerik koşullu. |
-| 2 | `parseIsoDateOnly` UTC/local timezone off-by-one riski | ✅ **Düzeltildi (review öncesi, geliştirme sırasında yakalandı)** — ISO string manuel Y/M/D ile parse ediliyor, `new Date(isoString)` kullanılmıyor. |
-| 3 | `MovieCard`'ın kendi `isMovieReleased` hesaplaması `HomePage`'in sekme bucketing'iyle "iki kaynak" riski taşıyor mu? | 🟡 **Bilinçli olarak değiştirilmedi** — pure fonksiyon, aynı anda/aynı veri üzerinde çağrılıyor, sonuç her zaman tutarlı; prop olarak geçirmek `MovieList.jsx`'i de scope'a katardı ve kartın kendi kendine yeten (self-contained) tasarımını bozardı. |
-| 4 | `movieService.js`'e senkron yardımcı fonksiyonlar eklendi ama dosya asıl async servis katmanı | 🟡 **Bilinçli, PLAN.md ile tutarlı** — `docs/PLAN.md`'de Sprint 2 (1.3.5) ve Sprint 3 (1.3.6) zaten aynı dosyayı (`movieService.js`) genişletecek şekilde planlanmış; bu görevler bu mantığın doğal ev sahibinin burası olduğunu zaten öngörmüş. |
-| 5 | 1.3.1'in PLAN.md'deki dosya listesi sadece `HomePage.jsx`, `movies.js`, `MovieCard.jsx` — ama `movieService.js` de değişti | 🟡 **Şeffaf bilgilendirme** — tarih/durum mantığının iki UI dosyasında (HomePage + MovieCard) kopyalanmasını önlemek için servis katmanına eklendi; bu, mimariyle tutarlı ve PLAN.md'nin kendisinin öngördüğü bir yön. Scope dışı bir özellik eklenmedi, sadece paylaşılan mantığın doğru katmanda durması sağlandı. |
-| 6 | `MovieDetailsPage.jsx` / `SessionList.jsx`, "Yakında" bir filmin detayına gidildiğinde (film id 5/6) sadece genel "seans yok" mesajı gösteriyor, vizyon tarihi bağlamı yok | ⏭️ **Bilinçli olarak ertelendi** — 1.3.1'in dosya kapsamı dışında (`MovieDetailsPage.jsx` listede yok); ileride 1.3.6 veya ayrı bir görevle ele alınmalı. Çökme veya hatalı davranış yok, sadece geliştirilebilir bir UX detayı. |
-| 7 | Yeni CSS'te `#211a0b` ham hex kodu, PLAN.md'nin "sadece token kullan" kuralına aykırı görünüyor | 🟡 **İncelendi, sorun değil** — bu hex kod (`var(--color-yellow)` üzerinde koyu metin için) `App.css`'te zaten 3 yerde aynı şekilde kullanılıyordu (satır 168, 802, 988); yeni bir sapma değil, mevcut kod stiliyle tutarlı, "mevcut tasarımı değiştirme" talimatına uygun. |
-| 8 | `formatDaysRemainingLabel`'daki `daysRemaining <= 0` dalı bugünkü tek çağrı noktasında hiç tetiklenmiyor (ulaşılamaz) | 🟡 **Değiştirilmedi** — zararsız, savunmacı programlama; fonksiyonun genel sözleşmesini eksiksiz tutuyor. |
+| 1 | `MovieCard.jsx`'te iki neredeyse aynı `.movie-card-footer` div'i (ternary) | [x] **Düzeltildi** — tek wrapper div'e indirildi, sadece iç içerik koşullu. |
+| 2 | `parseIsoDateOnly` UTC/local timezone off-by-one riski | [x] **Düzeltildi (review öncesi, geliştirme sırasında yakalandı)** — ISO string manuel Y/M/D ile parse ediliyor, `new Date(isoString)` kullanılmıyor. |
+| 3 | `MovieCard`'ın kendi `isMovieReleased` hesaplaması `HomePage`'in sekme bucketing'iyle "iki kaynak" riski taşıyor mu? | [sari] **Bilinçli olarak değiştirilmedi** — pure fonksiyon, aynı anda/aynı veri üzerinde çağrılıyor, sonuç her zaman tutarlı; prop olarak geçirmek `MovieList.jsx`'i de scope'a katardı ve kartın kendi kendine yeten (self-contained) tasarımını bozardı. |
+| 4 | `movieService.js`'e senkron yardımcı fonksiyonlar eklendi ama dosya asıl async servis katmanı | [sari] **Bilinçli, PLAN.md ile tutarlı** — `docs/PLAN.md`'de Sprint 2 (1.3.5) ve Sprint 3 (1.3.6) zaten aynı dosyayı (`movieService.js`) genişletecek şekilde planlanmış; bu görevler bu mantığın doğal ev sahibinin burası olduğunu zaten öngörmüş. |
+| 5 | 1.3.1'in PLAN.md'deki dosya listesi sadece `HomePage.jsx`, `movies.js`, `MovieCard.jsx` — ama `movieService.js` de değişti | [sari] **Şeffaf bilgilendirme** — tarih/durum mantığının iki UI dosyasında (HomePage + MovieCard) kopyalanmasını önlemek için servis katmanına eklendi; bu, mimariyle tutarlı ve PLAN.md'nin kendisinin öngördüğü bir yön. Scope dışı bir özellik eklenmedi, sadece paylaşılan mantığın doğru katmanda durması sağlandı. |
+| 6 | `MovieDetailsPage.jsx` / `SessionList.jsx`, "Yakında" bir filmin detayına gidildiğinde (film id 5/6) sadece genel "seans yok" mesajı gösteriyor, vizyon tarihi bağlamı yok | ⏭ **Bilinçli olarak ertelendi** — 1.3.1'in dosya kapsamı dışında (`MovieDetailsPage.jsx` listede yok); ileride 1.3.6 veya ayrı bir görevle ele alınmalı. Çökme veya hatalı davranış yok, sadece geliştirilebilir bir UX detayı. |
+| 7 | Yeni CSS'te `#211a0b` ham hex kodu, PLAN.md'nin "sadece token kullan" kuralına aykırı görünüyor | [sari] **İncelendi, sorun değil** — bu hex kod (`var(--color-yellow)` üzerinde koyu metin için) `App.css`'te zaten 3 yerde aynı şekilde kullanılıyordu (satır 168, 802, 988); yeni bir sapma değil, mevcut kod stiliyle tutarlı, "mevcut tasarımı değiştirme" talimatına uygun. |
+| 8 | `formatDaysRemainingLabel`'daki `daysRemaining <= 0` dalı bugünkü tek çağrı noktasında hiç tetiklenmiyor (ulaşılamaz) | [sari] **Değiştirilmedi** — zararsız, savunmacı programlama; fonksiyonun genel sözleşmesini eksiksiz tutuyor. |
 
 **Bilinçli, dokümante edilmiş scope kararları (özet):**
 - `movieService.js` PLAN.md'nin 1.3.1 dosya listesinde yok ama dokunuldu (yukarıda madde 4-5, gerekçeli).

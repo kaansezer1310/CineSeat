@@ -2,7 +2,7 @@
 
 **Görev:** 1.4.3 — Koltuk state makinesi: 4 durum (REQ-01)
 **Sprint:** Sprint 1
-**Durum:** ✅ Tamamlandı (kod incelemesine hazır)
+**Durum:** [x] Tamamlandı (kod incelemesine hazır)
 **Branch:** `kaan`
 
 ---
@@ -56,9 +56,9 @@ Yeni/güncellenen test dosyaları — **58 test, 9 dosya, tamamı geçiyor**:
 ## 4. Doğrulama (bu makinede çalıştırıldı)
 
 ```
-npm run lint      -> temiz (0 hata)
-npm run test:run  -> 9 dosya / 58 test PASS
-npm run build     -> başarılı
+npm run lint -> temiz (0 hata)
+npm run test:run -> 9 dosya / 58 test PASS
+npm run build -> başarılı
 ```
 
 Ayrıca tarayıcıda manuel olarak: 101 numaralı seansta 4 durumun hepsi bir arada
@@ -78,19 +78,19 @@ girişte/çıkışında çağırarak kullanabilir; state modeli buna hazır.
 - Backend/veritabanı yok (Faz-1 kapsamı).
 - 1.4.7'nin sayaç/geri sayım UI'ı yapılmadı (yalnızca servis altyapısı hazır).
 - `CartPage.jsx`, `cartReducer.js`, `reservationService.js` davranışsal olarak
-  değiştirilmedi (geriye dönük uyumluluk korunduğu için gerek kalmadı).
+ değiştirilmedi (geriye dönük uyumluluk korunduğu için gerek kalmadı).
 - Yeni bağımlılık eklenmedi.
 
 ---
 
 # Güncelleme — 16 Temmuz 2026: Sprint 2 / 1.4.4 (REQ-02)
 
-**Görev:** 1.4.4 — Sepet yapısı + bilet tipi seçimi (REQ-02)  
-**Sprint:** Sprint 2  
-**Durum:** ✅ Tamamlandı (kod incelemesi ve doğrulama yapıldı)  
-**Branch:** `kaan`  
-**İncelenen commit:** `22ced6e` — *Bilet tipleri eklendi*  
-**Baseline:** `38166e5` (Sprint 1 koltuk state makinesi) → `22ced6e`  
+**Görev:** 1.4.4 — Sepet yapısı + bilet tipi seçimi (REQ-02)
+**Sprint:** Sprint 2
+**Durum:** [x] Tamamlandı (kod incelemesi ve doğrulama yapıldı)
+**Branch:** `kaan`
+**İncelenen commit:** `22ced6e` — *Bilet tipleri eklendi*
+**Baseline:** `38166e5` (Sprint 1 koltuk state makinesi) → `22ced6e`
 **Not:** Working tree temiz; sonraki `d943775` (main merge) bu incelemenin parçası değildir.
 
 > 1.4.3 kaydı yukarıda tarihsel olarak korunmuştur. Aşağıdaki giriş, 1.4.4 sonrası
@@ -102,17 +102,17 @@ girişte/çıkışında çağırarak kullanabilir; state modeli buna hazır.
 
 - Sepet koltukları artık `{ seatId, ticketType }` nesneleri; seans bazlı gruplama korundu.
 - Makine değerleri: `ADULT` / `STUDENT` / `CHILD` → Yetişkin / Öğrenci / Çocuk
-  (`src/domain/ticketType.js`). Belgelerde varsayılan yoktu → varsayılan `ADULT`.
+ (`src/domain/ticketType.js`). Belgelerde varsayılan yoktu → varsayılan `ADULT`.
 - Aynı seansta farklı tipler bir arada; `UPDATE_TICKET_TYPE` tek koltuğu günceller.
 - Yinelenen `(sessionId, seatId)` `seatId` ile engellenir (`Map`; `Set(object)` yok).
 - BookingPage: seçime bağlı tip seçici; deselect / `GECICI_KILITLI`/`DOLU` uzlaştırması
-  hem seçimi hem tip verisini temizler; REQ-01 state makinesi bozulmadı.
+ hem seçimi hem tip verisini temizler; REQ-01 state makinesi bozulmadı.
 - CartPage: sepette tip görüntüleme/değiştirme; sayaç ve toplam hâlâ
-  `seats.length * unitPrice` (çarpanlar **1.4.5** kapsamı, bu görevde yok).
+ `seats.length * unitPrice` (çarpanlar **1.4.5** kapsamı, bu görevde yok).
 - `reservationService`: `seatService`’e düz `seatId` listesi; rezervasyon kaydında tip korunur.
 - UI iyileştirmesi: koyu tema select (`color-scheme: dark`, özel ok, okunabilir option),
-  iki sütunlu satır düzeni, mobil yığılma, `visually-hidden` ile erişilebilir ad
-  (`{seatId} koltuğu` + gizli `bilet tipi`).
+ iki sütunlu satır düzeni, mobil yığılma, `visually-hidden` ile erişilebilir ad
+ (`{seatId} koltuğu` + gizli `bilet tipi`).
 
 ## 2. Değişen dosyalar (22ced6e)
 
@@ -143,10 +143,10 @@ reservation düz seatId + tip korunumu; `[object Object]` UI gösterimi engeli.
 ## 4. Doğrulama (16 Temmuz 2026 — inceleme sonrası)
 
 ```
-git diff --check 22ced6e^..22ced6e  -> temiz (exit 0)
+git diff --check 22ced6e^..22ced6e -> temiz (exit 0)
 npx eslint [1.4.4 kaynak/test dosyaları] -> temiz (0 hata)
-npm run test:run  -> 13 dosya / 91 test PASS
-npm run build     -> başarılı
+npm run test:run -> 13 dosya / 91 test PASS
+npm run build -> başarılı
 ```
 
 **Lint notu:** Çalışma anındaki tam `npm run lint` Admin/Cinemas dosyalarında hata
@@ -162,8 +162,8 @@ gelmiştir. 1.4.4 diff’ine ait dosyalarda eslint temizdir.
 
 **Doğrulama sınırlaması**
 - Native `<select>` açılır listesinin OS/tarayıcıya göre görünümü bu ortamda
-  uçtan uca tarayıcı oturumuyla yeniden doğrulanmadı; kapalı durum stilleri ve
-  `color-scheme: dark` / `option` stilleri diff’te mevcut.
+ uçtan uca tarayıcı oturumuyla yeniden doğrulanmadı; kapalı durum stilleri ve
+ `color-scheme: dark` / `option` stilleri diff’te mevcut.
 
 ## 6. Kapsam dışı (1.4.4)
 

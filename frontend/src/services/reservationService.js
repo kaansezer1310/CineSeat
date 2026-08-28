@@ -73,15 +73,20 @@ function toCommand(item, buyer, campaignId) {
  * hesabı backend yapar. Araya giren bir hatada, o ana kadar oluşturulmuş
  * rezervasyonlar iptal edilir; aksi hâlde kullanıcı ödemediği bir bileti
  * üzerinde bulurdu.
+ *
+ * Kampanya KALEM BAZINDA veriliyor (`item.campaignId`): backend sepet diye bir
+ * sey bilmiyor, kosullari her rezervasyonun kendi ara toplamina gore
+ * dogruluyor. Tum sepete tek bir kampanya gecirmek, esigi sepet toplaminda
+ * asan ama kalem bazinda asmayan durumlarda 409'a yol aciyordu.
  */
-async function createReservation({ cartItems, buyer, campaignId = null }) {
+async function createReservation({ cartItems, buyer }) {
   const created = [];
 
   try {
     for (const item of cartItems) {
       const dto = await apiClient.post(
         "/reservations",
-        toCommand(item, buyer, campaignId)
+        toCommand(item, buyer, item.campaignId ?? null)
       );
 
       created.push(mapReservationDto(dto));

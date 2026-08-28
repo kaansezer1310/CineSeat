@@ -1,105 +1,114 @@
-/* Sinemalar Sayfası CSS */
+/* Faz 4 — Sinemalar sayfası. Değerler token'lardan; ham renk yazılmaz.
+   (Faz 0 öncesinde burada sabit rgba/px değerleri vardı.) */
+
 .cinemas-page {
-  padding-bottom: 80px;
+  padding-bottom: var(--space-16);
+}
+
+.cinemas-location-status {
+  margin: 0 0 var(--space-5);
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .cinemas-filter {
-  margin-bottom: 40px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  background-color: var(--color-surface);
-  padding: 20px;
-  border-radius: 12px;
+  gap: var(--space-4);
+
+  margin-bottom: var(--space-8);
+  padding: var(--space-5);
+
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
 }
 
 .cinemas-filter label {
   color: var(--color-text-muted);
-  font-weight: 500;
-  font-size: 1.1rem;
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
-.city-select {
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border-strong);
-  background-color: var(--color-background);
-  color: var(--color-text);
-  font-size: 1rem;
-  min-width: 200px;
-  cursor: pointer;
-}
-
-.city-select:focus {
-  border-color: var(--color-yellow);
-}
-
-.city-select:focus-visible {
-  outline: 2px solid var(--color-yellow);
-  outline-offset: 2px;
+.cinemas-city-select {
+  min-width: 220px;
+  width: auto;
 }
 
 .cinemas-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-5);
 }
 
 .cinema-card {
-  background-color: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+
+  padding: var(--space-6);
+
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface);
+
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
 }
 
 .cinema-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(208, 172, 89, 0.4);
+  box-shadow: var(--shadow-md);
 }
 
 .cinema-card h3 {
-  margin: 0 0 10px 0;
-  font-size: 1.3rem;
+  margin: 0;
+
   color: var(--color-text);
+
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .cinema-city {
+  margin: 0;
+
   color: var(--color-text-muted);
-  margin: 0 0 15px 0;
-  font-size: 0.95rem;
+  font-size: var(--text-sm);
 }
 
 .cinema-distance {
   margin: 0;
-  padding: 10px;
-  background-color: var(--color-background-soft);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: var(--color-purple-light);
+  padding: var(--space-2) var(--space-3);
+
+  border-radius: var(--radius-sm);
+
+  background: var(--color-background-soft);
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
 }
 
 .cinema-distance strong {
-  color: var(--color-yellow-text);
-  font-size: 1rem;
-}
-
-/* T9 sonrası: sayfa kendi rotasında çalışıyor, konum durumu ve kart eylemi
-   artık satır içi stil değil (O3). */
-.cinemas-location-status {
-  margin: 0 0 20px;
-
-  color: var(--color-text-muted);
-  font-size: 0.92rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .cinema-card-action {
-  margin-top: 14px;
+  margin-top: auto;
 }
 
 /* Boş durum kart ızgarasında tek başına dururken tüm satırı kaplasın. */
-.cinemas-grid .empty-state {
+.cinemas-grid .empty-state,
+.cinemas-grid .status-panel {
   grid-column: 1 / -1;
 }
 
@@ -107,12 +116,12 @@
   .cinemas-filter {
     align-items: stretch;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-3);
 
-    padding: 16px;
+    padding: var(--space-4);
   }
 
-  .city-select {
+  .cinemas-city-select {
     min-width: 0;
     width: 100%;
   }

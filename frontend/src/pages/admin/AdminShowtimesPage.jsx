@@ -125,7 +125,7 @@ function AdminShowtimesPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="🕐 Seanslar"
+        title="Seanslar"
         description="Aynı salonda çakışan seans açılamaz; sunucu film süresi + 20 dk temizlik payına göre kontrol eder."
         actions={
           selectedCinemaId ? (
@@ -161,7 +161,6 @@ function AdminShowtimesPage() {
 
       {!selectedCinemaId ? (
         <EmptyState
-          icon="🏢"
           title="Önce bir sinema seçin"
           description="Seanslar seçilen sinemanın salonlarına göre listelenir."
         />
@@ -234,7 +233,6 @@ function AdminShowtimesPage() {
             initialSort={{ key: "startDatetime", direction: "asc" }}
             emptyState={
               <EmptyState
-                icon="🕐"
                 title="Bu sinemada seans yok"
                 description="Bilet satışının başlaması için en az bir seans gerekir."
               />

@@ -11,6 +11,7 @@ import FilterControl, {
 } from "../components/movies/FilterControl.jsx";
 import movieService from "../services/movieService.js";
 import useWatchlist from "../hooks/useWatchlist.js";
+import useTabs from "../hooks/useTabs.js";
 
 // REQ-25 — favori bir film vizyona girdiğinde girişte bildirim bandı.
 // "Yakın zamanda vizyona girdi" penceresi 7 gün olarak seçildi: gösterge
@@ -45,7 +46,10 @@ function MoviesPage() {
   const navigate = useNavigate();
   const { getFavoriteMovieIds } = useWatchlist();
 
-  const [activeTab, setActiveTab] = useState("nowShowing");
+  const { activeTab, getTabProps, getPanelProps } = useTabs(
+    MOVIE_TABS.map((tab) => tab.id),
+    { idPrefix: "movies" }
+  );
   const [sortValue, setSortValue] = useState(DEFAULT_SORT);
   const [genreFilter, setGenreFilter] = useState(ALL_VALUE);
   const [ageRatingFilter, setAgeRatingFilter] = useState(ALL_VALUE);
@@ -214,9 +218,11 @@ function MoviesPage() {
         </button>
       </div>
 
+      {/* ARIA deseni useTabs'tan: ok tuşları, roving tabindex, panel bağı. */}
       <div
         className="movie-tab-list"
         role="tablist"
+        aria-label="Film listesi"
       >
         {MOVIE_TABS.map((tab) => {
           const isActive = tab.id === activeTab;
@@ -224,15 +230,12 @@ function MoviesPage() {
           return (
             <button
               key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
+              {...getTabProps(tab.id)}
               className={
                 isActive
                   ? "movie-tab-button movie-tab-button-active"
                   : "movie-tab-button"
               }
-              onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
             </button>
@@ -271,16 +274,18 @@ function MoviesPage() {
         </div>
       )}
 
-      {visibleMovies.length === 0 ? (
-        <div className="temporary-panel">
-          {emptyStateMessage}
-        </div>
-      ) : (
-        <MovieList
-          movies={visibleMovies}
-          onMovieSelect={handleMovieSelect}
-        />
-      )}
+      <div {...getPanelProps(activeTab)}>
+        {visibleMovies.length === 0 ? (
+          <div className="temporary-panel">
+            {emptyStateMessage}
+          </div>
+        ) : (
+          <MovieList
+            movies={visibleMovies}
+            onMovieSelect={handleMovieSelect}
+          />
+        )}
+      </div>
     </section>
   );
 }

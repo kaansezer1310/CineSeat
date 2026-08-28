@@ -102,6 +102,11 @@ public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
         return entityEntry.State == EntityState.Modified;
     }
 
+    public void Detach(T model)
+    {
+        _context.Entry(model).State = EntityState.Detached;
+    }
+
     // PostgreSQL'in benzersiz kisit ihlali icin kullandigi SQLSTATE kodu.
     private const string UniqueViolation = "23505";
 

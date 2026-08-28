@@ -14,6 +14,8 @@ import PaymentPage from "./pages/PaymentPage.jsx";
 import PaymentErrorPage from "./pages/PaymentErrorPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import CinemasPage from "./pages/CinemasPage.jsx";
+import CampaignsPage from "./pages/CampaignsPage.jsx";
+import StaticPage from "./pages/StaticPage.jsx";
 import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import ForbiddenPage from "./pages/ForbiddenPage.jsx";
@@ -105,9 +107,20 @@ function App() {
 
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cinemas" element={<CinemasPage />} />
+        <Route path="/campaigns" element={<CampaignsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forbidden" element={<ForbiddenPage />} />
+
+        {/* Faz 4: yedi statik/yasal sayfa tek kabuğu paylaşır; içerik
+            data/staticPages.js'te. Footer bu rotalara zaten bağlıydı. */}
+        <Route path="/about" element={<StaticPage slug="about" />} />
+        <Route path="/contact" element={<StaticPage slug="contact" />} />
+        <Route path="/faq" element={<StaticPage slug="faq" />} />
+        <Route path="/privacy" element={<StaticPage slug="privacy" />} />
+        <Route path="/terms" element={<StaticPage slug="terms" />} />
+        <Route path="/kvkk" element={<StaticPage slug="kvkk" />} />
+        <Route path="/refund" element={<StaticPage slug="refund" />} />
 
         {/* Üye ve Admin görebilir */}
         <Route element={<ProtectedRoute allowedRoles={["member", "admin"]} />}>

@@ -12,12 +12,12 @@ Backend şu an **4 ayrı proje + 1 solution** yapısında:
 
 ```
 backend/
-├─ CineSeat.slnx                    → 4 projeyi bağlayan solution
-├─ CineSeat.Domain/       (bağımsız) → Entities, Enums, BaseEntity
-├─ CineSeat.Application/  (→Domain)  → ŞU AN BOŞ (sadece csproj)
+├─ CineSeat.slnx → 4 projeyi bağlayan solution
+├─ CineSeat.Domain/ (bağımsız) → Entities, Enums, BaseEntity
+├─ CineSeat.Application/ (→Domain) → ŞU AN BOŞ (sadece csproj)
 ├─ CineSeat.Infrastructure/(→App,Domain) → ApplicationDbContext, Migrations, EFCore+Npgsql
-├─ CineSeat.Api/          (→App,Infra) → Program.cs, Controllers (örnek WeatherForecast), appsettings
-└─ dotnet-tools.json                → dotnet-ef 10.0.10
+├─ CineSeat.Api/ (→App,Infra) → Program.cs, Controllers (örnek WeatherForecast), appsettings
+└─ dotnet-tools.json → dotnet-ef 10.0.10
 ```
 
 Bağımlılık zinciri: `Api → Application + Infrastructure → Domain`. Migration'lar Infrastructure'da.
@@ -35,7 +35,7 @@ Tek kaybedilen şey derleyicinin katman kuralını zorlaması:
 |---|---|---|
 | Onion katmanları | **Derleyici zorlar** — Domain, Infrastructure'a referans veremez | Katmanlar **klasör** olur — kural artık disiplin/gelenek, derleyici engellemez |
 | Karmaşıklık | 4 csproj, referans yönetimi | 1 csproj, çok daha sade |
-| Küçük ekip için | Gereğinden ağır olabilir | ✅ Daha pratik |
+| Küçük ekip için | Gereğinden ağır olabilir | [x] Daha pratik |
 | EF migration komutları | `--project`/`--startup-project` gerekli | Bayrak gerekmez, sadeleşir |
 
 > **Sunum açısından hâlâ "Onion/katmanlı mimari" denebilir** — sadece "katmanları ayrı
@@ -53,46 +53,46 @@ hiç bozulmadan** çalışmaya devam eder.
 
 ```
 backend/
-└─ CineSeat/                        ← TEK proje (Microsoft.NET.Sdk.Web)
-   ├─ CineSeat.csproj               ← tüm NuGet paketleri burada toplanır
-   ├─ Program.cs
-   ├─ appsettings.json
-   ├─ Domain/
-   │   ├─ Entities/ (+ Common/BaseEntity.cs)
-   │   └─ Enums/
-   ├─ Application/                  ← CQRS burada yaşayacak (Bölüm C)
-   │   ├─ Common/
-   │   └─ Features/
-   ├─ Infrastructure/
-   │   ├─ Data/ApplicationDbContext.cs
-   │   └─ Migrations/               ← mevcut 3 migration korunur
-   └─ Api/
-       └─ Controllers/
+└─ CineSeat/ ← TEK proje (Microsoft.NET.Sdk.Web)
+ ├─ CineSeat.csproj ← tüm NuGet paketleri burada toplanır
+ ├─ Program.cs
+ ├─ appsettings.json
+ ├─ Domain/
+ │ ├─ Entities/ (+ Common/BaseEntity.cs)
+ │ └─ Enums/
+ ├─ Application/ ← CQRS burada yaşayacak (Bölüm C)
+ │ ├─ Common/
+ │ └─ Features/
+ ├─ Infrastructure/
+ │ ├─ Data/ApplicationDbContext.cs
+ │ └─ Migrations/ ← mevcut 3 migration korunur
+ └─ Api/
+ └─ Controllers/
 ```
 
 ## Birleştirme Adımları
 
 1. `backend/CineSeat/` adında tek yeni proje oluştur (`dotnet new webapi`), veya
-   `CineSeat.Api`'yi ana gövde yapıp diğerlerini içine taşı.
+ `CineSeat.Api`'yi ana gövde yapıp diğerlerini içine taşı.
 2. `Domain/`, `Application/`, `Infrastructure/` klasörlerini (Entities, Enums, Data, Migrations)
-   bu projenin içine taşı — **namespace'lere dokunma**.
+ bu projenin içine taşı — **namespace'lere dokunma**.
 3. Tüm NuGet paketlerini tek `.csproj`'de topla:
-   - `Npgsql.EntityFrameworkCore.PostgreSQL` 10.0.0
-   - `EFCore.NamingConventions` 10.0.1
-   - `Microsoft.EntityFrameworkCore.Design` + `.Tools` 10.0.7
-   - `Microsoft.AspNetCore.OpenApi` 10.0.7
-   - (+ Bölüm C'de gelecek: MediatR, FluentValidation)
+ - `Npgsql.EntityFrameworkCore.PostgreSQL` 10.0.0
+ - `EFCore.NamingConventions` 10.0.1
+ - `Microsoft.EntityFrameworkCore.Design` + `.Tools` 10.0.7
+ - `Microsoft.AspNetCore.OpenApi` 10.0.7
+ - (+ Bölüm C'de gelecek: MediatR, FluentValidation)
 4. Örnek `WeatherForecast.cs` / `WeatherForecastController.cs` dosyalarını **sil** (temizlik).
 5. `dotnet-tools.json`'ı koru (dotnet-ef aynen çalışır).
 6. Eski 3 `.csproj` + `CineSeat.slnx`'i sil, yeni tek proje için temiz bir `.sln` üret
-   (`dotnet new sln` + `dotnet sln add`).
+ (`dotnet new sln` + `dotnet sln add`).
 7. **Doğrulama (şart):** `dotnet build` yeşil mi + `dotnet ef migrations list` mevcut 3
-   migration'ı görüyor mu + `dotnet ef database update` sorunsuz mu.
+ migration'ı görüyor mu + `dotnet ef database update` sorunsuz mu.
 
 **EF için ne değişir:** Artık migrations assembly = tek proje olduğu için komutlar sadeleşir:
 
 ```bash
-dotnet ef migrations add AddCqrsFeatures   # --project/--startup-project'e gerek yok
+dotnet ef migrations add AddCqrsFeatures # --project/--startup-project'e gerek yok
 dotnet ef database update
 ```
 
@@ -109,23 +109,23 @@ Proje `net10.0` hedefliyor. **.NET 10 en yeni Visual Studio'yu gerektirir** — 
 **Visual Studio 2022, .NET 9'a kadar** destekler.
 
 - **Visual Studio 2026 Community** (ücretsiz) kur. Kurulumda **"ASP.NET and web development"**
-  iş yükünü (workload) seç.
+ iş yükünü (workload) seç.
 - Doğrulama: proje açıldığında "unsupported target framework net10.0" uyarısı çıkmamalı.
-  Çıkarsa VS sürümü .NET 10'u desteklemiyordur → güncelle.
+ Çıkarsa VS sürümü .NET 10'u desteklemiyordur → güncelle.
 
 ## 2. Projeyi Açma
 
 - Birleştirmeden **sonra**: `File → Open → Project/Solution` → yeni tek `CineSeat.sln`'i
-  (veya doğrudan `CineSeat` klasörünü) aç.
+ (veya doğrudan `CineSeat` klasörünü) aç.
 - Birleştirmeden **önce**: `.slnx` yeni bir formattır; eski VS'te açılmazsa `dotnet sln` ile
-  klasik `.sln` üret/dönüştür. (Tek projeye geçince bu dert kalmaz.)
+ klasik `.sln` üret/dönüştür. (Tek projeye geçince bu dert kalmaz.)
 
 ## 3. Çalıştırma Ayarı
 
 - **Startup project**'i (tek proje / Api projesi) sağ tık → *Set as Startup Project*.
 - Yeşil ▶ (veya F5) ile çalışır; Swagger/OpenAPI otomatik açılır.
 - `appsettings.json`'daki PostgreSQL bağlantı dizesi zaten hazır — pgAdmin/postgres'in açık
-  olması yeterli.
+ olması yeterli.
 
 ## 4. Migration'lar — VS'te İki Yol
 
@@ -152,11 +152,11 @@ Her biri kendi `Handler`'ına sahiptir. Onion'ın **Application** katmanına otu
 
 ```
 Application/
-├─ Common/            (Result<T>, Behaviors, IApplicationDbContext arayüzü)
+├─ Common/ (Result<T>, Behaviors, IApplicationDbContext arayüzü)
 └─ Features/
-    └─ Movies/
-        ├─ Commands/CreateMovie/   → CreateMovieCommand.cs + Handler + Validator
-        └─ Queries/GetMovies/      → GetMoviesQuery.cs + Handler + MovieDto
+ └─ Movies/
+ ├─ Commands/CreateMovie/ → CreateMovieCommand.cs + Handler + Validator
+ └─ Queries/GetMovies/ → GetMoviesQuery.cs + Handler + MovieDto
 ```
 
 ## Araç Seçimi
@@ -178,14 +178,14 @@ Bunlar bittikten sonra paralel çalışma başlar:
 - [ ] Tek projeye birleştirme + Visual Studio kurulumu (Bölüm A + B)
 - [ ] MediatR + FluentValidation kur, DI'a kaydet (`AddMediatR(assembly)`, `AddValidatorsFromAssembly`)
 - [ ] Ortak parçalar: `Result<T>`/`ApiResponse`, global exception middleware, `ValidationBehavior`
-      (pipeline), `BaseApiController`, `IApplicationDbContext` arayüzü
+ (pipeline), `BaseApiController`, `IApplicationDbContext` arayüzü
 - [ ] Migration'ın tek projede çalıştığını doğrula
 
 ### Faz 1 — Dikey Dilim Şablonu *(birlikte, 1 örnek; ~0.5-1 gün)*
 
 - [ ] Bir feature'ı **uçtan uca** yap (ör. Movies: `CreateMovieCommand` + `GetMoviesQuery` +
-      `MoviesController`). Herkes bunu kopyalayıp kendi modülüne uyarlar. **Bu şablon standardı
-      kurar** — 3 kişi farklı stil yazmaz.
+ `MoviesController`). Herkes bunu kopyalayıp kendi modülüne uyarlar. **Bu şablon standardı
+ kurar** — 3 kişi farklı stil yazmaz.
 
 ### Faz 2 — Paralel Geliştirme *(3 kişi, ayrı branch; ~1-1.5 hafta)*
 
@@ -195,9 +195,9 @@ Modül bazlı bölüşüm (CQRS feature'a göre ayrılır, çakışma minimum):
 |---|---|---|---|
 | **A** | Kimlik & Sosyal | User, Role, Permission, RolePermission, UserFavorite, Comment | Register, Login, AssignRole, AddFavorite, AddComment; GetProfile, GetUserFavorites, GetComments |
 | **B** | Katalog & Konum | Movie, Genre, MovieGenre, Campaign, Cinema, City, District | CreateMovie, UpdateMovie, CreateCampaign, CreateCinema; GetMovies(+filtre), GetMovieDetail, GetCinemasByCity, GetCampaigns |
-| **C** | Salon & Rezervasyon ⚠️ | Hall, Technology, HallTech, Seat, Showtime, SeatLock, Reservation, Ticket | CreateShowtime, LockSeat, CreateReservation, IssueTicket; GetShowtimes, GetSeatMap, GetMyReservations |
+| **C** | Salon & Rezervasyon [dikkat] | Hall, Technology, HallTech, Seat, Showtime, SeatLock, Reservation, Ticket | CreateShowtime, LockSeat, CreateReservation, IssueTicket; GetShowtimes, GetSeatMap, GetMyReservations |
 
-> ⚠️ **C en zor modül** — koltuk kilitleme (SeatLock) eşzamanlılık gerektirir. İyi haber:
+> [dikkat] **C en zor modül** — koltuk kilitleme (SeatLock) eşzamanlılık gerektirir. İyi haber:
 > `ShowtimeId + SeatId` üzerine eklenen **unique index** çift rezervasyonu DB seviyesinde zaten
 > engelliyor; C bunun üstüne kod mantığını kurar. Yükü dengelemek için B'den birkaç basit CRUD
 > C'ye kaydırılabilir, JWT auth A'ya verilebilir.
@@ -210,24 +210,24 @@ Modül bazlı bölüşüm (CQRS feature'a göre ayrılır, çakışma minimum):
 - [ ] Temel testler + uçtan uca deneme
 - [ ] README / kısa API dokümanı
 
-## ⚠️ Tek Projede 3 Kişi → Merge Conflict Tuzağı
+## [dikkat] Tek Projede 3 Kişi → Merge Conflict Tuzağı
 
 En büyük risk **`Program.cs` ve `.csproj`'de çakışma**. Önlem:
 
 - **MediatR assembly-scan** kullanın → yeni handler eklerken `Program.cs`'e dokunulmaz
-  (otomatik bulunur). Bu tek başına çakışmaların çoğunu bitirir.
+ (otomatik bulunur). Bu tek başına çakışmaların çoğunu bitirir.
 - Her kişi **kendi klasöründe** çalışır (`Features/Movies/`, `Features/Users/`…), controller'lar
-  ayrı dosyalar → aynı satıra iki kişi dokunmaz.
+ ayrı dosyalar → aynı satıra iki kişi dokunmaz.
 - DI kaydı gerekirse: her katman/modül kendi `DependencyInjection.cs` uzantı metodunu yazsın,
-  `Program.cs` sadece onları çağırsın.
+ `Program.cs` sadece onları çağırsın.
 
 ## Git Akışı (3 Kişi)
 
 ```
 main (korumalı)
- ├─ feature/identity      (A)
- ├─ feature/catalog       (B)
- └─ feature/booking       (C)
+ ├─ feature/identity (A)
+ ├─ feature/catalog (B)
+ └─ feature/booking (C)
 ```
 
 - Faz 0 + Faz 1 main'e girmeden kimse dallanmaz (herkes aynı şablonu alsın).
@@ -246,5 +246,5 @@ main (korumalı)
 
 ## Definition of Done (her feature için)
 
-Command/Query + Handler ✔ · Validator ✔ · Controller endpoint ✔ · DTO (entity'yi ham döndürme) ✔
-· Manuel test (Swagger) ✔ · PR review ✔
+Command/Query + Handler [x] · Validator [x] · Controller endpoint [x] · DTO (entity'yi ham döndürme) [x]
+· Manuel test (Swagger) [x] · PR review [x]

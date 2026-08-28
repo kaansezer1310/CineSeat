@@ -29,10 +29,10 @@ Burası sadece filmlerin listesi (gerçek bir veritabanı olmadığı için mock
 
 ```js
 {
-  id: 5,
-  title: "Kayıp Sinyal",
-  ...
-  releaseDate: "2026-08-14",   // ← yeni eklenen alan: vizyon tarihi
+ id: 5,
+ title: "Kayıp Sinyal",
+ ...
+ releaseDate: "2026-08-14", // ← yeni eklenen alan: vizyon tarihi
 }
 ```
 
@@ -80,15 +80,15 @@ Her film kartının içeriğini burası çiziyor. Tek değişiklik, kartın alt 
 
 ```jsx
 {isUpcoming ? (
-  <>
-    <span>13 Ağustos 2026</span>
-    <strong>Vizyona 29 gün kaldı</strong>
-  </>
+ <>
+ <span>13 Ağustos 2026</span>
+ <strong>Vizyona 29 gün kaldı</strong>
+ </>
 ) : (
-  <>
-    <span>2026</span>
-    <strong>Seansları Gör</strong>
-  </>
+ <>
+ <span>2026</span>
+ <strong>Seansları Gör</strong>
+ </>
 )}
 ```
 
@@ -104,15 +104,15 @@ Sekme (tab) butonu daha önce projede hiç yoktu, o yüzden burada birkaç yeni 
 
 ```
 movies.js (veri: releaseDate alanı)
-      │
-      ▼
+ │
+ ▼
 movieService.js (hesap: vizyonda mı? kaç gün kaldı?)
-      │                              │
-      ▼                              ▼
-HomePage.jsx                   MovieCard.jsx
-(hangi film hangi sekmede)     (kartta ne yazacak)
-      │
-      ▼
+ │ │
+ ▼ ▼
+HomePage.jsx MovieCard.jsx
+(hangi film hangi sekmede) (kartta ne yazacak)
+ │
+ ▼
 App.css (sekme butonları nasıl görünecek)
 ```
 
@@ -124,8 +124,8 @@ Sadece "çalışıyor gibi" demek yerine, gerçekten çalıştığını göstere
 
 **Testler** (`npm run test:run`):
 ```
-Test Files  7 passed (7)
-     Tests  24 passed (24)
+Test Files 7 passed (7)
+ Tests 24 passed (24)
 ```
 Bunun 10 tanesi doğrudan benim bu sprintte yazdığım testler:
 
@@ -134,7 +134,7 @@ Bunun 10 tanesi doğrudan benim bu sprintte yazdığım testler:
 
 **Lint** (`npm run lint`): hata yok.
 
-**Build** (`npm run build`): production derlemesi başarılı (`✓ built in 366ms`).
+**Build** (`npm run build`): production derlemesi başarılı (`[x] built in 366ms`).
 
 ---
 
@@ -198,7 +198,7 @@ Kodda state olmayan ama state'e benzeyen satırlar da var, bunlar mentörün sor
 ```jsx
 // HomePage.jsx içinde:
 const nowShowingMovies = movies.filter((movie) => {
-  return movieService.isMovieReleased(movie);
+ return movieService.isMovieReleased(movie);
 });
 
 // MovieCard.jsx içinde:
@@ -215,8 +215,8 @@ function MovieCard({ movie, onSelect }) { ... }
 
 ```jsx
 <MovieList
-  movies={visibleMovies}
-  onMovieSelect={handleMovieSelect}
+ movies={visibleMovies}
+ onMovieSelect={handleMovieSelect}
 />
 ```
 
@@ -226,7 +226,7 @@ function MovieCard({ movie, onSelect }) { ... }
 
 ```jsx
 function handleCardClick() {
-  onSelect(movie.id);
+ onSelect(movie.id);
 }
 ...
 <button onClick={handleCardClick}>
@@ -244,9 +244,9 @@ function handleCardClick() {
 
 ```jsx
 {isUpcoming ? (
-  <>...vizyon tarihi + kalan gün...</>
+ <>...vizyon tarihi + kalan gün...</>
 ) : (
-  <>...releaseYear + "Seansları Gör"...</>
+ <>...releaseYear + "Seansları Gör"...</>
 )}
 ```
 
@@ -256,8 +256,8 @@ JSX içinde `if/else` yazamayız, onun yerine JavaScript'in **ternary operatör�
 
 ```jsx
 {MOVIE_TABS.map((tab) => {
-  return (
-    <button key={tab.id} ...>
+ return (
+ <button key={tab.id} ...>
 ```
 
 Bir listeyi (`.map` ile) ekrana çizerken React'e her elemanın **benzersiz bir kimliği** olduğunu söylemek gerekir — `key` bunun için var. React bu sayede bir sonraki render'da "hangi eleman aynı kaldı, hangisi değişti/silindi" ayrımını yapabiliyor. `key` bir prop gibi görünür ama component'in içine **geçmez** (yani `MovieCard`'ın kendisi kendi `key`'ini göremez) — sadece React'in kendi iç takibi için kullanılır.

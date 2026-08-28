@@ -115,7 +115,7 @@ function AdminHallsPage() {
   return (
     <div className="admin-crud-page">
       <PageHeader
-        title="🎦 Salonlar ve Koltuklar"
+        title="Salonlar ve Koltuklar"
         description="Seans açabilmek için salonun koltuk planı tanımlı olmalıdır."
         actions={
           selectedCinemaId ? (
@@ -152,7 +152,6 @@ function AdminHallsPage() {
 
       {!selectedCinemaId ? (
         <EmptyState
-          icon="🏢"
           title="Önce bir sinema seçin"
           description="Salonlar seçilen sinemaya göre listelenir."
         />
@@ -216,7 +215,6 @@ function AdminHallsPage() {
             initialSort={{ key: "name", direction: "asc" }}
             emptyState={
               <EmptyState
-                icon="🎦"
                 title="Bu sinemada salon yok"
                 description="Seans açabilmek için en az bir salon gerekir."
               />
@@ -290,7 +288,6 @@ function AdminHallsPage() {
             initialSort={{ key: "name", direction: "asc" }}
             emptyState={
               <EmptyState
-                icon="🔊"
                 title="Tanımlı teknoloji yok"
                 description="IMAX, 3D gibi salon özelliklerini buradan tanımlayın."
               />

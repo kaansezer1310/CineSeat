@@ -40,6 +40,40 @@ describe("detectCardBrand", () => {
   });
 });
 
+describe("formatCardNumber uzunluk siniri", () => {
+  it("hicbir kartin asamayacagi 19 haneyi asmaz", () => {
+    // Girdide sinir yoktu; kullanici sonsuza kadar rakam yazabiliyordu.
+    const cok = formatCardNumber("4".padEnd(40, "9"));
+
+    expect(cok.replace(/\s/g, "")).toHaveLength(19);
+  });
+
+  it("Amex'i kendi 15 hanesinde keser", () => {
+    const cok = formatCardNumber("37" + "9".repeat(30));
+
+    expect(cok.replace(/\s/g, "")).toHaveLength(15);
+    expect(cok).toBe("3799 999999 99999");
+  });
+
+  it("Mastercard'i kendi 16 hanesinde keser", () => {
+    const cok = formatCardNumber("55" + "9".repeat(30));
+
+    expect(cok.replace(/\s/g, "")).toHaveLength(16);
+  });
+
+  it("markasi anlasilmayan girdiyi 19 hanede keser", () => {
+    const cok = formatCardNumber("8".repeat(40));
+
+    expect(cok.replace(/\s/g, "")).toHaveLength(19);
+  });
+
+  it("rakam disi karakterleri sayiya katmaz", () => {
+    const cok = formatCardNumber("4-1-1-1 " + "9".repeat(40));
+
+    expect(cok.replace(/\s/g, "")).toHaveLength(19);
+  });
+});
+
 describe("formatCardNumber", () => {
   it("dörtlü gruplar", () => {
     expect(formatCardNumber(VISA)).toBe("4111 1111 1111 1111");

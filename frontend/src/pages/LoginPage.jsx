@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import { validateLoginForm } from "../services/validation.js";
+import AuthAside from "../components/auth/AuthAside.jsx";
+
+import "./auth.css";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -74,8 +77,8 @@ function LoginPage() {
   };
 
   return (
-    <section className="auth-section">
-      <div className="auth-card">
+    <section className="auth-layout">
+      <div className="auth-panel">
         <div className="auth-header">
           <h1>Giriş Yap</h1>
           <p>CineSeat hesabınıza giriş yapın</p>
@@ -105,6 +108,7 @@ function LoginPage() {
             <label htmlFor="login-email">E-posta</label>
             <input
               id="login-email"
+              className="input"
               type="email"
               name="email"
               autoComplete="email"
@@ -112,6 +116,7 @@ function LoginPage() {
               value={formData.email}
               onChange={handleChange}
               disabled={isLoading}
+              aria-invalid={Boolean(errors.email)}
             />
             {errors.email && (
               <span className="auth-field-error">{errors.email}</span>
@@ -122,6 +127,7 @@ function LoginPage() {
             <label htmlFor="login-password">Şifre</label>
             <input
               id="login-password"
+              className="input"
               type="password"
               name="password"
               autoComplete="current-password"
@@ -129,6 +135,7 @@ function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               disabled={isLoading}
+              aria-invalid={Boolean(errors.password)}
             />
             {errors.password && (
               <span className="auth-field-error">{errors.password}</span>
@@ -137,7 +144,7 @@ function LoginPage() {
 
           <button
             type="submit"
-            className="primary-button auth-submit"
+            className="btn btn--primary btn--lg auth-submit"
             disabled={isLoading}
           >
             {isLoading ? "Giriş yapılıyor…" : "Giriş Yap"}
@@ -155,6 +162,11 @@ function LoginPage() {
           </Link>
         </p>
       </div>
+
+      <AuthAside
+        title="Koltuğun seni bekliyor."
+        text="Giriş yap, biletlerini tek yerden takip et ve izleme listendeki filmler vizyona girdiğinde ilk sen haberdar ol."
+      />
     </section>
   );
 }

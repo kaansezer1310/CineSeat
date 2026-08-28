@@ -22,40 +22,40 @@
 **Bilinçli güvenlik kararları:**
 
 - `RegisterCommand` **rol kabul etmez** — herkes `User` rolüyle başlar. Aksi halde
-  isteyen kendini Admin yapardı.
+ isteyen kendini Admin yapardı.
 - `Login`, "kullanıcı yok" ile "parola yanlış" için **aynı mesajı** döner. Farklı
-  mesaj vermek hangi e-postaların kayıtlı olduğunu sızdırır.
+ mesaj vermek hangi e-postaların kayıtlı olduğunu sızdırır.
 - `Jwt:Key` 32 karakterden kısaysa **uygulama açılışta patlar** — kısa HMAC anahtarı
-  imza güvenliğini çökertir, sessizce geçilmemeli.
+ imza güvenliğini çökertir, sessizce geçilmemeli.
 - `ClockSkew = TimeSpan.Zero` — varsayılan 5 dakikalık tolerans süresi dolmuş
-  token'ı bir süre daha geçerli sayıyordu.
+ token'ı bir süre daha geçerli sayıyordu.
 - PBKDF2: 100.000 iterasyon, HMAC-SHA256, kayıt başına rastgele salt,
-  `CryptographicOperations.FixedTimeEquals` ile sabit zamanlı karşılaştırma
-  (normal `==` ilk farklı baytta çıkar ve zamanlama saldırısına açık kapı bırakır).
+ `CryptographicOperations.FixedTimeEquals` ile sabit zamanlı karşılaştırma
+ (normal `==` ilk farklı baytta çıkar ve zamanlama saldırısına açık kapı bırakır).
 
 ### Faz 2 — Katalog
 
 - **Movie:** `UpdateMovie`, `DeleteMovie`, gerçek `GetMovieById`
-  *(eski `GetById` tüm listeyi çekip bellekte filtreliyordu — controller içinde
-  `GetMoviesQuery { PageSize = 100 }` gönderip `FirstOrDefault` yapıyordu)*
+ *(eski `GetById` tüm listeyi çekip bellekte filtreliyordu — controller içinde
+ `GetMoviesQuery { PageSize = 100 }` gönderip `FirstOrDefault` yapıyordu)*
 - **Genre:** tam CRUD. Filme atanmış bir tür silinmek istenirse FK hatası yerine
-  anlaşılır `409` döner.
+ anlaşılır `409` döner.
 - **MovieGenre:** `AssignGenreToMovie`, `RemoveGenreFromMovie`, `GetGenresOfMovie`
 - **Campaign:** tam CRUD + `GetActiveCampaigns`. Rezervasyonlarda kullanılmış bir
-  kampanya silinemez (geçmiş kayıtları bozardı) — `IsActive=false` önerilir.
+ kampanya silinemez (geçmiş kayıtları bozardı) — `IsActive=false` önerilir.
 
 ### Faz 3 — Sosyal & Profil
 
 - **UserFavorite:** ekle / kaldır / listele (sayfalı)
 - **Comment:** ekle / sil / filme göre listele (sayfalı).
-  Bir kullanıcı bir filme **tek yorum** yazabilir — aksi halde puan ortalaması
-  tekrar tekrar yorum yazılarak manipüle edilebilirdi.
+ Bir kullanıcı bir filme **tek yorum** yazabilir — aksi halde puan ortalaması
+ tekrar tekrar yorum yazılarak manipüle edilebilirdi.
 - **`MovieScoreCalculator`:** `Movie.AvgScore`'u yorumlardan yeniden hesaplar.
-  `GroupBy + Select` ile **tek SQL sorgusu** — bütün yorumları belleğe çekip
-  ortalama almaktan çok daha ucuz. Yorum eklendiğinde ve silindiğinde çalışır.
+ `GroupBy + Select` ile **tek SQL sorgusu** — bütün yorumları belleğe çekip
+ ortalama almaktan çok daha ucuz. Yorum eklendiğinde ve silindiğinde çalışır.
 - **Profil:** oku / güncelle. `Email`, `Username` ve `Role` **bilinçli olarak
-  güncellenemez** — kimlik alanları doğrulama gerektiren ayrı bir akış, rol
-  değişimi ise yetki yükseltme demektir.
+ güncellenemez** — kimlik alanları doğrulama gerektiren ayrı bir akış, rol
+ değişimi ise yetki yükseltme demektir.
 
 **Kullanıcı kimliği hiçbir yerde istekten alınmaz** — favori, yorum ve profilde
 `ICurrentUserService` üzerinden token'dan okunur.
@@ -93,7 +93,7 @@ işi bu branch'te yok)"*. Campaign geldiğine göre `CreateReservation`'a bağla
 - `Percentage` → `subtotal × Value / 100` · `FixedAmount` → `Value`
 - **İndirim ara toplamı asla aşamaz** (`Math.Min`) — aşsaydı `Total` negatife düşerdi
 - `MembersOnly` ayrıca kontrol edilmiyor: rezervasyon zaten giriş gerektiriyor,
-  yani buraya gelen herkes üye.
+ yani buraya gelen herkes üye.
 
 ### RBAC uygulaması
 
@@ -131,18 +131,18 @@ Faz 4'e ertelendi — global soft-delete filter zaten hazır, geçiş isteniyors
 register 201 · aynı e-posta 409 · zayıf parola 400 (Türkçe doğrulama mesajlarıyla)
 login OK · yanlış parola 401 (kullanıcı yok ile ayırt edilemez mesaj)
 
-genre POST:  token yok 401 → normal user 403 → admin 201 → tekrar 409
-yorum 5★ + 4★ → AvgScore 4.50 · admin yorumu silindi → AvgScore 5.00
+genre POST: token yok 401 → normal user 403 → admin 201 → tekrar 409
+yorum 5* + 4* → AvgScore 4.50 · admin yorumu silindi → AvgScore 5.00
 user başkasının yorumunu silemiyor 401 · admin silebiliyor 204 (moderasyon)
-kampanya: anonim ['Yaz Indirimi'] · üye ['Uye Ozel','Yaz Indirimi']   ← MembersOnly
+kampanya: anonim ['Yaz Indirimi'] · üye ['Uye Ozel','Yaz Indirimi'] ← MembersOnly
 yüzde 150 indirim 400 · kullanımdaki tür silme 409
 
 koltuk kilidi: user kilitledi → saldırgan aynı koltuk 409 → saldırgan kilidi açamıyor 404
-rezervasyon:   175 TL sepet + %15 kampanya → 26.25 indirim → 148.75 toplam
-IDOR:          saldırgan rezervasyon/bilet okuyamıyor 404 · sahibi ve admin okuyor 200
-               ?userId=2 ile başkasının listesi → 0 kayıt
-admin-only:    Cities/Districts/Cinemas/Halls/Technologies/Showtimes/Seats
-               anonim 401 · normal kullanıcı 403
+rezervasyon: 175 TL sepet + %15 kampanya → 26.25 indirim → 148.75 toplam
+IDOR: saldırgan rezervasyon/bilet okuyamıyor 404 · sahibi ve admin okuyor 200
+ ?userId=2 ile başkasının listesi → 0 kayıt
+admin-only: Cities/Districts/Cinemas/Halls/Technologies/Showtimes/Seats
+ anonim 401 · normal kullanıcı 403
 ```
 
 **Seed sonrası admin hesabı:** `admin@cineseat.com` / `Admin123!`
@@ -156,24 +156,24 @@ login'den dönen token yapıştırılır (`Bearer ` öneki gerekmez).
 ## 5. Açık kalan işler
 
 1. **`Result` / `Result<T>` artık kullanılmıyor.**
-   `Common/Models/Result.cs` — Movies exception stiline çevrilince son kullanıcısı
-   da kalmadı. Silinmeye hazır ama Berke'nin de görüş alanında olduğu için
-   kendiliğimden kaldırmadım. Karar ortak verilsin.
+ `Common/Models/Result.cs` — Movies exception stiline çevrilince son kullanıcısı
+ da kalmadı. Silinmeye hazır ama Berke'nin de görüş alanında olduğu için
+ kendiliğimden kaldırmadım. Karar ortak verilsin.
 
 2. **`Jwt:Key` appsettings.json'da düz metin.**
-   `"cineseat-development-only-signing-key-change-me-in-production"` — geliştirme
-   için sorun değil ama repoya girdi. Prod'a çıkarken user-secrets veya ortam
-   değişkenine taşınmalı, anahtar da yenilenmeli.
+ `"cineseat-development-only-signing-key-change-me-in-production"` — geliştirme
+ için sorun değil ama repoya girdi. Prod'a çıkarken user-secrets veya ortam
+ değişkenine taşınmalı, anahtar da yenilenmeli.
 
 3. **Soft-delete kararı (Plan §5.1)** — hâlâ açık, Faz 4'te.
 
 4. **README yazılmadı** — plandaki Faz 4 maddesi. Smoke test yapıldı, dokümantasyon
-   olarak sadece bu dosya var.
+ olarak sadece bu dosya var.
 
 5. **Permission tabanlı policy kurulmadı.** İzinler (`movie.manage`, `cinema.manage`
-   vb.) seed ediliyor ve `RolePermission` ile Admin'e bağlanıyor, ama yetkilendirme
-   şu an **rol bazlı** (`[Authorize(Roles = "Admin")]`). Daha ince yetki gerekirse
-   izinler hazır bekliyor.
+ vb.) seed ediliyor ve `RolePermission` ile Admin'e bağlanıyor, ama yetkilendirme
+ şu an **rol bazlı** (`[Authorize(Roles = "Admin")]`). Daha ince yetki gerekirse
+ izinler hazır bekliyor.
 
 6. **`Comment.IsEdited` alanı kullanılmıyor** — planda `UpdateComment` yoktu,
-   o yüzden yorum düzenleme akışı yazılmadı. Alan şemada duruyor.
+ o yüzden yorum düzenleme akışı yazılmadı. Alan şemada duruyor.

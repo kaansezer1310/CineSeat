@@ -12,10 +12,10 @@ Ekip 4 kişilik Sprint 1'i **tek bir günde** bitirip merge etti — hızlı ile
 
 | Kontrol | Sonuç |
 |---|---|
-| `npm run test:run` | ✅ 11 dosya / **68 test** geçti |
-| `npm run lint` | ❌ **13 hata, 1 uyarı** — hepsi Sprint 1'de yeni eklenen admin/cinema kodunda |
-| `npm run build` | ✅ başarılı (Windows'ta) — ama bkz. Bulgu #1, Linux'ta **başarısız olacak** |
-| STATUS.md iddiaları vs. kod | 🟡 çoğu doğru, ama en az 1 tanesi (Alptuğ'un dashboard'u) **gerçeği yansıtmıyor** |
+| `npm run test:run` | [x] 11 dosya / **68 test** geçti |
+| `npm run lint` | [yok] **13 hata, 1 uyarı** — hepsi Sprint 1'de yeni eklenen admin/cinema kodunda |
+| `npm run build` | [x] başarılı (Windows'ta) — ama bkz. Bulgu #1, Linux'ta **başarısız olacak** |
+| STATUS.md iddiaları vs. kod | [sari] çoğu doğru, ama en az 1 tanesi (Alptuğ'un dashboard'u) **gerçeği yansıtmıyor** |
 
 **En kritik 3 madde (Sprint 2'ye geçmeden önce mutlaka düzeltilmeli):**
 1. **Admin sayfaları import path'leri yanlış case ile yazılmış — Windows'ta çalışıyor, Linux'ta (Vercel/Netlify/CI/Docker — yani her gerçek deploy ortamında) build çöker.**
@@ -24,33 +24,33 @@ Ekip 4 kişilik Sprint 1'i **tek bir günde** bitirip merge etti — hızlı ile
 
 ---
 
-## ✅ Güncelleme — Çözüm Durumu (bu review'dan sonra yapıldı)
+## [x] Güncelleme — Çözüm Durumu (bu review'dan sonra yapıldı)
 
 Bu raporda listelenen maddelerin çoğu, rapor tamamlandıktan hemen sonra bu branch üzerinde düzeltildi. Taze doğrulama:
 
 | Kontrol | Rapor anı | Düzeltme sonrası |
 |---|---|---|
-| `npm run test:run` | 11 dosya / 68 test ✅ | **12 dosya / 71 test ✅** (yeni: `ProtectedRoute.test.jsx`) |
-| `npm run lint` | ❌ 13 hata, 1 uyarı | **✅ 0 hata, 0 uyarı** |
-| `npm run build` | ✅ (Windows'ta, ama K1 riski var) | **✅** + K1 için ayrıca `git ls-files` bazlı tam case-sensitivity taraması yapıldı (repo genelinde başka case uyuşmazlığı yok) |
+| `npm run test:run` | 11 dosya / 68 test [x] | **12 dosya / 71 test [x]** (yeni: `ProtectedRoute.test.jsx`) |
+| `npm run lint` | [yok] 13 hata, 1 uyarı | **[x] 0 hata, 0 uyarı** |
+| `npm run build` | [x] (Windows'ta, ama K1 riski var) | **[x]** + K1 için ayrıca `git ls-files` bazlı tam case-sensitivity taraması yapıldı (repo genelinde başka case uyuşmazlığı yok) |
 
 | # | Bulgu | Durum |
 |---|---|---|
-| K1 | Case-sensitivity import hatası | ✅ **Düzeltildi** — `git mv` ile dosya/klasör adları import'larla eşleştirildi (`components/Admin`→`components/admin`, `AdminDashBoard.jsx`→`AdminDashboard.jsx`); repo genelinde başka mismatch olmadığı script ile doğrulandı |
-| K2 | `/admin` korumasız | ✅ **Düzeltildi** — `src/components/routing/ProtectedRoute.jsx` eklendi, `/admin` rotaları `allowedRoles={["admin"]}` ile sarıldı; 3 testle doğrulandı (guest/member reddedilir, admin geçer) |
-| K3 | Admin istatistikleri sahte veri | ✅ **Düzeltildi** — `reservationService.getAllReservations()` eklendi, `AdminDashboard.jsx` artık gerçek rezervasyonlardan film bazlı istatistik hesaplıyor; rezervasyon yoksa dürüst bir boş-durum mesajı gösteriyor (eski sahte sayılar yerine) |
-| Y1 | Admin tablosunda kırık poster | ✅ **Düzeltildi** — `<img>` yerine `MoviePoster` bileşeni kullanılıyor |
-| Y2 | Admin formunda `releaseDate` yok | ✅ **Düzeltildi** — forma "Vizyon Tarihi" alanı eklendi (edit modunda da doldurulur) |
-| Y3 | Kilit-çakışma kontrolü eksik | ⏭️ **Bilinçli olarak ertelendi** — doğru çözüm bir lock-ownership/token tasarımı gerektiriyor ve bu, `reserveSeats`'in zaten test edilen `GECICI_KILITLI→DOLU` davranışını (bkz. `seatService.test.js:139`) bozma riski taşıyor; 1.4.7'yi üstlenecek kişi için kod içinde ayrıntılı bir uyarı notu bırakıldı |
-| Y4 | 13 lint hatası | ✅ **Düzeltildi** — tüm dosyalar temiz; ayrıca `AdminMoviesPage.jsx` `useQuery`'e taşındı (yeni, daha katı `react-hooks/set-state-in-effect` kuralını da temiz şekilde geçmesi için, projedeki diğer sayfalarla tutarlı) |
-| Y5 | Yanıltıcı konum mesajı | ✅ **Düzeltildi** — mesaj artık gerçek davranışla uyumlu (zorla İstanbul'a düşürme kaldırıldı, "Tümü" korunuyor) |
-| O1 | Ölü "Seansları Gör" butonu | ⏭️ **Ertelendi** — sinema↔seans veri ilişkisi hiç modellenmemiş, bu bir "fix" değil yeni kapsam gerektiren bir özellik |
-| O2 | duration/releaseYear string kalıyor | ✅ **Düzeltildi** — `handleChange` artık sayısal alanları `Number()` ile çeviriyor |
-| O3 | `/login` `/register` `/profile` için 404 yok | ✅ **Düzeltildi** — `NotFoundPage.jsx` + wildcard (`*`) rota eklendi |
-| O4 | Session 101 demo kilidi hiç açılmıyor | ⏭️ **Değerlendirildi, bırakıldı** — Kaan'ın kendi kod yorumu bunun kasıtlı bir demo verisi olduğunu açıkça belirtiyor (4 durumu bir arada göstermek için); gerçek bir hata değil |
-| O5 | Rezervasyon kısmi hata atomikliği | ⏭️ **Ertelendi** — köklü bir çözüm backend olmadan tam atomiklik sağlayamaz; kapsamı Sprint 1 review'ın ötesinde |
-| — | Alptuğ için STATUS dosyası yok | ⏭️ **Bu oturumda çözülemez** — Alptuğ'un kendisi yazmalı |
-| — | PLAN.md'nin Alptuğ'un scope taşmasına göre yeniden dengelenmesi | ⏭️ **Ekiple konuşulmalı** — tek taraflı yeniden planlama yapılmadı |
+| K1 | Case-sensitivity import hatası | [x] **Düzeltildi** — `git mv` ile dosya/klasör adları import'larla eşleştirildi (`components/Admin`→`components/admin`, `AdminDashBoard.jsx`→`AdminDashboard.jsx`); repo genelinde başka mismatch olmadığı script ile doğrulandı |
+| K2 | `/admin` korumasız | [x] **Düzeltildi** — `src/components/routing/ProtectedRoute.jsx` eklendi, `/admin` rotaları `allowedRoles={["admin"]}` ile sarıldı; 3 testle doğrulandı (guest/member reddedilir, admin geçer) |
+| K3 | Admin istatistikleri sahte veri | [x] **Düzeltildi** — `reservationService.getAllReservations()` eklendi, `AdminDashboard.jsx` artık gerçek rezervasyonlardan film bazlı istatistik hesaplıyor; rezervasyon yoksa dürüst bir boş-durum mesajı gösteriyor (eski sahte sayılar yerine) |
+| Y1 | Admin tablosunda kırık poster | [x] **Düzeltildi** — `<img>` yerine `MoviePoster` bileşeni kullanılıyor |
+| Y2 | Admin formunda `releaseDate` yok | [x] **Düzeltildi** — forma "Vizyon Tarihi" alanı eklendi (edit modunda da doldurulur) |
+| Y3 | Kilit-çakışma kontrolü eksik | ⏭ **Bilinçli olarak ertelendi** — doğru çözüm bir lock-ownership/token tasarımı gerektiriyor ve bu, `reserveSeats`'in zaten test edilen `GECICI_KILITLI→DOLU` davranışını (bkz. `seatService.test.js:139`) bozma riski taşıyor; 1.4.7'yi üstlenecek kişi için kod içinde ayrıntılı bir uyarı notu bırakıldı |
+| Y4 | 13 lint hatası | [x] **Düzeltildi** — tüm dosyalar temiz; ayrıca `AdminMoviesPage.jsx` `useQuery`'e taşındı (yeni, daha katı `react-hooks/set-state-in-effect` kuralını da temiz şekilde geçmesi için, projedeki diğer sayfalarla tutarlı) |
+| Y5 | Yanıltıcı konum mesajı | [x] **Düzeltildi** — mesaj artık gerçek davranışla uyumlu (zorla İstanbul'a düşürme kaldırıldı, "Tümü" korunuyor) |
+| O1 | Ölü "Seansları Gör" butonu | ⏭ **Ertelendi** — sinema↔seans veri ilişkisi hiç modellenmemiş, bu bir "fix" değil yeni kapsam gerektiren bir özellik |
+| O2 | duration/releaseYear string kalıyor | [x] **Düzeltildi** — `handleChange` artık sayısal alanları `Number()` ile çeviriyor |
+| O3 | `/login` `/register` `/profile` için 404 yok | [x] **Düzeltildi** — `NotFoundPage.jsx` + wildcard (`*`) rota eklendi |
+| O4 | Session 101 demo kilidi hiç açılmıyor | ⏭ **Değerlendirildi, bırakıldı** — Kaan'ın kendi kod yorumu bunun kasıtlı bir demo verisi olduğunu açıkça belirtiyor (4 durumu bir arada göstermek için); gerçek bir hata değil |
+| O5 | Rezervasyon kısmi hata atomikliği | ⏭ **Ertelendi** — köklü bir çözüm backend olmadan tam atomiklik sağlayamaz; kapsamı Sprint 1 review'ın ötesinde |
+| — | Alptuğ için STATUS dosyası yok | ⏭ **Bu oturumda çözülemez** — Alptuğ'un kendisi yazmalı |
+| — | PLAN.md'nin Alptuğ'un scope taşmasına göre yeniden dengelenmesi | ⏭ **Ekiple konuşulmalı** — tek taraflı yeniden planlama yapılmadı |
 
 **Not:** K2'nin bilinen sınırı hâlâ geçerli: rol bilgisi `sessionStorage`'da tutulduğu için gerçek bir backend olmadan tam güvenli değil (bkz. orijinal K2 notu) — bu düzeltme "herkes admin" durumunu kapatıyor, "kararlı bir kullanıcı devtools'tan rolünü değiştiremez" garantisini vermiyor. Faz-2 (backend) kapsamı.
 
@@ -58,18 +58,18 @@ Bu raporda listelenen maddelerin çoğu, rapor tamamlandıktan hemen sonra bu br
 
 ## 1. Kritik Bulgular
 
-### 🔴 K1 — Case-sensitivity: admin import path'leri Linux'ta build'i kırar
+### [kirmizi] K1 — Case-sensitivity: admin import path'leri Linux'ta build'i kırar
 **Dosyalar:** `src/App.jsx:10-11` vs. gerçek dosyalar (`git ls-files` ile doğrulandı — case-sensitive, otoriter kaynak)
 
 ```jsx
 // App.jsx içinde yazılan:
-import AdminLayout from "./components/admin/AdminLayout.jsx";     // küçük "admin"
-import AdminDashboard from "./pages/admin/AdminDashboard.jsx";    // "Dashboard" (küçük b)
+import AdminLayout from "./components/admin/AdminLayout.jsx"; // küçük "admin"
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx"; // "Dashboard" (küçük b)
 ```
 ```
 // gerçekte git'te kayıtlı olan dosyalar:
-src/components/Admin/AdminLayout.jsx      ← büyük "Admin"
-src/pages/admin/AdminDashBoard.jsx        ← "DashBoard" (büyük B)
+src/components/Admin/AdminLayout.jsx ← büyük "Admin"
+src/pages/admin/AdminDashBoard.jsx ← "DashBoard" (büyük B)
 ```
 
 **Neden şu an fark edilmiyor:** Ekibin hepsi Windows kullanıyor (NTFS case-insensitive), `npm run build` bu yüzden sorunsuz geçiyor.
@@ -77,7 +77,7 @@ src/pages/admin/AdminDashBoard.jsx        ← "DashBoard" (büyük B)
 **Sahibi:** Alptuğ (dosyaları oluşturan) + import'ları yazan kişi (App.jsx'i kim düzenlediyse).
 **Düzeltme:** Ya dosya/klasör adlarını (`Admin/` → `admin/`, `AdminDashBoard.jsx` → `AdminDashboard.jsx`) ya da import'ları gerçek case'e uydurun — ikisi de aynı derecede kolay, ama tutarlı olmalı. Git'in kendisi de dosya yeniden adlandırmayı case-only değişiklikte bazen izlemez, dikkatli `git mv` gerekir.
 
-### 🔴 K2 — `/admin` tamamen korumasız
+### [kirmizi] K2 — `/admin` tamamen korumasız
 **Dosyalar:** `src/App.jsx:39-44`, `src/components/Admin/AdminLayout.jsx` (tüm dosya)
 
 Ömer'in Sprint 1'de kurduğu `AuthContext`/`useAuth` sistemi ile Alptuğ'un aynı sprintte kurduğu admin paneli **hiç birbirine bağlanmamış**. `grep`'le doğrulandı: `useAuth`/`AuthContext` sadece `main.jsx`, `AuthProvider.jsx`, `useAuth.js`, `Layout.jsx`'te (sadece header metni için) kullanılıyor — `/admin` route'larının hiçbirinde rol/login kontrolü yok.
@@ -90,19 +90,19 @@ Bu, iki farklı kişinin (Ömer + Alptuğ) aynı sprintte birbirinden habersiz �
 
 **Sahibi:** Ömer + Alptuğ (ortak). **Öncelik: Sprint 2'nin ilk günü.**
 
-### 🔴 K3 — Admin istatistik paneli tamamen sahte veri gösteriyor; doküman bunu "gerçek hesaplama" olarak işaretlemiş
+### [kirmizi] K3 — Admin istatistik paneli tamamen sahte veri gösteriyor; doküman bunu "gerçek hesaplama" olarak işaretlemiş
 **Dosya:** `src/pages/admin/AdminDashBoard.jsx:15-31`
 
 ```js
 useEffect(() => {
-  // Gerçekte reservationService'den tüm rezervasyonları çekip işlemeliyiz.
-  // Şimdilik rezervasyon servisi üzerinden sahte veri oluşturacağız.
-  const mockStats = [
-    { name: 'Neon Yağmuru', bilet: 120, gelir: 12000 },
-    ...
-  ];
-  setStats(mockStats);
-  ...
+ // Gerçekte reservationService'den tüm rezervasyonları çekip işlemeliyiz.
+ // Şimdilik rezervasyon servisi üzerinden sahte veri oluşturacağız.
+ const mockStats = [
+ { name: 'Neon Yağmuru', bilet: 120, gelir: 12000 },
+ ...
+ ];
+ setStats(mockStats);
+ ...
 }, []);
 ```
 
@@ -112,8 +112,8 @@ useEffect(() => {
 
 | # | Görev | Durum | Kanıt |
 |---|---|---|---|
-| 1.5.4 | İstatistik hesaplama fonksiyonları | ✅ Bitti | `AdminDashboard.jsx` içinde `reduce` ile yapıldı |
-| 1.5.6 | CSV dışa aktarım ve arşiv istatistikleri | ✅ Bitti | `react-csv` ile export eklendi |
+| 1.5.4 | İstatistik hesaplama fonksiyonları | [x] Bitti | `AdminDashboard.jsx` içinde `reduce` ile yapıldı |
+| 1.5.6 | CSV dışa aktarım ve arşiv istatistikleri | [x] Bitti | `react-csv` ile export eklendi |
 
 Bu **doğru değil** — `reduce` (satır 26-27) gerçekten var, ama **hardcoded `mockStats` üzerinde** çalışıyor, gerçek rezervasyon verisi üzerinde değil. CSV export da aynı sahte veriyi indiriyor. Bu, kullanıcının özellikle sorduğu **"dokümanla kod arasındaki aykırılık"**'ın en net örneği.
 
@@ -123,7 +123,7 @@ Bu **doğru değil** — `reduce` (satır 26-27) gerçekten var, ama **hardcoded
 
 ## 2. Yüksek Öncelikli Bulgular
 
-### 🟠 Y1 — Benim (Berke'nin) "Yakında" filmlerim admin panelinde kırık resim gösteriyor
+### [turuncu] Y1 — Benim (Berke'nin) "Yakında" filmlerim admin panelinde kırık resim gösteriyor
 **Dosya:** `src/pages/admin/AdminMoviesPage.jsx:68`
 
 ```jsx
@@ -136,34 +136,34 @@ Müşteri tarafındaki `MoviePoster.jsx` bileşeni posterin olmadığı durumlar
 
 **Sahibi:** Alptuğ (kod), ama sebep iki kişinin bağımsız çalışması. **Düzeltme:** `AdminMoviesPage.jsx`'te `<img>` yerine `<MoviePoster movie={movie} className="admin-table-poster" />` kullan — zaten var olan çözümü tekrar yazmaya gerek yok.
 
-### 🟠 Y2 — Admin film formunda `releaseDate` alanı yok → "Yakında" özelliği admin panelinden hiç erişilemez
+### [turuncu] Y2 — Admin film formunda `releaseDate` alanı yok → "Yakında" özelliği admin panelinden hiç erişilemez
 **Dosya:** `src/pages/admin/AdminMovieForm.jsx:10-18`
 
 Form alanları: `title, genre, duration, ageRating, releaseYear, poster, description` — **`releaseDate` yok**. Benim `movieService.isMovieReleased()` fonksiyonum `releaseDate` olmayan filmleri otomatik "vizyonda" sayıyor (kasıtlı, güvenli bir varsayılan). Ama bunun sonucu: **admin panelinden hiçbir zaman "Yakında" bir film eklenemez** — form bu alanı hiç sormuyor.
 
 **Sahibi:** Alptuğ. **Düzeltme:** Forma bir "Vizyon Tarihi" input'u eklenmeli; benim `movieService.js`'e eklediğim `releaseDate` alanı zaten orada, form bunu doldurmuyor sadece.
 
-### 🟠 Y3 — Koltuk kilidi (`GECICI_KILITLI`) çakışma kontrolünde atlanıyor — 1.4.7 bağlandığı an çifte-satış riski
+### [turuncu] Y3 — Koltuk kilidi (`GECICI_KILITLI`) çakışma kontrolünde atlanıyor — 1.4.7 bağlandığı an çifte-satış riski
 **Dosya:** `src/services/seatService.js` (`reserveSeats` fonksiyonu)
 
 `reserveSeats`, rezervasyon anında sadece `DOLU` koltuklarla çakışmayı kontrol ediyor, `GECICI_KILITLI` (başka bir kullanıcının ödeme sürecinde kilitlediği) koltukları hesaba katmıyor — çünkü kilit sahibi/oturum kavramı hiçbir yerde yok. Bugün bu **hareketsiz** bir risk çünkü `lockSeats`/`releaseLockedSeats` gerçek kullanıcı akışına hiç bağlanmamış (Kaan'ın kendi notu da bunu doğruluyor — bkz. §4). Ama **1.4.7 (sayaç/kilit UI'ı) bağlandığı an** iki kullanıcı aynı koltuğu ödeme sırasında alabilir.
 
 **Sahibi:** Kaan (1.4.7'yi kim alırsa). **Düzeltme:** 1.4.7 planlanırken bu kontrol de eklenmeli — sadece UI değil, `reserveSeats`'in de kilitli-ama-başkasına-ait koltukları reddetmesi gerekiyor.
 
-### 🟠 Y4 — Lint 13 hatayla kırık; ekibin kendi kuralı (sprint sonu review) uygulanmamış
+### [turuncu] Y4 — Lint 13 hatayla kırık; ekibin kendi kuralı (sprint sonu review) uygulanmamış
 **Dosyalar:** `AdminLayout.jsx`, `CinemasPage.jsx`, `AdminDashBoard.jsx`, `AdminMovieForm.jsx`, `AdminMoviesPage.jsx`
 
 Ben ve Kaan, kendi STATUS dosyalarımızda `npm run lint` çıktısını "0 hata" olarak kanıtladık. Alptuğ'un merge edilen kodu lint'i **13 hatayla** kırıyor (5 dosyada gereksiz `React` import'u, 2 yerde fonksiyon tanımlanmadan önce kullanılması, 4 yerde `catch (error)` içinde `error` değişkeninin hiç kullanılmaması, 1 yerde gerçek bir `react-hooks/set-state-in-effect` kuralı ihlali). Bu, PLAN.md §3.3'te tarif edilen "sprint sonu inceleme" adımının bu PR için **hiç yapılmadığının** somut kanıtı.
 
 **Düzeltme:** `React` import'larını kaldır (proje yeni JSX transform kullanıyor, gerekmiyor), `loadMovie`/`loadMovies` fonksiyon tanımlarını `useEffect`'ten önce taşı, `catch` bloklarında en azından `console.error(error)` çağır (şu an admin bir işlem başarısız olduğunda **hiçbir tanı bilgisi konsola düşmüyor**, sadece genel bir `alert`).
 
-### 🟠 Y5 — Konum reddedilince ekrandaki mesaj ile gerçek davranış çelişiyor
+### [turuncu] Y5 — Konum reddedilince ekrandaki mesaj ile gerçek davranış çelişiyor
 **Dosya:** `src/pages/CinemasPage.jsx:47-49`
 
 ```js
 (error) => {
-  setLocationStatus("Konum izni verilmedi. Varsayılan olarak tüm sinemalar listeleniyor.");
-  setSelectedCity("İstanbul"); // Fallback olarak İstanbul'u seç
+ setLocationStatus("Konum izni verilmedi. Varsayılan olarak tüm sinemalar listeleniyor.");
+ setSelectedCity("İstanbul"); // Fallback olarak İstanbul'u seç
 }
 ```
 
@@ -189,27 +189,27 @@ Mesaj "**tüm** sinemalar listeleniyor" diyor, ama hemen altındaki satır `sele
 
 | Kişi | İddia | Doğrulama |
 |---|---|---|
-| Ömer | Şifre frontend state'ine sızmıyor | ✅ **Doğru** — `authService.js` login'de `password` alanı silinip öyle dönülüyor |
-| Ömer | `sessionStorage` ile oturum kalıcılığı | ✅ **Doğru**, ama STATUS'ta **hiç bahsedilmeyen** bir sonucu var: rol bilgisi tamamen client-side/güvenilir değil (bkz. K2 notu) |
-| Ömer | Çıkışta sepet temizleniyor (`CLEAR_CART`) | ✅ **Doğru**, doğrulandı |
-| Kaan | `getReservedSeatsBySessionId` geriye dönük uyumlu | ✅ **Doğru** |
-| Kaan | `reserveSeats` çakışma kontrolü korunarak genişletildi | ✅ **Doğru** (DOLU kontrolü için) — ama Y3'teki kilit-çakışma boşluğu yeni ve ayrı bir konu |
-| Kaan | Stray `seat.jsx` temizlendi | ✅ **Doğru**, repo genelinde case-duplicate kalmamış |
-| Kaan | `GECICI_KILITLI` henüz booking akışına bağlanmadı | ✅ **Doğru**, dürüstçe belirtilmiş |
-| Alptuğ | *(STATUS dosyası yok)* | ⚠️ **Eksik** — diğer 3 kişi STATUS yazmış, Alptuğ yazmamış |
-| WBS_GOREV_DAGILIMI.md | 1.5.4/1.5.5 "AdminDashboard.jsx içinde reduce ile yapıldı" | ❌ **Yanlış** — bkz. K3, `reduce` sahte veri üzerinde çalışıyor |
+| Ömer | Şifre frontend state'ine sızmıyor | [x] **Doğru** — `authService.js` login'de `password` alanı silinip öyle dönülüyor |
+| Ömer | `sessionStorage` ile oturum kalıcılığı | [x] **Doğru**, ama STATUS'ta **hiç bahsedilmeyen** bir sonucu var: rol bilgisi tamamen client-side/güvenilir değil (bkz. K2 notu) |
+| Ömer | Çıkışta sepet temizleniyor (`CLEAR_CART`) | [x] **Doğru**, doğrulandı |
+| Kaan | `getReservedSeatsBySessionId` geriye dönük uyumlu | [x] **Doğru** |
+| Kaan | `reserveSeats` çakışma kontrolü korunarak genişletildi | [x] **Doğru** (DOLU kontrolü için) — ama Y3'teki kilit-çakışma boşluğu yeni ve ayrı bir konu |
+| Kaan | Stray `seat.jsx` temizlendi | [x] **Doğru**, repo genelinde case-duplicate kalmamış |
+| Kaan | `GECICI_KILITLI` henüz booking akışına bağlanmadı | [x] **Doğru**, dürüstçe belirtilmiş |
+| Alptuğ | *(STATUS dosyası yok)* | [dikkat] **Eksik** — diğer 3 kişi STATUS yazmış, Alptuğ yazmamış |
+| WBS_GOREV_DAGILIMI.md | 1.5.4/1.5.5 "AdminDashboard.jsx içinde reduce ile yapıldı" | [yok] **Yanlış** — bkz. K3, `reduce` sahte veri üzerinde çalışıyor |
 
 ---
 
 ## 5. Süreç / Plan Tutarsızlıkları
 
 1. **Alptuğ'un scope taşması:** `PLAN.md`, Alptuğ'un 1.5.1-1.5.8 görevlerini **Sprint 1, 3, 4, 5, 6, 7, 8'e** dağıtmıştı (her sprintte bir tane, kişi başı eşit yük hedefiyle). Alptuğ bunların **tamamını Sprint 1'de** bitirdi ("Added Admin Panel" + "Solved Problems" commit'leri). Bu, bireysel hız olarak olumlu, ama:
-   - Sprint 3-8'de Alptuğ için planlanan görevler artık **boş** — PLAN.md'nin yeniden dengelenmesi gerekiyor.
-   - Bu kadar geniş bir kapsamın (8 görev, tahmini 14 puan ağırlık) tek seferde, ara review olmadan gelmesi, tam da bu raporda bulunan entegrasyon açıklarının (K1, K2, K3, Y1, Y2, Y4, Y5) **birikmesine** sebep oldu — küçük parçalar halinde gelseydi her PR'da yakalanabilirlerdi.
-   - **Öneri:** `PLAN.md`'yi Alptuğ'un tamamlanan işine göre güncelleyin, boşalan sprint slotlarına ya yeni görev ekleyin ya da diğer görevleri yeniden dengeleyin.
+ - Sprint 3-8'de Alptuğ için planlanan görevler artık **boş** — PLAN.md'nin yeniden dengelenmesi gerekiyor.
+ - Bu kadar geniş bir kapsamın (8 görev, tahmini 14 puan ağırlık) tek seferde, ara review olmadan gelmesi, tam da bu raporda bulunan entegrasyon açıklarının (K1, K2, K3, Y1, Y2, Y4, Y5) **birikmesine** sebep oldu — küçük parçalar halinde gelseydi her PR'da yakalanabilirlerdi.
+ - **Öneri:** `PLAN.md`'yi Alptuğ'un tamamlanan işine göre güncelleyin, boşalan sprint slotlarına ya yeni görev ekleyin ya da diğer görevleri yeniden dengeleyin.
 
 2. **Sprint-sonu code review adımı fiilen atlanmış:** `PLAN.md` §3.3 her sprint sonunda bir incelemeyi (manuel veya bir kişi tarafından, araç şart değil) öngörüyor. Ben ve Kaan kendi STATUS dosyalarımızda lint/test/build kanıtı sunduk; Alptuğ'un PR'ında bu kanıt yok ve gerçekten de lint kırık, admin/auth entegrasyonu kontrol edilmemiş. Bu bir kişiyi suçlamak değil — süreç bu haliyle **isteğe bağlı** kaldığı için atlanabiliyor.
-   - **Öneri:** Sprint 2'den itibaren her PR'ın merge edilmeden önce en az `npm run lint` + `npm run test:run` kanıtı (çıktı yapıştırılarak) taşımasını zorunlu kılın — araç seçimi serbest kalsın, ama kanıt olmadan merge olmasın.
+ - **Öneri:** Sprint 2'den itibaren her PR'ın merge edilmeden önce en az `npm run lint` + `npm run test:run` kanıtı (çıktı yapıştırılarak) taşımasını zorunlu kılın — araç seçimi serbest kalsın, ama kanıt olmadan merge olmasın.
 
 3. **`docs/kaan_STATUS.md` içeriği aslında Kaan'ın Sprint 1 görevini (1.4.3) doğru şekilde belgeliyor** — bu rapor için en güvenilir STATUS dosyası oydu; iddia ettiği her şey kodda doğrulandı. Diğer ekip üyeleri için de bu seviye ayrıntı hedeflenebilir.
 

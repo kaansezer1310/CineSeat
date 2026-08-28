@@ -2,11 +2,16 @@
    Tasarım token katmanı — tek kaynak.
 
    :root                     → light tema (varsayılan)
-   [data-theme="dark"]       → dark tema (Faz 6'da yeniden ele alınacak;
-                                şimdilik önceki dark palet değerleri)
+   [data-theme="dark"]       → dark tema (Faz 6'da yeniden kuruldu)
 
-   Header ve poster-katmanı token'ları kasıtlı olarak temadan bağımsızdır
-   (Faz 1'de Header/Footer yeniden kurulana kadar sabit kalır).
+   KURAL (spec §4): dark tema YALNIZCA bu dosyadaki token'ları yeniden
+   tanımlar. Hiçbir bileşen CSS'i `[data-theme="dark"]` altında dallanmaz —
+   bir bileşende tema koşulu görürsen, eksik olan bir token vardır.
+
+   Kasıtlı olarak temadan BAĞIMSIZ olanlar (dark bloğunda override
+   edilmezler, çünkü her iki temada da aynı kalmaları gerekir):
+   - --color-overlay-*  / --color-on-overlay*  → poster üzeri koyu katman
+   - --color-footer-*                          → footer marka çıpası
    ═══════════════════════════════════════════════════════ */
 :root {
   color-scheme: light;
@@ -26,11 +31,24 @@
   --color-yellow-text: #7A5A0E;
   --color-on-accent: #2B2100;
   --color-purple-dark: #4A3175;
+  /* Mor METİN olarak: dolgu/kenarlık tonundan AYRI tutulur — aynen
+     --color-yellow / --color-yellow-text ayrımı gibi. Dark temada
+     --color-purple (#8765a3) yüzey üzerinde 3.77:1 kalıyordu (WCAG 4.5
+     altı); metin için ayrı, daha açık bir ton gerekiyor. */
+  --color-purple-text: #5B3E8E;
+  --color-purple-text-hover: #4A3175;
   --color-accent-soft: #FBF0D8;
   --color-warn: #B5761F;
   --color-on-primary: #FFFFFF;
   --color-on-danger: #FFFFFF;
   --color-skeleton-shimmer: rgba(255, 255, 255, 0.5);
+
+  /* Grafik serileri. Tema basina AYRI secildi (otomatik cevirme degil) ve
+     dataviz dogrulayicisiyla olculdu: acik yuzey #FFFFFF uzerinde aciklik
+     bandi, kroma tabani, renk korlugu ayrimi ve kontrast -> hepsi gecti.
+     CVD ayrimi DeltaE 27.4 (hedef 8). */
+  --chart-series-1: #6b4790;
+  --chart-series-2: #b3852b;
 
   /* Metin */
   --color-text: #1E1A26;
@@ -43,10 +61,29 @@
   /* Durum renkleri */
   --color-success: #2E7D5B;
   --color-success-bg: #E2F1EA;
+  /* Dolgu olarak kullanılan --color-success üzerindeki metin. Light temada
+     yeşil koyu olduğu için beyaz, dark temada yeşil açıldığı için koyu. */
+  --color-on-success: #FFFFFF;
   --color-error: #C0392B;
   --color-error-text: #A93226;
   --color-error-bg: #FBE7E4;
   --color-error-border: rgba(192, 57, 43, 0.3);
+
+  /* Geçici kilitli koltuğun çizgili deseni (REQ-19). Renk körlüğüne karşı
+     desen + renk birlikte kullanılır; iki ton da moru temadan alır. */
+  --color-seat-locked-stripe: rgba(91, 62, 142, 0.5);
+  --color-seat-locked-stripe-soft: rgba(91, 62, 142, 0.26);
+
+  /* Landing hero'sunun poster üzerine düşen okunabilirlik perdesi.
+     Tema başına AYRI gradyan: home.css'in temaya göre dallanmasını
+     ortadan kaldırır (spec §4: bileşen CSS'i temaya dallanmaz). */
+  --gradient-hero-scrim:
+    linear-gradient(
+      120deg,
+      rgba(250, 248, 252, 0.96) 0%,
+      rgba(250, 248, 252, 0.86) 55%,
+      rgba(250, 248, 252, 0.65) 100%
+    );
 
   /* Pasif (disabled) alan/aksiyonlar */
   --color-disabled-bg: #E7E2ED;
@@ -63,17 +100,18 @@
   --color-shadow: rgba(76, 52, 112, 0.14);
   --color-shadow-strong: rgba(76, 52, 112, 0.22);
 
-  /* Poster üzeri katman (her iki temada koyu kalır) */
+  /* Poster üzeri katman — her iki temada KOYU kalır, bu yüzden bu üçü
+     kasıtlı olarak temadan bağımsızdır ve dark bloğunda override EDİLMEZ.
+     Üzerlerindeki metin/ikon her zaman açık renktir. */
   --color-overlay-scrim: rgba(12, 9, 18, 0.82);
   --color-on-overlay: #f2edf5;
+  --color-on-overlay-accent: #d8b662;
+  --color-overlay-border: rgba(255, 255, 255, 0.14);
 
-  /* Header (Faz 1'e kadar temadan bağımsız, orijinal değerler) */
-  --color-header-background: rgba(12, 9, 18, 0.9);
-  --color-header-border: rgba(190, 164, 207, 0.14);
-  --color-header-text: #f2edf5;
-  --color-header-text-muted: #c3b8d0;
-  --color-header-accent: #d8b662;
-  --color-header-hover-surface: rgba(255, 255, 255, 0.12);
+  /* Faz 1'de header açık yüzeye geçtiği için --color-header-* ailesi
+     tamamen kaldırıldı (son tüketicisi bir poster katmanı öğesiydi ve
+     yanlışlıkla header token'ı kullanıyordu — artık
+     --color-on-overlay-accent kullanıyor). Marka çıpası artık footer. */
 
   /* Footer (temadan bağımsız, her zaman koyu — "marka çıpası" artık footer'da, spec §6) */
   --color-footer-background: #231C30;
@@ -162,12 +200,22 @@
   --color-yellow-hover: #ddbd70;
   --color-yellow-text: #d0ac59;
   --color-on-accent: #211a0b;
-  --color-purple-dark: #a181ba;
+  /* Hover ZEMİNİ: her iki temada da tabandan koyulaşır — üzerindeki beyaz
+     metin böylece 4.5'i geçer. Önceden burada #a181ba (tabandan AÇIK) vardı
+     ve beyaz metinle 3.30:1'e düşüyordu. */
+  --color-purple-dark: #6d4f85;
+  /* Koyu zeminde mor metin açılır: 5.4–6.0:1. */
+  --color-purple-text: #a181ba;
+  --color-purple-text-hover: #bfa6d6;
   --color-accent-soft: rgba(208, 172, 89, 0.16);
   --color-warn: #ddbd70;
   --color-on-primary: #FFFFFF;
   --color-on-danger: #FFFFFF;
   --color-skeleton-shimmer: rgba(255, 255, 255, 0.5);
+
+  /* Koyu yuzey #1b1425 icin ayrica dogrulandi; CVD DeltaE 27.1 (hedef 8). */
+  --chart-series-1: #8765a3;
+  --chart-series-2: #ad8838;
 
   --color-text: #f2edf5;
   --color-text-muted: #aaa0b4;
@@ -177,10 +225,17 @@
 
   --color-success: #71947c;
   --color-success-bg: rgba(113, 148, 124, 0.16);
+  /* Dark temada yeşil AÇILDIĞI için üzerindeki metin koyu olmalı —
+     light temadaki beyaz burada 3:1'in altına düşerdi. */
+  --color-on-success: #0c120e;
   --color-error: #d77b82;
   --color-error-text: #e8a0a0;
   --color-error-bg: rgba(220, 80, 80, 0.1);
   --color-error-border: rgba(220, 80, 80, 0.35);
+
+  /* Çizgili kilit deseni koyu zeminde daha açık bir mora oturur. */
+  --color-seat-locked-stripe: rgba(135, 101, 163, 0.55);
+  --color-seat-locked-stripe-soft: rgba(135, 101, 163, 0.32);
 
   --color-disabled-bg: #4a414f;
   --color-disabled-text: #89808d;
@@ -192,4 +247,13 @@
 
   --color-shadow: rgba(0, 0, 0, 0.22);
   --color-shadow-strong: rgba(0, 0, 0, 0.28);
+
+  /* Hero perdesi koyu temada koyu zemine karışır. */
+  --gradient-hero-scrim:
+    linear-gradient(
+      120deg,
+      rgba(12, 9, 18, 0.96) 0%,
+      rgba(12, 9, 18, 0.86) 55%,
+      rgba(12, 9, 18, 0.65) 100%
+    );
 }

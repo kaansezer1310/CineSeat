@@ -30,13 +30,16 @@ vi.mock("../services/reservationService.js", () => ({
   default: { createReservation: vi.fn() },
 }));
 
-vi.mock("../services/campaignService.js", () => ({
-  default: {
-    getActiveCampaigns: vi.fn(),
-    pickBestCampaign: vi.fn(() => null),
-    calculateDiscount: vi.fn(() => 0),
-  },
-}));
+// Kampanya hesabinin kendisi saf; yalnizca ag cagrisi taklit ediliyor.
+// Boylece indirimin kalem bazinda dogru hesaplandigi da olculur.
+vi.mock("../services/campaignService.js", async () => {
+  const actual = await vi.importActual("../services/campaignService.js");
+
+  return {
+    ...actual,
+    default: { ...actual.default, getActiveCampaigns: vi.fn() },
+  };
+});
 
 vi.mock("../services/paymentAdapter.js", async () => {
   const actual = await vi.importActual("../services/paymentAdapter.js");
@@ -157,6 +160,29 @@ describe("PaymentPage — ödeme simülasyonu (T6)", () => {
       reference: "SIM-1",
       last4: "1111",
     });
+  });
+
+  it("koltuk kilidi alınamazsa kullanıcıyı çıkmazda bırakmaz", async () => {
+    // Kilit gelmezse "Koltuklar ayriliyor..." butonu sonsuza kadar kapali
+    // kaliyor ve kullaniciya neden odeyemedigi hic soylenmiyordu.
+    seatService.lockSeats.mockResolvedValue([]);
+
+    renderPaymentPage();
+
+    expect(
+      await screen.findByText(/Koltuklariniz ayrilamadi/i)
+    ).toBeInTheDocument();
+  });
+
+  it("kart numarası sınırsız uzatılamaz", async () => {
+    renderPaymentPage();
+
+    const input = await screen.findByLabelText(/Kart Numarası/i);
+
+    fireEvent.change(input, { target: { value: "4".padEnd(40, "9") } });
+
+    // Hicbir kart 19 haneden uzun degil.
+    expect(input.value.replace(/\s/g, "")).toHaveLength(19);
   });
 
   it("demo ödeme olduğunu açıkça belirtir", async () => {

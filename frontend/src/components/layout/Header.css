@@ -20,7 +20,7 @@
 .site-logo {
   font-size: var(--text-lg);
   font-weight: var(--weight-black);
-  color: var(--color-purple);
+  color: var(--color-purple-text);
   letter-spacing: -0.03em;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .header-nav-link-active {
-  color: var(--color-purple);
+  color: var(--color-purple-text);
 }
 
 .header-nav-link-active::after {
@@ -190,7 +190,7 @@
 }
 
 .mobile-menu-link-active {
-  color: var(--color-purple);
+  color: var(--color-purple-text);
   background: var(--color-background-soft);
 }
 

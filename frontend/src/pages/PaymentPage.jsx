@@ -7,7 +7,7 @@ import useCountdown from "../hooks/useCountdown.js";
 import Stepper from "../components/ui/Stepper.jsx";
 import seatService from "../services/seatService.js";
 import reservationService from "../services/reservationService.js";
-import { calcSubtotal, formatPrice } from "../services/pricing.js";
+import { calcItemTotal, calcSubtotal, formatPrice } from "../services/pricing.js";
 import campaignService from "../services/campaignService.js";
 import {
   forgetStoredLocks,
@@ -24,6 +24,11 @@ import {
   validateCardForm,
   CARD_BRANDS,
 } from "../domain/card.js";
+
+// Ödeme formu, Giriş/Kayıt ile aynı `.auth-*` form düzenini kullanıyor.
+// Bu stiller Faz 4'te App.css'ten auth.css'e taşındı; Faz 3 bu sayfayı
+// kendi tasarımına geçirene kadar buradan tüketiliyor.
+import "./auth.css";
 
 function secondsUntil(isoDate) {
   const expiresAt = new Date(isoDate).getTime();
@@ -109,6 +114,15 @@ function PaymentPage() {
         return;
       }
 
+      // Hic kilit alinamadiysa buton "Koltuklar ayriliyor..." halinde sonsuza
+      // kadar kapali kalirdi: kullaniciya ne oldugunu soylemeyen bir cikmaz.
+      if (acquired.length === 0) {
+        setLockError(
+          "Koltuklariniz ayrilamadi. Lutfen sepetinize donup tekrar deneyin."
+        );
+        return;
+      }
+
       lockIdsRef.current = acquired.map((lock) => lock.id);
       storeLockIds(lockIdsRef.current);
 
@@ -160,16 +174,29 @@ function PaymentPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const bestCampaign = campaignService.pickBestCampaign(
+  // Kampanya KALEM BAZINDA secilir: backend her seans icin ayri rezervasyon
+  // olusturuyor ve kosullari o rezervasyonun ara toplamina gore dogruluyor.
+  // Sepetin tamamina bakmak, esigi sepette asan ama kalemde asmayan
+  // durumlarda hem yanlis onizleme hem de 409 uretiyordu.
+  const campaignPlan = campaignService.planCampaignsPerItem(
     campaigns,
-    subtotal,
-    user
+    state.items,
+    user,
+    calcItemTotal
   );
-  const discountAmount = campaignService.calculateDiscount(
-    bestCampaign,
-    subtotal
-  );
+
+  const discountAmount = campaignPlan.discountTotal;
   const cartTotal = subtotal - discountAmount;
+
+  // Ozette gosterilecek kampanyalar (ayni kampanya birden fazla kalemde
+  // secilmis olabilir; tekilleniyor).
+  const appliedCampaigns = [
+    ...new Map(
+      campaignPlan.lines
+        .filter((line) => line.campaign)
+        .map((line) => [line.campaign.id, line.campaign])
+    ).values(),
+  ];
 
   const reservationMutation = useMutation({
     mutationFn: reservationService.createReservation,
@@ -249,13 +276,17 @@ function PaymentPage() {
       }));
 
       reservationMutation.mutate({
-        cartItems: cartSnapshot,
+        // Her kalem kendi kampanyasiyla gidiyor; onizlemede gosterilen
+        // indirimle backend'in uyguladigi indirim ayni hesaptan cikiyor.
+        cartItems: cartSnapshot.map((item, index) => ({
+          ...item,
+          campaignId: campaignPlan.lines[index]?.campaign?.id ?? null,
+        })),
         buyer: {
           firstName: buyerForm.firstName.trim(),
           lastName: buyerForm.lastName.trim(),
           email: buyerForm.email.trim(),
         },
-        campaignId: bestCampaign?.id ?? null,
       });
     } catch (error) {
       // Teknik hata: aynı kartla tekrar denemek mantıklı, sayfada kalıyoruz.
@@ -367,6 +398,7 @@ function PaymentPage() {
               <label htmlFor="payment-buyer-first-name">Ad</label>
               <input
                 id="payment-buyer-first-name"
+                className="input"
                 type="text"
                 required
                 minLength={2}
@@ -382,6 +414,7 @@ function PaymentPage() {
               <label htmlFor="payment-buyer-last-name">Soyad</label>
               <input
                 id="payment-buyer-last-name"
+                className="input"
                 type="text"
                 required
                 minLength={2}
@@ -397,6 +430,7 @@ function PaymentPage() {
               <label htmlFor="payment-buyer-email">E-posta</label>
               <input
                 id="payment-buyer-email"
+                className="input"
                 type="email"
                 required
                 value={buyerForm.email}
@@ -420,6 +454,7 @@ function PaymentPage() {
               <label htmlFor="payment-cardHolder">Kart Sahibinin Adı</label>
               <input
                 id="payment-cardHolder"
+                className="input"
                 type="text"
                 autoComplete="cc-name"
                 value={paymentForm.cardHolder}
@@ -448,10 +483,14 @@ function PaymentPage() {
                   <span className="payment-card-brand"> · {cardBrandLabel}</span>
                 )}
               </label>
+              {/* maxLength: 19 hane + aradaki 4 bosluk. Hicbir kart bundan
+                  uzun degil; bicimleme de ayrica kirpiyor (formatCardNumber). */}
               <input
                 id="payment-cardNumber"
+                className="input"
                 type="text"
                 inputMode="numeric"
+                maxLength={23}
                 autoComplete="cc-number"
                 placeholder="0000 0000 0000 0000"
                 value={paymentForm.cardNumber}
@@ -487,6 +526,7 @@ function PaymentPage() {
                 <label htmlFor="payment-expiry">Son Kullanma (AA/YY)</label>
                 <input
                   id="payment-expiry"
+                  className="input"
                   type="text"
                   inputMode="numeric"
                   autoComplete="cc-exp"
@@ -514,6 +554,7 @@ function PaymentPage() {
                 </label>
                 <input
                   id="payment-cvv"
+                  className="input"
                   type="text"
                   inputMode="numeric"
                   autoComplete="cc-csc"
@@ -561,9 +602,11 @@ function PaymentPage() {
               <strong>{formatPrice(subtotal)} TL</strong>
             </div>
 
-            {bestCampaign && (
+            {appliedCampaigns.length > 0 && (
               <div className="cart-summary-row cart-summary-row--discount">
-                <span>{bestCampaign.name}</span>
+                <span>
+                  {appliedCampaigns.map((campaign) => campaign.name).join(", ")}
+                </span>
                 <strong>-{formatPrice(discountAmount)} TL</strong>
               </div>
             )}

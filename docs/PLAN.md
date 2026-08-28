@@ -32,45 +32,45 @@ Alptuğ'a yeni görev bu revizyonda **atanmadı** — bu tek taraflı bir karar 
 
 | # | Görev | Sprint | Kanıt |
 |---|-------|:---:|-------|
-| 1.1.1–1.1.4 | Tüm proje altyapısı (Vite, git, klasör, mock servis katmanı) | — | ✅ |
-| 1.3.2 | Film kartı bileşeni | — | ✅ |
-| 1.3.7 | Film detay sayfası (temel) | — | ✅ |
-| 1.4.1 | Seans ve salon seçim ekranı | — | ✅ |
-| 1.4.2 | Koltuk grid bileşeni | — | ✅ |
-| 1.4.6 | Sepet işlemleri (kaldır / boşalt / geri) | — | ✅ |
-| 1.4.10 | Başarı ekranı + rezervasyon no | — | ✅ `pages/SuccessPage.jsx`, format `RES-#####` (1.4.8 kapsamında düzeltildi) |
-| 1.2.3 | Auth context ve oturum yönetimi (REQ-21) | S1 | ✅ `AuthContext`/`AuthProvider`/`useAuth` |
-| 1.4.3 | Koltuk state makinesi: 4 durum (REQ-01) | S1 | ✅ `domain/seatStatus.js` |
-| 1.5.1–1.5.8 | Admin panel + film CRUD + istatistik/rapor/CSV + sinemalar + geolocation | S1 | ✅ Alptuğ tek seferde bitirdi |
-| 1.2.1 | Login / register sayfaları (REQ-16, REQ-21) | S2 | ✅ `LoginPage.jsx`/`RegisterPage.jsx` |
-| 1.4.4 | Sepet yapısı + bilet tipi seçimi (REQ-02) | S2 | ✅ `domain/ticketType.js` |
-| 1.3.1 | Vizyonda / Yakında sekme yapısı (REQ-08) | S2 (aslında S1'de bitmişti) | ✅ `HomePage.jsx` sekmeleri |
-| 1.3.5 | Otomatik kategorizasyon ve arşiv (REQ-05) | S2 | ✅ `movieService.isMovieArchived` |
-| 1.3.6 | Yakında 6 ay zaman kısıtı (REQ-15) | S3 | ✅ `movieService.isWithinComingSoonWindow` |
-| 1.4.5 | Dinamik fiyat: çarpan + ara toplam (REQ-02) | S3 (Alptuğ) | ✅ `services/pricing.js` — `calcSubtotal(items)`, çarpanlar REQ-02 ile birebir |
-| 1.4.8 | Ödeme simülasyon ekranı (REQ-26) | S3 (Alptuğ) | ✅ `pages/PaymentPage.jsx`, `/odeme` rotası, `RES-#####` üretimi |
-| 1.4.7 | Geçici koltuk kilidi + 3 dk sayaç (REQ-19) | S3 (Alptuğ + Ömer) | ✅ Sayaç+kilit/kilit-açma çalışıyor; **kilit-çakışma (Y3) kontrolü Ömer tarafından `lockToken` sistemiyle kapatıldı**, uçtan uca bağlı olduğu doğrulandı |
-| 1.4.9 | Ödeme başarısızlık ekranı (REQ-13) | S3 (Alptuğ + Ömer) | ✅ `PaymentErrorPage.jsx`, test kartı (`0000...`) çalışıyor; **koltuklar artık başarısızlıkta korunuyor** (`isNavigatingToNextStep` ile), doğrulandı |
-| 1.2.9 | Ziyaretçi bilgi formu (REQ-03) | S3 (Alptuğ + Ömer) | ✅ `PaymentPage.jsx` içinde visitorForm, rezervasyona işleniyor, Ad-Soyad 2-50 karakter doğrulaması eklendi |
-| 1.2.10 | Kampanya + indirim motoru (REQ-10) | S3 (Alptuğ, Kaan işiyle birlikte) | ✅ `services/campaignService.js` — üyeye %10, ziyaretçiye yansımaz, `calcSubtotal` üzerine sıralı uygulanıyor |
-| 1.3.3 | Sıralama modülü: tarih/puan (REQ-08.1) | S3 (Berke) | ✅ `movieService.sortMovies` + `SortControl.jsx` |
-| 1.3.4 | Filtreleme modülü: tür/yaş (REQ-08.1) | S3 (Berke) | ✅ `movieService.filterMovies` + `FilterControl.jsx`, sıralamayla birlikte çalışıyor |
-| 1.3.8 | Fragman modalı + fallback (REQ-09/09.1) | S3 (Berke) | ✅ `TrailerModal.jsx` — `fragmanYoutubeId` yoksa buton pasif, her zaman "YouTube'da Aç" linki |
-| 1.3.9 | Puanlama 1-5 yıldız (REQ-11) | S3 (Berke) | ✅ `ratingService.js` + `RatingStars.jsx` — yalnız üye, sadece vizyondaki filmlerde |
-| 1.3.10 | Yorum formu + kısıtlar (REQ-11.1) | S3 (Berke) | ✅ `commentService.js` + `CommentForm.jsx` — 10-500 karakter, yasaklı kelime, ziyaretçiye kapalı |
-| 1.3.11 | Yorum listeleme + sıralama (REQ-11) | S3 (Berke) | ✅ `CommentList.jsx` — mock + kullanıcı yorumları, yeniden eskiye, sahibi düzenler/siler |
-| 1.2.2 | Form doğrulama kuralları + regex (REQ-16/17) | S3 (Ömer) | ✅ `services/validation.js` — kullanıcı adı/şifre regex, ad-soyad uzunluk |
-| 1.2.4 | ProtectedRoute + rol kontrolü (REQ-21) | S3 (Ömer) | ✅ `ProtectedRoute.jsx` genişletildi, `/profile` üye+admin'e açık |
-| 1.2.5 | Profil sayfası (REQ-18) | S3 (Ömer) | ✅ `ProfilePage.jsx` — kişisel bilgi formu |
-| 1.2.6 | Bilet sekmeleri: güncel/geçmiş (REQ-18) | S3 (Ömer; Berke düzeltti) | ✅ `ProfilePage.jsx`. **Berke'nin review'unda bug bulundu:** ayrım satın alma zamanına bakıyordu, gösterim saatine değil — `sessionService.hasSessionPassed` ile düzeltildi |
-| 1.2.7 | İzleme listesi ikonu + state (REQ-24) | S3 (Ömer; Berke düzeltti) | ✅ `WatchlistProvider.jsx`. **Berke'nin review'unda bug bulundu:** kullanıcı değişince state senkronize olmuyordu (geçersiz sahte-ref) — düzeltildi |
-| 1.2.8 | İzleme listem sekmesi + bildirim (REQ-25) | S3 (Ömer; Berke tamamladı) | ✅ `ProfilePage.jsx` sekme + `HomePage.jsx`'e eklenen bildirim bandı. **Berke'nin review'unda eksik bulundu:** bildirim bandı hiç yazılmamıştı, eklendi |
-| 1.5.9 | Light / Dark mod (REQ-23) | S3 (Ömer) | ✅ `ThemeProvider.jsx`/`useTheme.js` + global CSS. Not: admin panelinde 4 hardcoded renk hâlâ tokene bağlı değil (düşük öncelik, bkz. §8) |
+| 1.1.1–1.1.4 | Tüm proje altyapısı (Vite, git, klasör, mock servis katmanı) | — | [x] |
+| 1.3.2 | Film kartı bileşeni | — | [x] |
+| 1.3.7 | Film detay sayfası (temel) | — | [x] |
+| 1.4.1 | Seans ve salon seçim ekranı | — | [x] |
+| 1.4.2 | Koltuk grid bileşeni | — | [x] |
+| 1.4.6 | Sepet işlemleri (kaldır / boşalt / geri) | — | [x] |
+| 1.4.10 | Başarı ekranı + rezervasyon no | — | [x] `pages/SuccessPage.jsx`, format `RES-#####` (1.4.8 kapsamında düzeltildi) |
+| 1.2.3 | Auth context ve oturum yönetimi (REQ-21) | S1 | [x] `AuthContext`/`AuthProvider`/`useAuth` |
+| 1.4.3 | Koltuk state makinesi: 4 durum (REQ-01) | S1 | [x] `domain/seatStatus.js` |
+| 1.5.1–1.5.8 | Admin panel + film CRUD + istatistik/rapor/CSV + sinemalar + geolocation | S1 | [x] Alptuğ tek seferde bitirdi |
+| 1.2.1 | Login / register sayfaları (REQ-16, REQ-21) | S2 | [x] `LoginPage.jsx`/`RegisterPage.jsx` |
+| 1.4.4 | Sepet yapısı + bilet tipi seçimi (REQ-02) | S2 | [x] `domain/ticketType.js` |
+| 1.3.1 | Vizyonda / Yakında sekme yapısı (REQ-08) | S2 (aslında S1'de bitmişti) | [x] `HomePage.jsx` sekmeleri |
+| 1.3.5 | Otomatik kategorizasyon ve arşiv (REQ-05) | S2 | [x] `movieService.isMovieArchived` |
+| 1.3.6 | Yakında 6 ay zaman kısıtı (REQ-15) | S3 | [x] `movieService.isWithinComingSoonWindow` |
+| 1.4.5 | Dinamik fiyat: çarpan + ara toplam (REQ-02) | S3 (Alptuğ) | [x] `services/pricing.js` — `calcSubtotal(items)`, çarpanlar REQ-02 ile birebir |
+| 1.4.8 | Ödeme simülasyon ekranı (REQ-26) | S3 (Alptuğ) | [x] `pages/PaymentPage.jsx`, `/odeme` rotası, `RES-#####` üretimi |
+| 1.4.7 | Geçici koltuk kilidi + 3 dk sayaç (REQ-19) | S3 (Alptuğ + Ömer) | [x] Sayaç+kilit/kilit-açma çalışıyor; **kilit-çakışma (Y3) kontrolü Ömer tarafından `lockToken` sistemiyle kapatıldı**, uçtan uca bağlı olduğu doğrulandı |
+| 1.4.9 | Ödeme başarısızlık ekranı (REQ-13) | S3 (Alptuğ + Ömer) | [x] `PaymentErrorPage.jsx`, test kartı (`0000...`) çalışıyor; **koltuklar artık başarısızlıkta korunuyor** (`isNavigatingToNextStep` ile), doğrulandı |
+| 1.2.9 | Ziyaretçi bilgi formu (REQ-03) | S3 (Alptuğ + Ömer) | [x] `PaymentPage.jsx` içinde visitorForm, rezervasyona işleniyor, Ad-Soyad 2-50 karakter doğrulaması eklendi |
+| 1.2.10 | Kampanya + indirim motoru (REQ-10) | S3 (Alptuğ, Kaan işiyle birlikte) | [x] `services/campaignService.js` — üyeye %10, ziyaretçiye yansımaz, `calcSubtotal` üzerine sıralı uygulanıyor |
+| 1.3.3 | Sıralama modülü: tarih/puan (REQ-08.1) | S3 (Berke) | [x] `movieService.sortMovies` + `SortControl.jsx` |
+| 1.3.4 | Filtreleme modülü: tür/yaş (REQ-08.1) | S3 (Berke) | [x] `movieService.filterMovies` + `FilterControl.jsx`, sıralamayla birlikte çalışıyor |
+| 1.3.8 | Fragman modalı + fallback (REQ-09/09.1) | S3 (Berke) | [x] `TrailerModal.jsx` — `fragmanYoutubeId` yoksa buton pasif, her zaman "YouTube'da Aç" linki |
+| 1.3.9 | Puanlama 1-5 yıldız (REQ-11) | S3 (Berke) | [x] `ratingService.js` + `RatingStars.jsx` — yalnız üye, sadece vizyondaki filmlerde |
+| 1.3.10 | Yorum formu + kısıtlar (REQ-11.1) | S3 (Berke) | [x] `commentService.js` + `CommentForm.jsx` — 10-500 karakter, yasaklı kelime, ziyaretçiye kapalı |
+| 1.3.11 | Yorum listeleme + sıralama (REQ-11) | S3 (Berke) | [x] `CommentList.jsx` — mock + kullanıcı yorumları, yeniden eskiye, sahibi düzenler/siler |
+| 1.2.2 | Form doğrulama kuralları + regex (REQ-16/17) | S3 (Ömer) | [x] `services/validation.js` — kullanıcı adı/şifre regex, ad-soyad uzunluk |
+| 1.2.4 | ProtectedRoute + rol kontrolü (REQ-21) | S3 (Ömer) | [x] `ProtectedRoute.jsx` genişletildi, `/profile` üye+admin'e açık |
+| 1.2.5 | Profil sayfası (REQ-18) | S3 (Ömer) | [x] `ProfilePage.jsx` — kişisel bilgi formu |
+| 1.2.6 | Bilet sekmeleri: güncel/geçmiş (REQ-18) | S3 (Ömer; Berke düzeltti) | [x] `ProfilePage.jsx`. **Berke'nin review'unda bug bulundu:** ayrım satın alma zamanına bakıyordu, gösterim saatine değil — `sessionService.hasSessionPassed` ile düzeltildi |
+| 1.2.7 | İzleme listesi ikonu + state (REQ-24) | S3 (Ömer; Berke düzeltti) | [x] `WatchlistProvider.jsx`. **Berke'nin review'unda bug bulundu:** kullanıcı değişince state senkronize olmuyordu (geçersiz sahte-ref) — düzeltildi |
+| 1.2.8 | İzleme listem sekmesi + bildirim (REQ-25) | S3 (Ömer; Berke tamamladı) | [x] `ProfilePage.jsx` sekme + `HomePage.jsx`'e eklenen bildirim bandı. **Berke'nin review'unda eksik bulundu:** bildirim bandı hiç yazılmamıştı, eklendi |
+| 1.5.9 | Light / Dark mod (REQ-23) | S3 (Ömer) | [x] `ThemeProvider.jsx`/`useTheme.js` + global CSS. Not: admin panelinde 4 hardcoded renk hâlâ tokene bağlı değil (düşük öncelik, bkz. §8) |
 
 > **Dikkat — geçmişte düzeltme gerektiren, artık kapanmış yerler:**
-> - 1.4.10 rezervasyon no formatı artık `RES-#####` (1.4.8 kapsamında düzeltildi) ✅.
+> - 1.4.10 rezervasyon no formatı artık `RES-#####` (1.4.8 kapsamında düzeltildi) [x].
 > - Sprint 1–2'de bulunan kritik/yüksek öncelikli bulgular (case-sensitivity build hatası, `/admin` koruması, sahte admin istatistikleri, render-body'de `navigate()` çağrısı vb.) düzeltildi — tam liste `docs/SPRINT1_REVIEW.md`'de.
-> - 1.4.7 ve 1.4.9'daki iki açık boşluk (kilit-çakışma kontrolü, başarısızlıkta kilit serbest bırakma) Ömer tarafından kapatıldı, Berke'nin review'unda doğrulandı ✅.
+> - 1.4.7 ve 1.4.9'daki iki açık boşluk (kilit-çakışma kontrolü, başarısızlıkta kilit serbest bırakma) Ömer tarafından kapatıldı, Berke'nin review'unda doğrulandı [x].
 > - Bu revizyonda (Berke'nin Ömer işi üzerine review'u) bulunan 3 yeni bug (1.2.6/1.2.7/1.2.8) düzeltildi — bkz. §8.
 
 ---
@@ -91,9 +91,9 @@ Alptuğ'a yeni görev bu revizyonda **atanmadı** — bu tek taraflı bir karar 
 
 | Sprint | Ömer (Kimlik/Profil) | Kaan (Rezervasyon/Ödeme) | Alptuğ (Admin/Lokasyon) | Berke (Katalog/Sosyal) |
 |:---:|---|---|---|---|
-| **S1** ✅ | 1.2.3 Auth context + oturum | 1.4.3 Koltuk 4 durum state makinesi | 1.5.7 + **1.5.1–1.5.6, 1.5.8** (tüm modül, plan dışı hızlı bitirildi) | 1.3.1 Vizyonda/Yakında sekme |
-| **S2** ✅ | 1.2.1 Login / register sayfaları | 1.4.4 Sepet + bilet tipi seçimi | *(S1'de zaten bitmişti)* | 1.3.5 Otomatik kategorizasyon + arşiv |
-| **S3** 🔵 (yeni, konsolide) | ~~1.2.2, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.5.9, 1.2.6~~ ✅ **7/7 bitti (PR #16, Berke'nin review'unda 3 bug düzeltildi)** | ~~1.4.5, 1.4.8, 1.4.7, 1.4.9, 1.2.9~~ ✅ **5/5 bitti (Alptuğ + Ömer, `Alp` branch → main)** | *(kendi modülü + Kaan'ın 5 görevi de bitti)* | ~~1.3.6, 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, 1.2.10~~ ✅ **8/8 bitti — modül tamamen kapandı** |
+| **S1** [x] | 1.2.3 Auth context + oturum | 1.4.3 Koltuk 4 durum state makinesi | 1.5.7 + **1.5.1–1.5.6, 1.5.8** (tüm modül, plan dışı hızlı bitirildi) | 1.3.1 Vizyonda/Yakında sekme |
+| **S2** [x] | 1.2.1 Login / register sayfaları | 1.4.4 Sepet + bilet tipi seçimi | *(S1'de zaten bitmişti)* | 1.3.5 Otomatik kategorizasyon + arşiv |
+| **S3** [mavi] (yeni, konsolide) | ~~1.2.2, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.5.9, 1.2.6~~ [x] **7/7 bitti (PR #16, Berke'nin review'unda 3 bug düzeltildi)** | ~~1.4.5, 1.4.8, 1.4.7, 1.4.9, 1.2.9~~ [x] **5/5 bitti (Alptuğ + Ömer, `Alp` branch → main)** | *(kendi modülü + Kaan'ın 5 görevi de bitti)* | ~~1.3.6, 1.3.3, 1.3.4, 1.3.8, 1.3.9, 1.3.10, 1.3.11, 1.2.10~~ [x] **8/8 bitti — modül tamamen kapandı** |
 
 > Eski S3–S9 satırları bu revizyonla kaldırıldı; içerikleri (Kabul/Dosyalar/Bağımlılık) hiçbir bilgi kaybı olmadan aşağıdaki **§5 SPRINT 3** bölümünde, kişi bazlı ve bağımlılık sırasına göre korunuyor.
 
@@ -105,37 +105,37 @@ Her task için: **Sahip · REQ · Ne yapılacak · Kabul kriterleri · Dosyalar 
 
 ---
 
-### 🟩 SPRINT 1 — Çekirdek altyapı — ✅ TAMAMLANDI
+### [yesil] SPRINT 1 — Çekirdek altyapı — [x] TAMAMLANDI
 
-**1.2.3 Auth context ve oturum yönetimi** — *Ömer* · REQ-21 · ✅
+**1.2.3 Auth context ve oturum yönetimi** — *Ömer* · REQ-21 · [x]
 Mock kullanıcı dizisi üzerinden e-posta+şifre doğrulama, oturum (kullanıcı+rol) için `AuthContext` + `AuthProvider`, `useAuth` hook.
 - **Dosyalar:** `src/context/AuthContext.js`, `src/context/AuthProvider.jsx`, `src/hooks/useAuth.js`, `src/data/users.js`, `src/services/authService.js`, `src/components/layout/Layout.jsx`.
 
-**1.4.3 Koltuk state makinesi: 4 durum** — *Kaan* · REQ-01 · ✅
+**1.4.3 Koltuk state makinesi: 4 durum** — *Kaan* · REQ-01 · [x]
 BOS / SECILI / GECICI_KILITLI / DOLU state makinesi.
 - **Dosyalar:** `src/domain/seatStatus.js`, `src/services/seatService.js`, `src/components/seats/Seat.jsx`, `src/components/seats/SeatMap.jsx`, `src/pages/BookingPage.jsx`.
 
-**1.5.1–1.5.8 — Yönetici Paneli & Lokasyon (tüm modül)** — *Alptuğ* · REQ-04, REQ-06, REQ-07, REQ-07.1, REQ-20 · ✅
+**1.5.1–1.5.8 — Yönetici Paneli & Lokasyon (tüm modül)** — *Alptuğ* · REQ-04, REQ-06, REQ-07, REQ-07.1, REQ-20 · [x]
 Admin panel layout, film CRUD formu, form validasyon + silme onayı, istatistik hesaplama, rapor tablo+grafik (`recharts`), CSV export (`react-csv`), sinemalar sayfası + şehir dropdown, geolocation + Haversine mesafe + fallback — planda 8 sprinte yayılmıştı, Alptuğ tek commit'te bitirdi.
 - **Dosyalar:** `src/components/admin/AdminLayout.jsx`, `src/pages/admin/AdminMovieForm.jsx`, `src/pages/admin/AdminMoviesPage.jsx`, `src/pages/admin/AdminDashboard.jsx`, `src/pages/CinemasPage.jsx`, `src/services/movieService.js` (CRUD).
 
-**1.3.1 Vizyonda / Yakında sekme yapısı** — *Berke* · REQ-08 · ✅
+**1.3.1 Vizyonda / Yakında sekme yapısı** — *Berke* · REQ-08 · [x]
 Ana sayfada "Vizyonda" ve "Yakında" iki sekme; geçiş sayfa yenilenmeden.
 - **Dosyalar:** `src/pages/HomePage.jsx`, `src/data/movies.js`, `src/components/movies/MovieCard.jsx`, `src/services/movieService.js`.
 
 ---
 
-### 🟩 SPRINT 2 — Giriş, bilet tipi, kategorizasyon — ✅ TAMAMLANDI
+### [yesil] SPRINT 2 — Giriş, bilet tipi, kategorizasyon — [x] TAMAMLANDI
 
-**1.2.1 Login / register sayfaları** — *Ömer* · REQ-16, REQ-21 · ✅
+**1.2.1 Login / register sayfaları** — *Ömer* · REQ-16, REQ-21 · [x]
 Giriş ve kayıt formu ekranları + rotaları.
 - **Dosyalar:** `src/pages/LoginPage.jsx`, `src/pages/RegisterPage.jsx`, `src/App.jsx`, `authService.js`, `AuthProvider.jsx`, `users.js`.
 
-**1.4.4 Sepet yapısı + bilet tipi seçimi** — *Kaan* · REQ-02 · ✅
+**1.4.4 Sepet yapısı + bilet tipi seçimi** — *Kaan* · REQ-02 · [x]
 Her koltuğa bilet tipi (Yetişkin / Öğrenci / Çocuk) atama.
 - **Dosyalar:** `src/domain/ticketType.js`, `src/context/cartReducer.js`, `src/pages/CartPage.jsx`, `src/pages/BookingPage.jsx`.
 
-**1.3.5 Otomatik kategorizasyon ve arşiv** — *Berke* · REQ-05 · ✅
+**1.3.5 Otomatik kategorizasyon ve arşiv** — *Berke* · REQ-05 · [x]
 Vizyon süresi dolan filmleri ana sayfadan otomatik filtrele.
 - **Dosyalar:** `src/services/movieService.js`, `src/pages/HomePage.jsx`.
 
@@ -143,106 +143,106 @@ Vizyon süresi dolan filmleri ana sayfadan otomatik filtrele.
 
 ---
 
-### 🔵 SPRINT 3 — Konsolide backlog (eski S3–S9'un birleşimi)
+### [mavi] SPRINT 3 — Konsolide backlog (eski S3–S9'un birleşimi)
 
 > Aşağıdaki görevler artık ayrı sprintlere bölünmüyor — her kişi kendi listesini, belirtilen sıraya göre (bağımlılık zinciri korunarak) kendi hızında bitirir. Review, backlog bitince (ya da makul bir ara noktada) yapılır.
 
-#### 👤 Kaan — Rezervasyon & Ödeme (5 görev) — ✅ TAMAMLANDI (Alptuğ devraldı, Ömer tamamladı)
+#### Kaan — Rezervasyon & Ödeme (5 görev) — [x] TAMAMLANDI (Alptuğ devraldı, Ömer tamamladı)
 
 > Kaan'ın backlog'u, Alptuğ kendi modülünü bitirip boşta kaldığı için ekip kararıyla ona devredildi. `Alp` branch'inde tamamlandı, `main`'e mergelenirken çıkan 6 conflict çözüldü (case-sensitivity dahil). İlk review'da 1.4.7/1.4.9'da 2 gerçek boşluk bulunmuştu (kilit-çakışma kontrolü, başarısızlıkta kilit-serbest) — **bu ikisi de daha sonra Ömer tarafından kapatıldı** (kendi Sprint 3 çalışmasının bir parçası olarak) ve Berke'nin ikinci review'unda uçtan uca doğrulandı. **5/5 tamamen bitti.**
 
-**1. 1.4.5 Dinamik fiyat: çarpan + ara toplam** — REQ-02 · ✅
+**1. 1.4.5 Dinamik fiyat: çarpan + ara toplam** — REQ-02 · [x]
 `src/services/pricing.js` — `calcSubtotal(items) -> number`, çarpanlar (Yetişkin ×1.00 / Öğrenci ×0.75 / Çocuk ×0.60) REQ-02 ile birebir, `formatPrice` ile TR yerelinde 2 ondalık. Berke'nin 1.2.10'unun tam beklediği sözleşmeyle uyumlu doğrulandı.
 
-**2. 1.4.8 Ödeme simülasyon ekranı** — REQ-26 · ✅
+**2. 1.4.8 Ödeme simülasyon ekranı** — REQ-26 · [x]
 `/odeme` rotası, `PaymentPage.jsx` — kart formu, hiçbir veri saklanmıyor/gönderilmiyor, başarıda `reservationService.createReservation` ile `RES-#####` üretiyor (REQ-22, eski `CS-…` formatı düzeltildi).
 
-**3. 1.4.7 Geçici koltuk kilidi + 3 dk sayaç** — REQ-19 · ✅ **Tamamlandı (Ömer tarafından kapatıldı)**
+**3. 1.4.7 Geçici koltuk kilidi + 3 dk sayaç** — REQ-19 · [x] **Tamamlandı (Ömer tarafından kapatıldı)**
 Sayaç (`useCountdown`) ve `lockSeats`/`releaseLockedSeats` çağrıları çalışıyor, süre bitince sepet boşalıp koltuk ekranına dönüyor. **`SPRINT1_REVIEW.md` Y3'te uyarılan kilit-sahiplik/token kontrolü Ömer tarafından eklendi:** `seatService.js`'teki kilit deposu `{seatId: token}` map'ine dönüştürüldü; `PaymentPage.jsx` benzersiz bir `lockToken` üretip `lockSeats`/`releaseLockedSeats`'e ve (ödeme sırasında) `reservationService.createReservation` → `reserveAllSeats`'e geçiriyor. Berke'nin review'unda uçtan uca bağlı olduğu doğrulandı.
 
-**4. 1.4.9 Ödeme başarısızlık ekranı** — REQ-13 · ✅ **Tamamlandı (Ömer tarafından kapatıldı)**
+**4. 1.4.9 Ödeme başarısızlık ekranı** — REQ-13 · [x] **Tamamlandı (Ömer tarafından kapatıldı)**
 `PaymentErrorPage.jsx` var, test kartı (`0000` ile başlayan numara) başarısızlığı tetikliyor, "Tekrar Dene"/"Sepete Dön" çalışıyor. **Koltuk-serbest-bırakma sorunu Ömer tarafından düzeltildi:** gerçek bir `useRef` (`isNavigatingToNextStep`) ile, yalnızca `/success` veya `/odeme-hata`'ya geçişte kilitler kasten açılmıyor — spesifikasyonun istediği "başarısızlıkta koltuklar kilitli kalır" davranışı artık doğru. "Sepete Dön" aksiyonu kilitleri kasıtlı olarak açıyor.
 
-**5. 1.2.9 Ziyaretçi bilgi formu** — REQ-03 · ✅
+**5. 1.2.9 Ziyaretçi bilgi formu** — REQ-03 · [x]
 `PaymentPage.jsx` içinde `visitorForm` (Ad/Soyad/E-posta), sadece ziyaretçi/guest için gösteriliyor, `payload.visitorInfo` olarak rezervasyona işleniyor. Ad-Soyad için REQ-03'ün istediği 2–50 karakter aralık doğrulaması (`minLength`/`maxLength`) Ömer tarafından eklendi.
 
-> **🔍 Review sonucu (Berke, ikinci geçiş):** Fiyat yuvarlama/format doğru · ödeme verisi hiçbir yere yazılmıyor · rezervasyon no gerçekten `RES-#####` · **kilit-çakışma kontrolü (Y3) artık var ve uçtan uca bağlı** · **başarısızlıkta kilit artık korunuyor** · visitorInfo ad-soyad uzunluk doğrulaması eklendi. Kaan'ın backlog'u artık tamamen temiz.
+> ** Review sonucu (Berke, ikinci geçiş):** Fiyat yuvarlama/format doğru · ödeme verisi hiçbir yere yazılmıyor · rezervasyon no gerçekten `RES-#####` · **kilit-çakışma kontrolü (Y3) artık var ve uçtan uca bağlı** · **başarısızlıkta kilit artık korunuyor** · visitorInfo ad-soyad uzunluk doğrulaması eklendi. Kaan'ın backlog'u artık tamamen temiz.
 
-#### 👤 Ömer — Kimlik, Profil & Favoriler (7 görev) — ✅ TAMAMLANDI (PR #16)
+#### Ömer — Kimlik, Profil & Favoriler (7 görev) — [x] TAMAMLANDI (PR #16)
 
 > Tüm 7 görev main'e alındı. **Berke'nin sonraki review'unda 3 gerçek bug/eksik bulunup düzeltildi** (aşağıda ilgili görevlerin altında işaretli, tam anlatım `docs/omer_STATUS.md` ve `docs/WBS_GOREV_DAGILIMI.md` §5'te).
 
-**1. 1.2.2 Form doğrulama kuralları + regex** — REQ-16, REQ-17, Güvenlik 4.2 · ✅
+**1. 1.2.2 Form doğrulama kuralları + regex** — REQ-16, REQ-17, Güvenlik 4.2 · [x]
 `src/services/validation.js` — kullanıcı adı 5–12 (İngilizce harf/rakam), şifre 6–15 (harf+rakam+izinli özel karakter), ad-soyad 2–50, e-posta format. `LoginPage.jsx`/`RegisterPage.jsx`'e entegre edildi.
 
-**2. 1.2.4 ProtectedRoute + rol kontrolü** — REQ-21, Güvenlik 4.2 · ✅
+**2. 1.2.4 ProtectedRoute + rol kontrolü** — REQ-21, Güvenlik 4.2 · [x]
 Var olan `ProtectedRoute.jsx` genişletildi (`allowedRoles` prop'u zaten esnekti). `/profile` rotası `["member", "admin"]` ile korunuyor, `/admin` koruması bozulmadı (doğrulandı).
 
-**3. 1.2.5 Profil sayfası** — REQ-18 · ✅
+**3. 1.2.5 Profil sayfası** — REQ-18 · [x]
 `ProfilePage.jsx` — Ad/Soyad/Kullanıcı Adı/Telefon/Cinsiyet düzenlenebilir form, e-posta salt-okunur. Header'daki "Profilim" linki artık gerçek sayfaya bağlı.
 
-**4. 1.2.7 İzleme listesi ikonu + state** — REQ-24 · ✅ (Berke düzeltti)
+**4. 1.2.7 İzleme listesi ikonu + state** — REQ-24 · [x] (Berke düzeltti)
 `WatchlistProvider.jsx` + `MovieCard.jsx`/`MovieDetailsPage.jsx`'teki kalp ikonu. **Bulunan bug:** kullanıcı değişince (login/logout) `watchlist` state'i eski kullanıcının verisiyle kalıyordu — kod, gerçek bir `useRef()` yerine her render'da yeniden oluşan sahte bir ref kullanıyordu (koşul hiçbir zaman doğru olmuyordu, hem de `eslint react-hooks/refs` hatası veriyordu). React'in "render sırasında state ayarlama" resmi deseniyle düzeltildi. Pratik etkisi sınırlıydı (hiçbir tüketici ham `watchlist` state'ini okumuyordu, hepsi `isFavorite()`/`getFavoriteMovieIds()` ile localStorage'dan taze okuyordu) ama context'in kendi sözleşmesi bozuktu ve gelecekteki bir tüketici için tuzaktı.
 
-**5. 1.2.8 İzleme listem sekmesi + bildirim** — REQ-25 · ✅ (Berke tamamladı)
+**5. 1.2.8 İzleme listem sekmesi + bildirim** — REQ-25 · [x] (Berke tamamladı)
 `ProfilePage.jsx`'te "İzleme Listem" sekmesi (afiş, rozet sayacı, çıkar butonu) doğru çalışıyordu. **Bulunan eksik:** "Favori film vizyona girince girişte bildirim bandı" kısmı hiç kodlanmamıştı (sadece dosya başındaki yorumda vardı, WBS'te yanlışlıkla "bitti" işaretliydi). `HomePage.jsx`'e, izleme listesindeki son 7 gün içinde vizyona giren filmler için kapatılabilir bir bildirim bandı eklendi.
 
-**6. 1.5.9 Light / Dark mod** — REQ-23 · ✅
+**6. 1.5.9 Light / Dark mod** — REQ-23 · [x]
 `ThemeContext.js`/`ThemeProvider.jsx`/`useTheme.js` (3-dosya deseni Berke tarafından ayrıldı, aşağıya bkz.) + `index.css`'te `body[data-theme="light"]` token override'ları. Tüm ekranlar (admin hariç, bkz. §8) iki temada tutarlı.
 
-**7. 1.2.6 Bilet sekmeleri (Güncel / Geçmiş)** — REQ-18 · ✅ (Berke düzeltti)
+**7. 1.2.6 Bilet sekmeleri (Güncel / Geçmiş)** — REQ-18 · [x] (Berke düzeltti)
 `ProfilePage.jsx`. **Bulunan gerçek bug:** "Güncel"/"Geçmiş" ayrımı REQ-18'in istediği **gösterim saatine** göre değil, rezervasyonun `createdAt`'ine (satın alma zamanı) + sabit 3 saatlik bir pencereye göre yapılıyordu. Örnek hata: 2 hafta sonrası için bilet alıp birkaç saat sonra profiline bakan bir kullanıcı, bileti yanlışlıkla "Geçmiş" görürdü. `sessionService.js`'e Türkçe tarih metnini (`"13 Temmuz"` + `"13:30"`) gerçek `Date`'e çeviren `parseSessionDateTime`/`hasSessionPassed` eklendi; bir rezervasyondaki herhangi bir seans henüz geçmemişse "Güncel" sayılacak şekilde düzeltildi.
 
-> **🔍 Review sonucu (Berke):** Regex kuralları edge-case'lerle test edildi · `/admin` koruması bozulmamış · favori/izleme state'i artık kullanıcı değişiminde de doğru senkronize oluyor · tema geçişi admin panel **hariç** tüm ekranlarda tutarlı (admin.css'te 4 hardcoded renk var, düşük öncelik, bkz. §8) · **3 gerçek bug/eksik düzeltildi** (1.2.6, 1.2.7, 1.2.8) · ayrıca 8 lint hatası ve `ThemeContext`/`WatchlistContext`'in proje deseniyle (Context/Provider/hook 3 dosya) tutarlı hâle getirilmesi.
+> ** Review sonucu (Berke):** Regex kuralları edge-case'lerle test edildi · `/admin` koruması bozulmamış · favori/izleme state'i artık kullanıcı değişiminde de doğru senkronize oluyor · tema geçişi admin panel **hariç** tüm ekranlarda tutarlı (admin.css'te 4 hardcoded renk var, düşük öncelik, bkz. §8) · **3 gerçek bug/eksik düzeltildi** (1.2.6, 1.2.7, 1.2.8) · ayrıca 8 lint hatası ve `ThemeContext`/`WatchlistContext`'in proje deseniyle (Context/Provider/hook 3 dosya) tutarlı hâle getirilmesi.
 
-#### 👤 Berke — Katalog, Detay & Sosyal (8 görev) — ✅ TAMAMLANDI
+#### Berke — Katalog, Detay & Sosyal (8 görev) — [x] TAMAMLANDI
 
-**1. 1.3.6 Yakında 6 ay zaman kısıtı** — REQ-15 · ✅ **Tamamlandı**
+**1. 1.3.6 Yakında 6 ay zaman kısıtı** — REQ-15 · [x] **Tamamlandı**
 "Yakında" listesini bugünden itibaren en fazla 6 ay içinde vizyona girecek filmlerle sınırla.
 - **Kabul:** 6 aydan uzak filmler ana sayfada yok, sistemde/adminde kayıtlı.
 - **Dosyalar:** `src/services/movieService.js` (`isWithinComingSoonWindow`), `HomePage.jsx`.
-- **Bağımlılık:** 1.3.1 ✅, 1.3.5 ✅.
+- **Bağımlılık:** 1.3.1 [x], 1.3.5 [x].
 
-**8. 1.2.10 Kampanya + indirim motoru** — REQ-10 · ✅ **Tamamlandı (Alptuğ'un Kaan işiyle birlikte)**
+**8. 1.2.10 Kampanya + indirim motoru** — REQ-10 · [x] **Tamamlandı (Alptuğ'un Kaan işiyle birlikte)**
 Kaan'ın backlog'unu devralan Alptuğ, `campaignService.js`'i de aynı çalışmada yazmış: `getCampaignDiscount(subtotal, user)` — üye ise %10 indirim (sıralı/compounding uygulama), ziyaretçi/guest ise `discountAmount: 0`. `CartPage.jsx` ve `PaymentPage.jsx`'te `calcSubtotal`'ın üzerine uygulanıyor.
-- **Kabul:** Üyeye indirim yansır ✅ · ziyaretçiye yansımaz ✅ · sıralı uygulama ✅ (kabul kriterleriyle birebir doğrulandı).
+- **Kabul:** Üyeye indirim yansır [x] · ziyaretçiye yansımaz [x] · sıralı uygulama [x] (kabul kriterleriyle birebir doğrulandı).
 - **Dosyalar:** `src/services/campaignService.js`, `CartPage.jsx`, `PaymentPage.jsx`, `pricing.js`.
 - **Not:** Sıra numarası 8 olarak kaldı (orijinal bağımlılık zincirini yansıtmak için), ama fiilen 1.3.6 ile aynı anda "bitmiş" durumda — kalan sıralı iş artık 2. maddeden başlıyor.
 
-**2. 1.3.3 Sıralama modülü (tarih/puan)** — REQ-08.1 · ✅
+**2. 1.3.3 Sıralama modülü (tarih/puan)** — REQ-08.1 · [x]
 `movieService.sortMovies(movies, sortValue)` (date-desc/asc, rating-desc/asc) + `SortControl.jsx`. Varsayılan `date-desc`. `HomePage.jsx`'te aktif sekmenin filmlerine uygulanıyor.
 - **Dosyalar:** `src/services/movieService.js`, `src/components/movies/SortControl.jsx`, `HomePage.jsx`.
 - **Testler:** 5 birim testi (movieService), 2 entegrasyon testi (HomePage).
 
-**3. 1.3.4 Filtreleme modülü (tür/yaş)** — REQ-08.1 · ✅
+**3. 1.3.4 Filtreleme modülü (tür/yaş)** — REQ-08.1 · [x]
 `movieService.filterMovies` (tür + yaş sınırı) + `getAvailableGenres`/`getAvailableAgeRatings` + `FilterControl.jsx`. Sıralamayla birlikte çalışıyor; filtre sonucu boşsa "Seçtiğin filtrelere uyan film bulunamadı." mesajı (tabın kendisi boşsa farklı, orijinal mesaj korunuyor).
 - **Dosyalar:** `src/services/movieService.js`, `src/components/movies/FilterControl.jsx`, `HomePage.jsx`.
 - **Testler:** 6 birim testi, 2 entegrasyon testi.
 
-**4. 1.3.8 Fragman modalı + fallback** — REQ-09, REQ-09.1 · ✅
+**4. 1.3.8 Fragman modalı + fallback** — REQ-09, REQ-09.1 · [x]
 `TrailerModal.jsx` — YouTube iframe embed, Escape/backdrop/kapat butonuyla kapanır. `fragmanYoutubeId` yoksa "Fragman İzle" butonu pasif (`movies.js`'te 3 film kasıtlı olarak `null` bırakıldı, fallback'in gerçekten test edilebilmesi için). İframe hata verirse (`onError`) veya normal durumda, her zaman görünen "YouTube'da Aç" linki var — tarayıcıda iframe yükleme başarısızlığını güvenilir tespit etmenin bir yolu olmadığı için bu iki katmanlı fallback bilinçli bir tasarım kararı.
 - **Dosyalar:** `src/components/movies/TrailerModal.jsx`, `MovieDetailsPage.jsx`, `movies.js` (`fragmanYoutubeId` alanı eklendi).
 - **Testler:** 4 entegrasyon testi (buton pasif/aktif, modal aç/kapat, Escape).
 
-**5. 1.3.9 Puanlama 1-5 yıldız** — REQ-11 · ✅
+**5. 1.3.9 Puanlama 1-5 yıldız** — REQ-11 · [x]
 `ratingService.js` (localStorage'da kullanıcı başına 1 puan, seed ortalamasının üzerine ağırlıklı ekleniyor) + `RatingStars.jsx`. Yalnız üye puanlayabilir; sadece **vizyondaki** (yayınlanmış) filmlerde gösteriliyor — REQ-11'in "Vizyonda film detayında" ifadesine sadık kalındı, "Yakında" filmlerinde puanlama bölümü hiç render edilmiyor.
 - **Dosyalar:** `src/services/ratingService.js`, `src/components/movies/RatingStars.jsx`, `MovieDetailsPage.jsx`, `movies.js` (`rating` alanı eklendi).
 - **Testler:** 8 birim testi (ratingService), 2 entegrasyon testi.
 - **Self-review'da bulunan ve düzeltilen 2 sorun:** (1) Yıldızlar `role="radiogroup"` içindeydi ama `<button>` çocukları `role="radio"` değildi — geçersiz ARIA kombinasyonu, kaldırıldı. (2) Ziyaretçi için de hover önizlemesi (dolu yıldız efekti) çalışıyordu, tıklanamayacak bir etkileşim izlenimi veriyordu — `role === "member"` koşuluna bağlandı.
 
-**6. 1.3.10 Yorum formu + kısıtlar** — REQ-11.1 · ✅
+**6. 1.3.10 Yorum formu + kısıtlar** — REQ-11.1 · [x]
 `commentService.js` (10-500 karakter, yasaklı kelime listesi, localStorage) + `CommentForm.jsx`. Ziyaretçiye form yerine "Yorum yapmak için giriş yapın." mesajı — form hiç render edilmiyor (koşulla gizlemek değil, DOM'da hiç yok). Canlı karakter sayacı kırmızıya döner, gönder butonu kısıtlar sağlanmadan hiç etkinleşmez.
 - **Dosyalar:** `src/services/commentService.js`, `src/data/comments.js` (mock veri), `src/components/movies/CommentForm.jsx`, `src/services/errors.js` (`ValidationError`/`ForbiddenError` eklendi).
 - **Testler:** 12 birim testi (commentService).
 
-**7. 1.3.11 Yorum listeleme + sıralama** — REQ-11 · ✅
+**7. 1.3.11 Yorum listeleme + sıralama** — REQ-11 · [x]
 `CommentList.jsx` — mock (`seed-` önekli) + kullanıcı (`comment-` önekli) yorumları birlikte, tarihe göre yeniden eskiye sıralı. Yalnız kendi (`comment-` önekli, seed olmayan) yorumunu düzenleyebilir/silebilir — seed yorumlar kimseye ait olmadığı için (demo/geçmiş veri) düzenlenemez.
 - **Dosyalar:** `src/components/movies/CommentList.jsx`, `MovieDetailsPage.jsx`.
 - **Testler:** 6 entegrasyon testi (boş durum, seed listeleme, kısa yorum reddi, gönderim, kendi/başkasının yorumu ayrımı, silme).
 
-> **🔍 Review sonucu (backlog bitince):** Sıralama+filtre birlikte doğru çalışıyor (test edildi) · fragman fallback'i gerçekten test edildi (buton pasif + modal aç/kapat) · yorum kısıtları ziyaretçi/üye ayrımında sızıntı yok (form DOM'da hiç yok, servis katmanı da ayrıca doğruluyor) · **2 gerçek self-review bulgusu** (ARIA `radiogroup` hatası, ziyaretçi hover sızıntısı) düzeltildi · admin formundan eklenen filmlerde `rating`/`fragmanYoutubeId` alanları olmasa bile kod hiçbir yerde çökmüyor (`?? `/`?.` ile güvenli varsayılanlar, ayrıca doğrulandı).
+> ** Review sonucu (backlog bitince):** Sıralama+filtre birlikte doğru çalışıyor (test edildi) · fragman fallback'i gerçekten test edildi (buton pasif + modal aç/kapat) · yorum kısıtları ziyaretçi/üye ayrımında sızıntı yok (form DOM'da hiç yok, servis katmanı da ayrıca doğruluyor) · **2 gerçek self-review bulgusu** (ARIA `radiogroup` hatası, ziyaretçi hover sızıntısı) düzeltildi · admin formundan eklenen filmlerde `rating`/`fragmanYoutubeId` alanları olmasa bile kod hiçbir yerde çökmüyor (`?? `/`?.` ile güvenli varsayılanlar, ayrıca doğrulandı).
 
-#### 👤 Alptuğ — Entegrasyon & Destek
+#### Alptuğ — Entegrasyon & Destek
 
 Kendi modülünde kalan görev yok. Bu backlog boyunca:
 - Diğer üçünün PR'larına review desteği verebilir.
@@ -251,13 +251,13 @@ Kendi modülünde kalan görev yok. Bu backlog boyunca:
 
 ---
 
-### 🏁 Kapanış — Sprint 3 backlog'larının tamamı bitti, sıra bu aşamada
+### Kapanış — Sprint 3 backlog'larının tamamı bitti, sıra bu aşamada
 
 Eski planın Sprint 9'unda tarif edilen kapanış işi hâlâ geçerli — dört backlog'un tamamı bittiğine göre artık sıra bunda:
 
 **Entegrasyon & UAT (Kaan + Alptuğ + gerekirse tüm ekip):** Uçtan uca akış testi (film → koltuk → bilet tipi → ödeme → başarı → profil), admin ↔ satış istatistik tutarlılığı, kalan bug-fix, `docs/cineseat_projeanaliz` REQ listesine karşı final kontrol.
 
-> **🔍 Final code review:** Tam regresyon (`npm run test:run` + `npm run lint` + `npm run build`) · tüm REQ'ler karşılandı mı checklist · §8'deki teknik borcun tamamı kapandı mı.
+> ** Final code review:** Tam regresyon (`npm run test:run` + `npm run lint` + `npm run build`) · tüm REQ'ler karşılandı mı checklist · §8'deki teknik borcun tamamı kapandı mı.
 
 ---
 
@@ -269,28 +269,28 @@ Eski planın Sprint 9'unda tarif edilen kapanış işi hâlâ geçerli — dört
 
 ## 7. Bağımlılık Haritası (kritik zincirler — artık hepsi kapandı, tarihsel referans)
 
-- **Auth zinciri (Ömer):** 1.2.3 ✅ → 1.2.1 ✅ → 1.2.2 ✅ → 1.2.4 ✅ → (1.2.5 ✅ → 1.2.7 ✅ → 1.2.8 ✅) → 1.5.9 ✅ → 1.2.6 ✅ — **modül tamamen bitti.**
-- **Ödeme zinciri (Kaan):** 1.4.3 ✅ → 1.4.4 ✅ → 1.4.5 ✅ → 1.4.8 ✅ → 1.4.7 ✅ → 1.4.9 ✅ → 1.2.9 ✅ — **modül tamamen bitti, tüm boşluklar kapandı.**
-- **Admin (Alptuğ):** 1.5.1 → 1.5.2 → 1.5.3 → 1.5.4 → 1.5.5 → 1.5.6 — hepsi ✅.
-- **Katalog (Berke):** 1.3.1 ✅ → 1.3.5 ✅ → 1.3.6 ✅ → 1.3.3 ✅ → 1.3.4 ✅; sosyal 1.3.8 ✅ → 1.3.9 ✅ → 1.3.10 ✅ → 1.3.11 ✅; 1.2.10 ✅ — **modül tamamen bitti.**
-- **Kaan → Berke köprüsü:** ✅ **Kapandı.**
-- **Kaan → Ömer köprüsü:** ✅ **Kapandı.**
+- **Auth zinciri (Ömer):** 1.2.3 [x] → 1.2.1 [x] → 1.2.2 [x] → 1.2.4 [x] → (1.2.5 [x] → 1.2.7 [x] → 1.2.8 [x]) → 1.5.9 [x] → 1.2.6 [x] — **modül tamamen bitti.**
+- **Ödeme zinciri (Kaan):** 1.4.3 [x] → 1.4.4 [x] → 1.4.5 [x] → 1.4.8 [x] → 1.4.7 [x] → 1.4.9 [x] → 1.2.9 [x] — **modül tamamen bitti, tüm boşluklar kapandı.**
+- **Admin (Alptuğ):** 1.5.1 → 1.5.2 → 1.5.3 → 1.5.4 → 1.5.5 → 1.5.6 — hepsi [x].
+- **Katalog (Berke):** 1.3.1 [x] → 1.3.5 [x] → 1.3.6 [x] → 1.3.3 [x] → 1.3.4 [x]; sosyal 1.3.8 [x] → 1.3.9 [x] → 1.3.10 [x] → 1.3.11 [x]; 1.2.10 [x] — **modül tamamen bitti.**
+- **Kaan → Berke köprüsü:** [x] **Kapandı.**
+- **Kaan → Ömer köprüsü:** [x] **Kapandı.**
 
 ## 8. Teknik Borç (kapanana kadar takip edilir)
 
-- ✅ `seatService` güvensiz `JSON.parse` → Kaan tarafından 1.4.3'te düzeltildi.
-- ✅ Kök dizindeki gereksiz `tatus` dosyası → silindi.
-- ✅ Case-sensitivity build hatası, `/admin` koruması yokluğu, sahte admin istatistikleri → Sprint 1 review sonrası düzeltildi (`SPRINT1_REVIEW.md`).
-- ✅ `LoginPage`/`RegisterPage`'te render sırasında `navigate()` çağrısı (React Router anti-pattern) → Sprint 2 review sonrası `useEffect`'e taşınarak düzeltildi.
-- ✅ Rezervasyon no `CS-…` → `RES-#####` (REQ-22) → 1.4.8 kapsamında düzeltildi.
-- ✅ Rezervasyon atomikliği (çoklu seanslı sepette kısmi hata durumunda kısmi yazım) → **çözüldü**: `seatService.reserveAllSeats` artık önce tüm oturum/koltuk çiftlerini doğruluyor, sonra hepsini yazıyor.
-- ✅ **Koltuk kilidi (`GECICI_KILITLI`) sahiplik/token kontrolü** (`SPRINT1_REVIEW.md` Y3) → Ömer tarafından `lockToken` sistemiyle kapatıldı, Berke'nin review'unda uçtan uca bağlı olduğu doğrulandı.
-- ✅ **1.4.9'da ödeme başarısız olunca koltukların hemen serbest kalması** → Ömer tarafından `isNavigatingToNextStep` (gerçek `useRef`) ile düzeltildi, doğrulandı.
-- ✅ 1.2.9 ziyaretçi formunda Ad-Soyad 2–50 karakter doğrulaması → Ömer tarafından eklendi.
-- ✅ **`WatchlistContext.jsx`'teki geçersiz sahte-ref bug'ı** (kullanıcı değişince state senkronize olmuyordu) → Berke'nin review'unda bulundu, React'in resmi "render sırasında state ayarlama" deseniyle düzeltildi, regresyon testiyle kilitlendi.
-- ✅ **`ProfilePage.jsx`'te bilet sekmesi ayrımı REQ-18'i yanlış uyguluyordu** (satın alma zamanına bakıyordu, gösterim saatine değil) → Berke'nin review'unda bulundu, `sessionService.hasSessionPassed` eklenerek düzeltildi.
-- ✅ **1.2.8'in "bildirim bandı" kısmı hiç yazılmamıştı** (REQ-25) → Berke'nin review'unda bulundu, `HomePage.jsx`'e eklendi.
-- ✅ 8 lint hatası (kullanılmayan değişkenler, geçersiz ARIA, `react-hooks/refs`, `react-refresh/only-export-components`) → Berke tarafından düzeltildi; `ThemeContext`/`WatchlistContext` projenin `AuthContext.js`/`AuthProvider.jsx`/`useAuth.js` 3-dosya deseniyle tutarlı hâle getirildi.
-- ✅ Kök dizine yanlışlıkla commit edilmiş 4 adet `test_output*.txt` ve tekrar eden `docs/omer_status_2.md` → silindi.
-- ⬜ Admin panelinde (`admin.css`) 4 hardcoded hex renk tema tokenlarına bağlı değil → düşük öncelik, sahibi yok, görünürlüğü bozmuyor (sadece §3.5 kuralına küçük bir sapma).
-- ⬜ Sinema kartındaki "Seansları Gör" butonu işlevsiz (sinema↔seans veri ilişkisi hiç modellenmemiş) → sahibi yok, Alptuğ üstlenebilir (`SPRINT1_REVIEW.md` O1).
+- [x] `seatService` güvensiz `JSON.parse` → Kaan tarafından 1.4.3'te düzeltildi.
+- [x] Kök dizindeki gereksiz `tatus` dosyası → silindi.
+- [x] Case-sensitivity build hatası, `/admin` koruması yokluğu, sahte admin istatistikleri → Sprint 1 review sonrası düzeltildi (`SPRINT1_REVIEW.md`).
+- [x] `LoginPage`/`RegisterPage`'te render sırasında `navigate()` çağrısı (React Router anti-pattern) → Sprint 2 review sonrası `useEffect`'e taşınarak düzeltildi.
+- [x] Rezervasyon no `CS-…` → `RES-#####` (REQ-22) → 1.4.8 kapsamında düzeltildi.
+- [x] Rezervasyon atomikliği (çoklu seanslı sepette kısmi hata durumunda kısmi yazım) → **çözüldü**: `seatService.reserveAllSeats` artık önce tüm oturum/koltuk çiftlerini doğruluyor, sonra hepsini yazıyor.
+- [x] **Koltuk kilidi (`GECICI_KILITLI`) sahiplik/token kontrolü** (`SPRINT1_REVIEW.md` Y3) → Ömer tarafından `lockToken` sistemiyle kapatıldı, Berke'nin review'unda uçtan uca bağlı olduğu doğrulandı.
+- [x] **1.4.9'da ödeme başarısız olunca koltukların hemen serbest kalması** → Ömer tarafından `isNavigatingToNextStep` (gerçek `useRef`) ile düzeltildi, doğrulandı.
+- [x] 1.2.9 ziyaretçi formunda Ad-Soyad 2–50 karakter doğrulaması → Ömer tarafından eklendi.
+- [x] **`WatchlistContext.jsx`'teki geçersiz sahte-ref bug'ı** (kullanıcı değişince state senkronize olmuyordu) → Berke'nin review'unda bulundu, React'in resmi "render sırasında state ayarlama" deseniyle düzeltildi, regresyon testiyle kilitlendi.
+- [x] **`ProfilePage.jsx`'te bilet sekmesi ayrımı REQ-18'i yanlış uyguluyordu** (satın alma zamanına bakıyordu, gösterim saatine değil) → Berke'nin review'unda bulundu, `sessionService.hasSessionPassed` eklenerek düzeltildi.
+- [x] **1.2.8'in "bildirim bandı" kısmı hiç yazılmamıştı** (REQ-25) → Berke'nin review'unda bulundu, `HomePage.jsx`'e eklendi.
+- [x] 8 lint hatası (kullanılmayan değişkenler, geçersiz ARIA, `react-hooks/refs`, `react-refresh/only-export-components`) → Berke tarafından düzeltildi; `ThemeContext`/`WatchlistContext` projenin `AuthContext.js`/`AuthProvider.jsx`/`useAuth.js` 3-dosya deseniyle tutarlı hâle getirildi.
+- [x] Kök dizine yanlışlıkla commit edilmiş 4 adet `test_output*.txt` ve tekrar eden `docs/omer_status_2.md` → silindi.
+- [ ] Admin panelinde (`admin.css`) 4 hardcoded hex renk tema tokenlarına bağlı değil → düşük öncelik, sahibi yok, görünürlüğü bozmuyor (sadece §3.5 kuralına küçük bir sapma).
+- [ ] Sinema kartındaki "Seansları Gör" butonu işlevsiz (sinema↔seans veri ilişkisi hiç modellenmemiş) → sahibi yok, Alptuğ üstlenebilir (`SPRINT1_REVIEW.md` O1).

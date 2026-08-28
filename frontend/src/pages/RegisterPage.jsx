@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth.js";
 import { validateRegisterForm } from "../services/validation.js";
+import AuthAside from "../components/auth/AuthAside.jsx";
+
+import "./auth.css";
 
 /**
  * Sprint 2 / 1.2.1 — Kayıt sayfası (REQ-16, REQ-21)
@@ -112,8 +115,8 @@ function RegisterPage() {
   };
 
   return (
-    <section className="auth-section">
-      <div className="auth-card auth-card--wide">
+    <section className="auth-layout">
+      <div className="auth-panel auth-panel--wide">
         <div className="auth-header">
           <h1>Kayıt Ol</h1>
           <p>Yeni bir CineSeat hesabı oluşturun</p>
@@ -134,6 +137,7 @@ function RegisterPage() {
               </label>
               <input
                 id="reg-firstName"
+                className="input"
                 type="text"
                 name="firstName"
                 autoComplete="given-name"
@@ -153,6 +157,7 @@ function RegisterPage() {
               </label>
               <input
                 id="reg-lastName"
+                className="input"
                 type="text"
                 name="lastName"
                 autoComplete="family-name"
@@ -174,6 +179,7 @@ function RegisterPage() {
             </label>
             <input
               id="reg-email"
+              className="input"
               type="email"
               name="email"
               autoComplete="email"
@@ -194,6 +200,7 @@ function RegisterPage() {
             </label>
             <input
               id="reg-username"
+              className="input"
               type="text"
               name="username"
               autoComplete="username"
@@ -215,6 +222,7 @@ function RegisterPage() {
               </label>
               <input
                 id="reg-password"
+                className="input"
                 type="password"
                 name="password"
                 autoComplete="new-password"
@@ -234,6 +242,7 @@ function RegisterPage() {
               </label>
               <input
                 id="reg-passwordConfirm"
+                className="input"
                 type="password"
                 name="passwordConfirm"
                 autoComplete="new-password"
@@ -256,6 +265,7 @@ function RegisterPage() {
               <label htmlFor="reg-phone">Telefon</label>
               <input
                 id="reg-phone"
+                className="input"
                 type="tel"
                 name="phone"
                 autoComplete="tel"
@@ -270,6 +280,7 @@ function RegisterPage() {
               <label htmlFor="reg-gender">Cinsiyet</label>
               <select
                 id="reg-gender"
+                className="input"
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
@@ -285,7 +296,7 @@ function RegisterPage() {
 
           <button
             type="submit"
-            className="primary-button auth-submit"
+            className="btn btn--primary btn--lg auth-submit"
             disabled={isLoading}
           >
             {isLoading ? "Kayıt yapılıyor…" : "Kayıt Ol"}
@@ -303,6 +314,11 @@ function RegisterPage() {
           </Link>
         </p>
       </div>
+
+      <AuthAside
+        title="Bir hesap, bütün salonlar."
+        text="Kayıt ol; koltuğunu önceden seç, biletlerini hesabında sakla, kampanyalardan ilk sen yararlan."
+      />
     </section>
   );
 }

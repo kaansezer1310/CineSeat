@@ -106,9 +106,9 @@ listeleyen bir uç nokta gerekiyor. **Böyle bir uç yok.**
 `ReservationsController` şunları sunuyor:
 
 ```
-GET  /api/reservations/my         → yalnızca giriş yapanın kendi rezervasyonları
-GET  /api/reservations/{id}       → tek rezervasyon (sahiplik kontrollü)
-POST /api/reservations            → oluştur
+GET /api/reservations/my → yalnızca giriş yapanın kendi rezervasyonları
+GET /api/reservations/{id} → tek rezervasyon (sahiplik kontrollü)
+POST /api/reservations → oluştur
 POST /api/reservations/{id}/cancel → iptal
 ```
 
@@ -124,9 +124,9 @@ kullanan hiçbir uç nokta yok. Yani ihtiyaç öngörülmüş, karşılığı ya
 Yeni bir query + uç nokta:
 
 ```
-GET /api/reservations  →  [Authorize(Roles = "Admin")]
-                          sayfalama + tarih/film filtresi
-                          PagedResult<ReservationSummaryDto>
+GET /api/reservations → [Authorize(Roles = "Admin")]
+ sayfalama + tarih/film filtresi
+ PagedResult<ReservationSummaryDto>
 ```
 
 Dashboard'un ihtiyaç duyduğu asgari alanlar: film adı, seans tarihi, bilet
@@ -144,15 +144,15 @@ Backend'de **19 özellik modülü** var; admin panelinde **1 tanesinin** ekranı
 
 | Backend modülü | Admin ekranı |
 |---|---|
-| Movies | ✅ Liste + form |
-| Cinemas, Cities, Districts | ❌ Yok |
-| Halls, Seats, Technologies, HallTechs | ❌ Yok |
-| Showtimes | ❌ Yok |
-| Campaigns | ❌ Yok |
-| Genres, MovieGenres | ❌ Yok |
-| Comments *(moderasyon)* | ❌ Yok |
-| Reservations, Tickets | ❌ Yok |
-| Users, Auth | ❌ Yok |
+| Movies | [x] Liste + form |
+| Cinemas, Cities, Districts | [yok] Yok |
+| Halls, Seats, Technologies, HallTechs | [yok] Yok |
+| Showtimes | [yok] Yok |
+| Campaigns | [yok] Yok |
+| Genres, MovieGenres | [yok] Yok |
+| Comments *(moderasyon)* | [yok] Yok |
+| Reservations, Tickets | [yok] Yok |
+| Users, Auth | [yok] Yok |
 
 Yani bugün bir yönetici sinema ekleyemiyor, salon tanımlayamıyor, **seans
 açamıyor**, kampanya yönetemiyor. Backend bunların hepsini destekliyor.
@@ -193,7 +193,7 @@ tabloları, seed edilmiş 7 izin (`movie.manage`, `campaign.manage`,
 Ama **hiçbir yerde kullanılmıyor.** Controller'lar rol bazlı çalışıyor:
 
 ```csharp
-[Authorize(Roles = RoleNames.Admin)]   // kullanılan
+[Authorize(Roles = RoleNames.Admin)] // kullanılan
 // [Authorize(Policy = "movie.manage")] // kullanılmayan
 ```
 
@@ -204,10 +204,10 @@ Frontend de aynı şekilde yalnızca `role === "admin"` kontrolü yapıyor.
 altyapı olarak mı duracak?
 
 - **Alınacaksa:** backend'de policy tanımları, frontend'de menü öğelerinin
-  izne göre gizlenmesi gerekiyor. Örneğin yalnızca `campaign.manage` izni olan
-  bir editör rolü tanımlanabilir.
+ izne göre gizlenmesi gerekiyor. Örneğin yalnızca `campaign.manage` izni olan
+ bir editör rolü tanımlanabilir.
 - **Alınmayacaksa:** sorun yok, ama belgelerde "şu an kullanılmıyor" diye
-  belirtilmeli ki kod okuyan yanılmasın.
+ belirtilmeli ki kod okuyan yanılmasın.
 
 ### Tavsiyem
 Bu teslim için **rol bazlı yeterli.** İzin tablolarını kaldırmaya da gerek yok
@@ -251,10 +251,10 @@ yazması** — jüri bunu eksik değil, bilinçli kapsam kararı olarak görür.
 ### Durum
 Backend'de yumuşak silme (soft delete) altyapısı **yarım kurulmuş**:
 
-- ✅ `BaseEntity.IsDeleted` alanı var
-- ✅ `ApplicationDbContext` her sorguya otomatik `WHERE is_deleted = false` ekliyor
-- ❌ Ama kod tabanında `IsDeleted = true` atayan **tek bir satır bile yok**
-- ❌ `WriteRepository.Remove()` hâlâ gerçek `DELETE` üretiyor
+- [x] `BaseEntity.IsDeleted` alanı var
+- [x] `ApplicationDbContext` her sorguya otomatik `WHERE is_deleted = false` ekliyor
+- [yok] Ama kod tabanında `IsDeleted = true` atayan **tek bir satır bile yok**
+- [yok] `WriteRepository.Remove()` hâlâ gerçek `DELETE` üretiyor
 
 Yani okuma tarafı hazır, yazma tarafı bağlanmamış. Bugün admin panelinden bir
 film silindiğinde kayıt **kalıcı olarak** gidiyor.
@@ -286,7 +286,7 @@ uyumlu hâle getiriyor. Frontend'de buton "Arşivle" olur.
 Rota adları iki dil arasında gidip geliyor:
 
 ```
-Türkçe   → /odeme, /odeme-hata
+Türkçe → /odeme, /odeme-hata
 İngilizce → /booking, /cart, /success, /movies, /cinemas, /profile
 ```
 
@@ -311,8 +311,8 @@ Hangisi seçilirse seçilsin eski adreslerden yenisine yönlendirme bırakılmal
 Aynı sayfa iki farklı yoldan erişilebilir durumda:
 
 ```
-App.jsx:45      → <Route path="/cinemas" …>   ← menüde bağlantısı yok, ulaşılamıyor
-HomePage.jsx:13 → import CinemasPage           ← ana sayfada sekme olarak
+App.jsx:45 → <Route path="/cinemas" …> ← menüde bağlantısı yok, ulaşılamıyor
+HomePage.jsx:13 → import CinemasPage ← ana sayfada sekme olarak
 ```
 
 Sekmeye geçildiğinde adres değişmiyor: kullanıcı bağlantıyı paylaşamıyor,

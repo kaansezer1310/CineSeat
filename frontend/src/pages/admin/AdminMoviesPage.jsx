@@ -135,7 +135,7 @@ export default function AdminMoviesPage() {
   return (
     <div className="admin-movies-page">
       <PageHeader
-        title="🎬 Filmleri Yönet"
+        title="Filmleri Yönet"
         description={
           showArchived
             ? "Arşivlenmiş filmler. Kayıtlar silinmez; buradan geri alınabilir."
@@ -174,13 +174,11 @@ export default function AdminMoviesPage() {
         emptyState={
           showArchived ? (
             <EmptyState
-              icon="🗄️"
               title="Arşivde film yok"
               description="Arşivlediğiniz filmler burada listelenir."
             />
           ) : (
             <EmptyState
-              icon="🎬"
               title="Katalogda henüz film yok"
               description="İlk filmi ekleyerek vizyon listesini oluşturabilirsiniz."
               action={

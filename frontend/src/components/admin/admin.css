@@ -7,21 +7,27 @@
 
   /* Panel sayı ve kimlik dolu: rakamlar sabit genişlikte hizalanır. */
   font-variant-numeric: tabular-nums;
+
+  /* Yapışkan kenar çubuğunun üst çubuğun altından başlaması için gereken
+     yükseklik. Üst çubuk sarmalanabildiği (flex-wrap) için bu bir alt
+     sınır: içerik taşarsa çubuk büyür, kenar çubuğu bir miktar altta
+     kalır — yalnızca çok dar ekranlarda ve zararsız. */
+  --admin-topbar-height: 60px;
 }
 
 /* K3 - Ust cubuk: kullanici kimligi, siteye donus ve cikis. */
 .admin-topbar {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: var(--z-header);
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
   flex-wrap: wrap;
 
-  padding: 14px 24px;
+  padding: var(--space-3) var(--space-6);
 
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-surface);
@@ -29,15 +35,15 @@
 
 .admin-topbar-logo {
   color: var(--color-yellow-text);
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
   text-decoration: none;
 }
 
 .admin-topbar-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
@@ -47,14 +53,14 @@
   line-height: 1.25;
 
   color: var(--color-text);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
 }
 
 .admin-topbar-role {
   color: var(--color-text-muted);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
 }
 
 .admin-body {
@@ -63,27 +69,38 @@
   min-height: 0;
 }
 
+/* Kenar çubuğu (spec §8: "Sidebar yeniden düzenlenir").
+   Üst çubuk yapışkan olduğu için menü de onunla birlikte yerinde kalır ve
+   uzun listelerde KENDİ İÇİNDE kayar — önceden sayfayla birlikte kayıyor,
+   uzun bir tablonun altına inildiğinde menü tamamen ekrandan çıkıyordu. */
 .admin-sidebar {
-  width: 260px;
+  position: sticky;
+  top: var(--admin-topbar-height);
+  align-self: flex-start;
+
+  width: 240px;
+  max-height: calc(100vh - var(--admin-topbar-height));
+  overflow-y: auto;
   flex-shrink: 0;
+
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
-  padding: 24px 20px;
+  padding: var(--space-5) var(--space-4);
 }
 
 .admin-nav-section + .admin-nav-section {
-  margin-top: 26px;
+  margin-top: var(--space-5);
 }
 
 .admin-nav-section-title {
-  margin: 0 0 12px;
-  padding-bottom: 8px;
+  margin: 0 0 var(--space-2);
+  padding-bottom: var(--space-2);
 
-  border-bottom: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border);
 
   color: var(--color-text-muted);
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -94,17 +111,20 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .admin-nav-link {
   display: block;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
   color: var(--color-text-muted);
   text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .admin-nav-link:hover {
@@ -117,7 +137,7 @@
 .admin-nav-link-active {
   background-color: var(--color-surface-light);
   color: var(--color-yellow-text);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   box-shadow: inset 3px 0 0 var(--color-yellow);
 }
 
@@ -127,9 +147,14 @@
   outline-offset: 2px;
 }
 
+/* Yoğunluk profili (spec §8): panel, müşteri sitesiyle AYNI token'ları
+   kullanır ama ölçeğin daha sıkı basamaklarını seçer. Müşteri sayfaları
+   içerik dolgusu için `--space-10` kullanırken panel `--space-8`
+   kullanıyor: yönetim ekranlarında bir bakışta daha çok satır görmek,
+   ferahlıktan daha değerli. */
 .admin-content {
   flex: 1;
-  padding: 40px;
+  padding: var(--space-8);
   overflow-y: auto;
 }
 
@@ -138,11 +163,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: var(--space-8);
 }
 
 .admin-header h1 {
-  font-size: 2rem;
+  font-size: var(--text-2xl);
   margin: 0;
 }
 
@@ -151,13 +176,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   border: none;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all var(--duration-base) var(--ease-out);
 }
 
 .admin-btn-primary {
@@ -171,7 +196,7 @@
 
 .admin-btn-export {
   background-color: var(--color-purple);
-  color: white;
+  color: var(--color-on-primary);
 }
 
 .admin-btn-export:hover {
@@ -179,23 +204,23 @@
 }
 
 .admin-btn-edit {
-  background-color: #2b6cb0;
-  color: white;
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  margin-right: 8px;
+  background-color: var(--color-purple);
+  color: var(--color-on-primary);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  margin-right: var(--space-2);
 }
 
 .admin-btn-delete {
-  background-color: #e53e3e;
-  color: white;
-  padding: 6px 12px;
-  font-size: 0.85rem;
+  background-color: var(--color-error);
+  color: var(--color-on-primary);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
 }
 
 .admin-btn-save {
   background-color: var(--color-success);
-  color: #111;
+  color: var(--color-on-primary);
 }
 
 .admin-btn-cancel {
@@ -204,46 +229,107 @@
   border: 1px solid var(--color-border);
 }
 
-/* Dashboard Kartları */
+/* Dashboard Kartları
+
+   Spec §8: "StatCard'lar grafiklerle hizalanır". Önceden iki ızgara ayrı
+   ritimdeydi — kartlar minmax(250px) / gap 24px, grafikler minmax(320px)
+   / gap 20px — ve kart sütunları grafik sütunlarının üstüne düşmüyordu.
+   İkisi de artık aynı taban genişliği ve aynı boşluğu paylaşıyor; kartlar
+   grafiklerin tam üstünde hizalanıyor. Değerler `--admin-*` üzerinden
+   tanımlı ki gelecekte tek yerden değişsin. */
+.admin-layout {
+  --admin-grid-min: 320px;
+  --admin-grid-gap: var(--space-5);
+}
+
 .admin-stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
+  grid-template-columns:
+    repeat(auto-fit, minmax(var(--admin-grid-min), 1fr));
+  gap: var(--admin-grid-gap);
+  margin-bottom: var(--space-8);
 }
 
 .admin-stat-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
   text-align: center;
 }
 
 .admin-stat-card h3 {
   color: var(--color-text-muted);
-  font-size: 1.1rem;
-  margin: 0 0 10px 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-2) 0;
 }
 
 .admin-stat-card p {
-  color: var(--color-yellow-text);
-  font-size: 2.2rem;
-  font-weight: 700;
+  color: var(--color-text);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-black);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
-.admin-chart-container {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 30px;
-  margin-top: 40px;
+/* Iki kucuk grafik yan yana. Tek buyuk grafik yerine kucuk katlar: bilet
+   adedi ile gelir ayri olcekler, ayni eksende karsilastirilamaz. */
+.admin-chart-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(var(--admin-grid-min), 1fr));
+  gap: var(--admin-grid-gap);
+
+  margin-top: var(--space-8);
 }
 
-.admin-chart-container h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
+.admin-chart-card {
+  min-width: 0;
+  padding: var(--space-5);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background-color: var(--color-surface);
+}
+
+.admin-chart-title {
+  margin: 0 0 var(--space-4);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-chart-empty {
+  margin: 0;
+  padding: var(--space-8) 0;
+
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Cubuk renkleri CSS'ten geliyor: recharts fill'i oznitelik olarak yaziyor,
+   oznitelikte var() cozulmuyor. CSS fill ozelligi onu geciyor ve tema
+   degisince renk de degisiyor. */
+.chart-bar-1 path {
+  fill: var(--chart-series-1);
+}
+
+.chart-bar-2 path {
+  fill: var(--chart-series-2);
+}
+
+/* Izgara geri planda: veri onde olmali. */
+.chart-grid line {
+  stroke: var(--color-border);
 }
 
 /* Tablolar */
@@ -251,13 +337,17 @@
   width: 100%;
   border-collapse: collapse;
   background-color: var(--color-surface);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--color-border);
 }
 
-.admin-table th, .admin-table td {
-  padding: 16px;
+/* Sıkı satır (spec §8: "tablolar sıkı"): dikey dolgu yatayın bir basamak
+   altında. Müşteri sitesindeki DataTable 14px/16px kullanıyor; panelde
+   ekrana sığan satır sayısı okunabilirlikten daha belirleyici. */
+.admin-table th,
+.admin-table td {
+  padding: var(--space-3) var(--space-4);
   text-align: left;
   border-bottom: 1px solid var(--color-border);
 }
@@ -265,7 +355,16 @@
 .admin-table th {
   background-color: var(--color-surface-light);
   color: var(--color-text-muted);
-  font-weight: 600;
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  /* Uzun tablolarda başlık satırı görünür kalsın. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .admin-table tr:last-child td {
@@ -276,39 +375,39 @@
   width: 40px;
   height: 60px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 /* Formlar */
 .admin-form {
   max-width: 600px;
   background-color: var(--color-surface);
-  padding: 30px;
-  border-radius: 12px;
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   color: var(--color-text-muted);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 12px;
+  padding: var(--space-3);
   border: 1px solid var(--color-border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background-color: var(--color-background);
   color: var(--color-text);
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 .form-group input:focus,
@@ -328,9 +427,9 @@
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
-  margin-top: 30px;
-  padding-top: 20px;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
   border-top: 1px solid var(--color-border);
 }
 
@@ -355,14 +454,14 @@
 .admin-table-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 
   white-space: nowrap;
 }
 
 .admin-empty-text {
-  margin: 0 0 20px;
+  margin: 0 0 var(--space-5);
 
   color: var(--color-text-muted);
 }
@@ -377,7 +476,7 @@
 
   .admin-sidebar {
     width: 100%;
-    padding: 16px;
+    padding: var(--space-4);
 
     border-right: none;
     border-bottom: 1px solid var(--color-border);
@@ -385,7 +484,7 @@
 
   .admin-sidebar nav {
     display: flex;
-    gap: 24px;
+    gap: var(--space-6);
     flex-wrap: wrap;
   }
 
@@ -399,7 +498,7 @@
   }
 
   .admin-nav-link {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
   }
 
   .admin-nav-link-active {
@@ -407,22 +506,22 @@
   }
 
   .admin-content {
-    padding: 24px 16px;
+    padding: var(--space-6) var(--space-4);
   }
 
   .admin-header {
     align-items: flex-start;
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 28px;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
   }
 
   .admin-header h1 {
-    font-size: 1.5rem;
+    font-size: var(--text-xl);
   }
 
   .admin-form {
-    padding: 20px;
+    padding: var(--space-5);
   }
 
   .form-actions {
@@ -436,7 +535,7 @@
 
 @media (max-width: 650px) {
   .admin-topbar {
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
   }
 
   .admin-topbar-actions {
@@ -446,33 +545,36 @@
 
   .admin-stats-cards {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: var(--space-4);
   }
 
-  .admin-chart-container {
-    padding: 18px;
-    margin-top: 24px;
+  .admin-chart-card {
+    padding: var(--space-4);
+  }
+
+  .admin-chart-grid {
+    margin-top: var(--space-6);
   }
 }
 
 /* Ortak PageHeader panel içinde: müşteri sitesindekinden biraz daha sıkı. */
 .admin-content .page-header {
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 }
 
 .admin-content .page-header-title {
-  font-size: 1.75rem;
+  font-size: var(--text-2xl);
 }
 
 @media (max-width: 900px) {
   .admin-content .page-header {
     align-items: flex-start;
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
   }
 
   .admin-content .page-header-title {
-    font-size: 1.4rem;
+    font-size: var(--text-xl);
   }
 }
 
@@ -480,7 +582,7 @@
 .admin-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 20px;
+  gap: 0 var(--space-5);
 }
 
 .form-group--wide {
@@ -489,10 +591,10 @@
 
 .form-group small {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--space-2);
 
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
 }
 
 @media (max-width: 900px) {
@@ -514,8 +616,11 @@
 /* İki bağlı liste yan yana (şehir → ilçe gibi). */
 .admin-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 28px;
+
+  /* Esit genislik: paneller ayni duzeyde iki kart gibi okunmali. Onceden
+     sagdaki %20 genisti ve ikisi birbirine denk gorunmuyordu. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
 
   align-items: start;
 }
@@ -528,19 +633,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 
-  margin-bottom: 14px;
+  /* Panellerden yalnizca birinde buton var (ve o da secime bagli olarak
+     beliriyor). Sabit yukseklik olmadan iki panelin tablosu birbirinden
+     farkli hizada basliyordu. */
+  min-height: 40px;
+
+  margin-bottom: var(--space-3);
 }
 
 .admin-split-title {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-3);
 
   color: var(--color-text-muted);
 
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -569,7 +679,7 @@
 
 .admin-link-button-active {
   color: var(--color-yellow-text);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 
 .admin-link-button:focus-visible {
@@ -586,36 +696,36 @@
 }
 
 .dialog-form-fields {
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 
 .dialog-form-error {
-  margin: 4px 0 0;
+  margin: var(--space-1) 0 0;
 
   color: var(--color-error-text);
 
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
 }
 
 .form-field-error {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--space-2);
 
   color: var(--color-error-text);
 
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
 }
 
 .admin-form-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 16px;
+  gap: 0 var(--space-4);
 }
 
 @media (max-width: 900px) {
   .admin-split {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: var(--space-8);
   }
 
   .admin-form-row {
@@ -629,75 +739,75 @@
 .admin-filter-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 
-  margin-bottom: 24px;
-  padding: 16px 20px;
+  margin-bottom: var(--space-6);
+  padding: var(--space-4) var(--space-5);
 
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 
   background: var(--color-surface);
 }
 
 .admin-filter-bar label {
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .admin-filter-bar select,
 .admin-filter-bar input {
   min-width: 200px;
-  padding: 10px 12px;
+  padding: var(--space-2) var(--space-3);
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 
   background: var(--color-background);
   color: var(--color-text);
 
-  font-size: 0.95rem;
+  font-size: var(--text-base);
 }
 
 .admin-hall-detail {
-  margin-top: 36px;
-  padding-top: 28px;
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
 
   border-top: 1px solid var(--color-border);
 }
 
 /* --- Teknoloji rozetleri --- */
 .hall-tech-title {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 
   color: var(--color-text-muted);
 
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .hall-tech-chips {
   display: flex;
-  gap: 10px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 
-  margin-bottom: 26px;
+  margin-bottom: var(--space-6);
 }
 
 .tech-chip {
-  padding: 7px 15px;
+  padding: var(--space-2) var(--space-4);
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 
   background: transparent;
   color: var(--color-text-muted);
 
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
 
   transition: background 150ms ease, color 150ms ease;
@@ -722,21 +832,25 @@
 
 /* --- Koltuk ızgarası düzenleyici --- */
 .seat-editor-hint {
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
 
   color: var(--color-text-muted);
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
 }
 
 .seat-editor-grid {
   display: grid;
   grid-template-columns: repeat(var(--seat-columns), minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--space-2);
 
   width: min(100%, 720px);
-  margin-bottom: 22px;
+  margin-bottom: var(--space-5);
 }
 
+/* Koltuk ızgarası bilinçli olarak ölçek DIŞI: bunlar minyatür koltuk
+   simgeleri, metin değil. Yarıçap (üstü daha yuvarlak, altı daha az) bir
+   koltuk siluetini taklit ediyor; `--text-xs` (0.75rem) ise bu boyuttaki
+   bir kareye sığmıyor. Token ölçeği burada uygulanmaz. */
 .seat-editor-seat {
   grid-row: var(--seat-row);
   grid-column: var(--seat-column);
@@ -746,16 +860,16 @@
   padding: 0;
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 4px 4px 7px 7px;
+  border-radius: var(--radius-sm) var(--radius-sm) 7px 7px;
 
   background: var(--color-surface-light);
   color: var(--color-text-muted);
 
   font-size: 0.62rem;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
 
-  transition: transform 120ms ease;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .seat-editor-seat:hover {
@@ -797,18 +911,18 @@
 .seat-editor-grid-form {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 
 .seat-editor-grid-form input {
   width: 90px;
-  padding: 9px 11px;
+  padding: var(--space-2) var(--space-3);
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 
   background: var(--color-background);
   color: var(--color-text);
@@ -816,35 +930,35 @@
 
 .seat-editor-grid-form label {
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .seat-editor-panel {
-  padding: 18px 20px;
+  padding: var(--space-4) var(--space-5);
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 
   background: var(--color-surface);
 }
 
 .seat-editor-panel h4 {
-  margin: 0 0 14px;
-  font-size: 1rem;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-base);
 }
 
 .seat-editor-panel-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
 .seat-editor-panel-controls select {
-  padding: 9px 12px;
+  padding: var(--space-2) var(--space-3);
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 
   background: var(--color-background);
   color: var(--color-text);
@@ -852,7 +966,7 @@
 
 @media (max-width: 650px) {
   .seat-editor-grid {
-    gap: 4px;
+    gap: var(--space-1);
   }
 
   .seat-editor-seat {
@@ -863,15 +977,15 @@
 /* --- Durum rozeti ve onay kutusu --- */
 .status-badge {
   display: inline-block;
-  padding: 4px 11px;
+  padding: var(--space-1) var(--space-3);
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 
   color: var(--color-text-muted);
 
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
 }
 
 .status-badge-on {
@@ -882,12 +996,12 @@
 .admin-checkbox {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
 
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 
   color: var(--color-text);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   cursor: pointer;
 }
 
@@ -918,15 +1032,15 @@
 
 /* Tablo içindeki küçük seçim kutusu (rol değiştirme). */
 .admin-inline-select {
-  padding: 6px 10px;
+  padding: var(--space-2) var(--space-2);
 
   border: 1px solid var(--color-border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 
   background: var(--color-background);
   color: var(--color-text);
 
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .admin-inline-select:focus-visible {

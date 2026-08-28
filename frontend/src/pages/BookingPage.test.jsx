@@ -465,8 +465,9 @@ describe("BookingPage", () => {
       { target: { value: TICKET_TYPE.CHILD } }
     );
 
+    // Cocuk carpani 0.50 (backend ile ayni): 220 * 0.50 = 110
     expect(
-      within(summary).getByText("132,00 TL")
+      within(summary).getByText("110,00 TL")
     ).toBeInTheDocument();
   });
 
